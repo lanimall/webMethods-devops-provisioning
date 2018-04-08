@@ -1,0 +1,6 @@
+[submodule "tests/antcc"]
+	path = tests/antcc
+	url = git@github.com:lanimall/sagdevops-antcc.git
+[submodule "sag_bpms/provisioning/fromCompositeTemplates/antcc"]
+	path = sag_bpms/provisioning/fromCompositeTemplates/antcc
+	url = git@github.com:lanimall/sagdevops-antcc.git

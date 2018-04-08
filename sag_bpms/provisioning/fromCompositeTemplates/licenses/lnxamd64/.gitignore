@@ -1,0 +1,5 @@
+# Ignore everything
+../lnxamd64/0000337264_UniversalMessaging_FullyFeatured100.xml
+
+# But not these files...
+!.gitkeep

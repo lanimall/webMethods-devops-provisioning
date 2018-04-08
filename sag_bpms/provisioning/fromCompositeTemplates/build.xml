@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+<project name="main" xmlns="antlib:org.apache.tools.ant" basedir="." default="apply" xmlns:if="ant:if" xmlns:unless="ant:unless">
+    <import file="antcc/main.xml" />
+
+    <!-- standard header start -->
+    <dirname file="${ant.file.main}" property="project.dir" />
+    <!--<property name="build.dir" location="${project.dir}/build" />-->
+    <property name="install.dir" location="/opt/softwareag" />
+
+    <property environment="env" />
+
+    <!--<property name="apply.params" location="environment.type=server" />-->
+
+    <target name="_localinit" depends="_copyDefaultEnvToRuntimeEnv, sagenvInit, _setenvproperties">
+    </target>
+
+    <target name="_copyDefaultEnvToRuntimeEnv">
+        <property id="sagenv.base.env" name="base.env" value="${env.CC_BASE_ENV}" if:set="env.CC_BASE_ENV" />
+        <property name="base.env" value="default" />
+
+        <condition property="default.base.env.properties" value="environments/${base.env}/env.properties">
+            <available file="environments/${base.env}/env.properties"/>
+        </condition>
+        <condition property="default.base.env.properties" value="environments/${base.env}.properties">
+            <available file="environments/${base.env}.properties"/>
+        </condition>
+        <condition property="default.base.env.properties.exists" >
+            <available file="${default.base.env.properties}"/>
+        </condition>
+
+        <!-- force env file to be "runtime" as it is the file that should be used by the template apply command -->
+        <property name="env" value="runtime-${base.env}" />
+
+        <copy file="${default.base.env.properties}" tofile="environments/runtime-${base.env}.properties" overwrite="true" if:set="default.base.env.properties.exists"/>
+    </target>
+
+    <target name="setup" depends="waitcc,waitForTargetNodeUp,templateApply" />
+
+    <target name="setup_withccestart" depends="startcc,setup" />
+
+    <target name="waitForTargetNodeUp" description="Wait for target node up" depends="_localinit">
+        <property id="cc.spm.host" name="cc.spm.host" value="${env.CC_SPM_HOST}" if:set="env.CC_SPM_HOST" />
+        <property id="cc.spm.port" name="cc.spm.port" value="${env.CC_SPM_PORT}" if:set="env.CC_SPM_PORT" />
+
+        <waitfor maxwait="120" maxwaitunit="second" checkevery="1" checkeveryunit="second">
+            <socket server="${cc.spm.host}" port="${cc.spm.port}"/>
+        </waitfor>
+    </target>
+
+    <target name="templateApply" description="Apply $CC_TEMPLATE" depends="_localinit" >
+        <antcall target="sagenv.apply">
+            <param name="t" value="templates/${env.CC_TEMPLATE}"/>
+            <param name="env.properties" value="${env.properties}"/>
+        </antcall>
+    </target>
+
+    <target name="_setenvproperties" depends="sagenvInit">
+        <set-property-if-nonempty name="db.name" if-property-isset="env.db.name" />
+
+        <!-- saving to env file because there's no other way...we need to pass these values using that env file -->
+        <propertyfile file="${env.properties}">
+            <entry key="db.name" value="${db.name}" if:set="db.name" />
+        </propertyfile>
+
+        <property file="${env.properties}" />
+    </target>
+
+    <macrodef name="set-property-if-nonempty">
+        <attribute name="name" />
+        <attribute name="if-property-isset" />
+        <attribute name="value" default="${@{if-property-isset}}" />
+
+        <sequential>
+            <condition property="@{name}" value="@{value}">
+                <and>
+                    <isset property="@{if-property-isset}" />
+                    <not>
+                        <equals arg1="${@{if-property-isset}}" arg2="" />
+                    </not>
+                </and>
+            </condition>
+        </sequential>
+    </macrodef>
+</project>

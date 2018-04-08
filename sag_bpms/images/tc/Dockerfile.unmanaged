@@ -1,0 +1,34 @@
+# MUST start with builder image to run provisioning using template.yaml
+#FROM store/softwareag/commandcentral:10.1.0.1-builder as builder
+
+# Use instead the custom CCE-builder tht contains the repos and licenses
+FROM softwareag/custom/commandcentral/custom-empower:10.1.0.1-builder
+
+# ADOPTED from docker file created by UM install
+FROM centos:7
+
+MAINTAINER fabien.sanglier@softwareaggov.com
+
+ENV SAG_HOME=/opt/softwareag
+ENV JAVA_HOME $SAG_HOME/jvm/jvm/
+ENV JRE_HOME $SAG_HOME/jvm/jvm/jre/
+ENV ANT_HOME $SAG_HOME/common/lib/ant
+ENV EXIT_AFTER_COMMAND true
+
+# Set path to the main executable folder in the IS profile
+ENV PATH=/bin:/usr/bin:$JAVA_HOME/bin:$ANT_HOME/bin
+
+#copy specific files (for now, all, but soon chose only the ones needed)
+COPY --from=builder $SAG_HOME $SAG_HOME
+
+LABEL com.softwareag.product="wM Terracotta" \com.softwareag.product.version="10.1.0.0"
+
+#add entrypoint in the global bin
+COPY entrypoint.sh /usr/bin
+
+#create a workspace to build code, and map it to a volume
+RUN mkdir /workspace
+VOLUME /workspace
+WORKDIR /workspace
+
+ENTRYPOINT ["entrypoint.sh"]

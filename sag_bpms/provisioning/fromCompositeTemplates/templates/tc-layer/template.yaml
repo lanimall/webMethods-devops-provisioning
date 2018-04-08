@@ -1,0 +1,163 @@
+alias: tc-layer
+description: Terracotta Server or array layer
+version: 1.1
+changes:
+  - 1.0 Initial version provided with CC 9.8
+  - 1.1 License alias support; explicit hybrid mode; higher defaults for heap/offheap memory; mgmt port. SPM layer
+
+environments:
+  default:                                  # defaults
+    repo.product:        products
+    repo.fix:            fixes
+
+    # Remote system configuration
+    spm.port:       8092                    # SPM connection port
+    spm.secure:     false                   # Use HTTPS connection to SPM: true,false
+    spm.memory.max: 512                     # max mem
+    spm.configure:  [spm-tuneup]    
+    spm.fixes:      [wMFix.SPM]             # SPM/SUM/SD core fixes by default
+
+#    tc.license.key.alias: "Terracotta"               # REQUIRED
+
+    # Product specific
+    tc.host:     ${}                        # REQURIED tc installation host
+    tc.tsa.port: ${}
+    tc.jmx.port: ${}
+    tc.grp.port: ${}
+    tc.mgt.port: ${}
+    tc.memory.init:   2024
+    tc.memory.max:    2024
+    tc.storage.size:  50g
+    tc.offheap.size:  2g
+    tc.fixes:         [wMFix.TES]                   # List of fixes to install
+    tc.configure:     [tc-server]
+
+  dev:
+     tc.memory.init:   512
+     tc.memory.max:    512
+     tc.storage.size:  2g
+     tc.offheap.size:  1g
+
+  server:
+
+  cluster:
+    tc.host2: ${}                           # REQURIED tc installation host2
+    tc.configure: [tc-server,tc-cluster]
+
+layers:
+  default:
+    productRepo: ${repo.product}
+    fixRepo:     ${repo.fix}
+
+  spm:
+    description: Management layer of SPM's
+    templates:   ${spm.configure}
+
+  tc:
+    description: Cache Layer based on Terracotta Server
+    templates:   ${tc.configure}
+
+templates:
+  spm-tuneup:
+    description: SPM customizations
+    fixes: ${spm.fixes}
+    products:
+      # SUM: #no longer needed in 10.1
+      TESspm: # TES plugin
+
+  tc-server:
+#    licenses:
+#      "Terracotta/terracotta-license.key": ${tc.license.key.alias}
+    fixes: ${tc.fixes}
+    products:
+      TES:
+        default:
+          configuration:
+            TES-default:
+              COMMON-MEMORY:
+                COMMON-MEMORY:
+                  InitSize: ${tc.memory.init}
+                  MaxSize:  ${tc.memory.max}
+              TC-CONFIG:
+                TC-CONFIG: |
+                  <ns2:tc-config xmlns:ns2="http://www.terracotta.org/config">
+                    <servers>
+                      <server name="${node.host}" host="${node.host}" >
+                        <data>../data</data>
+                        <logs>../logs</logs>
+                        <index>../index</index>
+                        <tsa-port>${tc.tsa.port}</tsa-port>
+                        <jmx-port>${tc.jmx.port}</jmx-port>
+                        <tsa-group-port>${tc.grp.port}</tsa-group-port>
+                        <management-port>${tc.mgt.port}</management-port> 
+                        <dataStorage size="${tc.storage.size}"> 
+                           <offheap size="${tc.offheap.size}"/> 
+                           <hybrid/> 
+                        </dataStorage>
+                      </server>
+                    </servers>
+                  </ns2:tc-config>
+              TC-SERVER-NAME:
+                TC-SERVER-NAME:
+                  serverName: ${node.host}
+
+  tc-cluster:
+    products:
+      TES:
+        default:
+          configuration:
+            TES-default:
+              TC-CONFIG:
+                TC-CONFIG: |
+                  <ns2:tc-config xmlns:ns2="http://www.terracotta.org/config">
+                    <servers>
+                      <mirror-group group-name="stripe1">
+                          <server name="${tc.host}" host="${tc.host}" >
+                            <data>../data</data>
+                            <logs>../logs</logs>
+                            <index>../index</index>
+                            <tsa-port>${tc.tsa.port}</tsa-port>
+                            <jmx-port>${tc.jmx.port}</jmx-port>
+                            <tsa-group-port>${tc.grp.port}</tsa-group-port>
+                            <management-port>${tc.mgt.port}</management-port> 
+                            <dataStorage size="${tc.storage.size}"> 
+                               <offheap size="${tc.offheap.size}"/> 
+                               <hybrid/> 
+                            </dataStorage>
+                          </server>
+                          <server name="${tc.host2}" host="${tc.host2}" >
+                            <data>../data</data>
+                            <logs>../logs</logs>
+                            <index>../index</index>
+                            <tsa-port>${tc.tsa.port}</tsa-port>
+                            <jmx-port>${tc.jmx.port}</jmx-port>
+                            <tsa-group-port>${tc.grp.port}</tsa-group-port>
+                            <management-port>${tc.mgt.port}</management-port> 
+                            <dataStorage size="${tc.storage.size}"> 
+                               <offheap size="${tc.offheap.size}"/> 
+                               <hybrid/> 
+                            </dataStorage>
+                          </server>
+                      </mirror-group>
+                    </servers>
+                  </ns2:tc-config>
+     
+provision:
+  default:
+    spm:  ["${tc.host}"]
+    tc:   ["${tc.host}"]
+  dev:
+    spm:  ["${tc.host}"]
+    tc:   ["${tc.host}"]
+  server:
+    spm:  ["${tc.host}"]
+    tc:   ["${tc.host}"]
+  cluster:
+    spm:  ["${tc.host}", "${tc.host2}"]
+    tc:   ["${tc.host}", "${tc.host2}"]
+
+nodes:
+  default:
+    default:
+      port:   ${spm.port}
+      secure: ${spm.secure}

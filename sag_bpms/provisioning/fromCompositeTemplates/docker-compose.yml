@@ -1,0 +1,140 @@
+version: "3"
+
+networks:
+  sagdevops:
+
+services:
+  cce:
+    image: softwareag/commandcentral/custom/empower:10.1.0.1-server
+    networks:
+      - sagdevops
+    ports:
+      - "8090:8090"
+      - "8091:8091"
+
+  um1:
+    image: store/softwareag/commandcentral:10.1.0.1-node
+    hostname: um1
+    networks:
+      - sagdevops
+    volumes:
+      - ./licenses/lnxamd64/0000364696_UniversalMessaging_FullyFeatured100.xml:/opt/softwareag/UniversalMessaging/server/templates/licence.xml
+    ports:
+      - "9000:9000"
+      - "8092:8092"
+      - "8093:8093"
+    depends_on:
+      - cce
+
+  tc1:
+    image: store/softwareag/commandcentral:10.1.0.1-node
+    hostname: tc1
+    networks:
+      - sagdevops
+    volumes:
+      - ./licenses/lnxamd64/terracotta-license.key:/opt/softwareag/Terracotta/terracotta-license.key
+    expose:
+      - "9010"
+      - "9020"
+      - "9030"
+      - "9040"
+    depends_on:
+      - cce
+
+  wMIS_db:
+    image: softwareag/base-oracle-xe-11g
+    networks:
+      - sagdevops
+    expose:
+      - "22"
+      - "1521"
+    environment:
+      - ORACLE_ALLOW_REMOTE=true
+      - ORACLE_DISABLE_ASYNCH_IO=true
+      - ORACLE_ENABLE_XDB=false
+
+  wMBPMS_db:
+    image: softwareag/base-oracle-xe-11g
+    networks:
+      sagdevops:
+    expose:
+      - "22"
+      - "1521"
+    environment:
+      - ORACLE_ALLOW_REMOTE=true
+      - ORACLE_DISABLE_ASYNCH_IO=true
+      - ORACLE_ENABLE_XDB=false
+
+  setup_db_is:
+    image: softwareag/dbcreator
+    networks:
+      - sagdevops
+    environment:
+      - db.name=webm
+      - db.type=oracle
+      - db.host=wMIS_db
+      - db.port=1521
+      - db.tablespace.dir=/u01/app/oracle/oradata/XE
+      - db.admin.username=system
+      - db.admin.password=oracle
+      - db.username=webmis
+      - db.password=strong123!
+      - db.product.version=latest
+      - db.component.version=latest
+      - db.components=[STR]
+      - db.products=[IS]
+    depends_on:
+      - wMIS_db
+
+  setup_db_bpms:
+    image: softwareag/dbcreator
+    networks:
+      - sagdevops
+    environment:
+      - db.name=webm
+      - db.type=oracle
+      - db.host=wMBPMS_db
+      - db.port=1521
+      - db.tablespace.dir=/u01/app/oracle/oradata/XE
+      - db.admin.username=system
+      - db.admin.password=oracle
+      - db.username=webmbpms
+      - db.password=strong123!
+      - db.product.version=latest
+      - db.component.version=latest
+      - db.components=[STR]
+      - db.products=[IS,BPM,MWS]
+    depends_on:
+      - wMBPMS_db
+
+  setup_um:
+    image: softwareag/commandcentral/custom:10.1.0.1-cli
+    volumes:
+      - ./:/src
+    networks:
+      - sagdevops
+    environment:
+      - CC_CLIENT=docker
+      - CC_TEMPLATE=um-layer
+      - CC_BASE_ENV=um
+      - CC_SPM_HOST=um1
+      - CC_SPM_PORT=8092
+    command: sagccant setup
+    depends_on:
+      - cce
+
+  setup_tc:
+    image: softwareag/commandcentral/custom:10.1.0.1-cli
+    volumes:
+      - ./:/src
+    networks:
+      - sagdevops
+    environment:
+      - CC_CLIENT=docker
+      - CC_TEMPLATE=tc-layer
+      - CC_BASE_ENV=tc
+      - CC_SPM_HOST=tc1
+      - CC_SPM_PORT=8092
+    command: sagccant setup
+    depends_on:
+      - cce
