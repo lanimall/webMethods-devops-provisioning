@@ -42,7 +42,15 @@
         <property id="cc.spm.host" name="cc.spm.host" value="${env.CC_SPM_HOST}" if:set="env.CC_SPM_HOST" />
         <property id="cc.spm.port" name="cc.spm.port" value="${env.CC_SPM_PORT}" if:set="env.CC_SPM_PORT" />
 
-        <waitfor maxwait="120" maxwaitunit="second" checkevery="1" checkeveryunit="second">
+        <!-- check SSH -->
+        <echo>Checking connectivity to ${cc.spm.host}:22</echo>
+        <waitfor maxwait="600" maxwaitunit="second" checkevery="5" checkeveryunit="second">
+            <socket server="${cc.spm.host}" port="22"/>
+        </waitfor>
+
+        <!-- check SPM -->
+        <echo>Checking connectivity to ${cc.spm.host}:${cc.spm.port}</echo>
+        <waitfor maxwait="600" maxwaitunit="second" checkevery="5" checkeveryunit="second">
             <socket server="${cc.spm.host}" port="${cc.spm.port}"/>
         </waitfor>
     </target>
@@ -54,6 +62,32 @@
         </antcall>
     </target>
 
+    <target name="licenses" depends="waitcc,_localinit" description="Import licence keys">
+        <property file="${env.properties}" />
+
+        <property name="licenses.dir" value="licenses" unless:set="licenses.zip.url"/>
+        <property name="licenses.dir" value="build/licenses" if:set="licenses.zip.url"/>
+
+        <echo if:set="licenses.zip.url">Downloading license keys .zip from: ${licenses.zip.url}</echo>
+        <mkdir dir="build/downloads" />
+        <get src="${licenses.zip.url}" dest="build/downloads/licenses.zip" usetimestamp="true" if:set="licenses.zip.url" />
+        <unzip src="build/downloads/licenses.zip" dest="${licenses.dir}" if:set="licenses.zip.url" />
+
+        <cc command="list license-tools keys includeHeaders=false" format="csv" outputproperty="aliases" />
+
+        <iterate target="_import-license-files">
+            <fileset dir="${licenses.dir}/lnxamd64" includes="*.xml" />
+            <fileset dir="${licenses.dir}/w64" includes="*.xml" />
+            <fileset dir="${licenses.dir}/any" includes="*.xml" />
+            <fileset dir="${licenses.dir}/lnxamd64" includes="*.key" />
+            <fileset dir="${licenses.dir}/w64" includes="*.key" />
+            <fileset dir="${licenses.dir}/any" includes="*.key" />
+        </iterate>
+
+        <echo>Registered license keys</echo>
+        <cc command="list license-tools keys" format="tsv"/>
+    </target>
+
     <target name="_setenvproperties" depends="sagenvInit">
         <set-property-if-nonempty name="db.name" if-property-isset="env.db.name" />
 
@@ -63,6 +97,19 @@
         </propertyfile>
 
         <property file="${env.properties}" />
+    </target>
+
+    <target name="_import-license-files">
+        <property name="alias" value="${filename}-${dirname}"/>
+        <!-- chcek if we already have this license key -->
+        <contains list="${aliases}" item="${alias}" property="exists" />
+
+        <echo if:true="${exists}">${alias}: already present!</echo>
+
+        <sequential unless:true="${exists}">
+            <echo>${alias}: importing from ${dir}/${file}</echo>
+            <cc command="add license-tools keys ${alias}" input="${dir}/${file}" failonerror="false" />
+        </sequential>
     </target>
 
     <macrodef name="set-property-if-nonempty">
@@ -81,4 +128,61 @@
             </condition>
         </sequential>
     </macrodef>
+
+    <macrodef name="waitforjob" >
+        <attribute name="jobid" default="${jobid}"/>
+        <attribute name="wait" default="120" />
+        <sequential>
+            <cc command="list jobmanager jobs @{jobid} includeHeaders=false"
+                expectedvalues="DONE|ERROR|WARNING|TIMEOUT|CANCELED"
+                wait="@{wait}"
+                checkevery="20"
+                format="tsv" />
+            <antcall target="_jobresult"/>
+        </sequential>
+    </macrodef>
+
+    <scriptdef name="iterate" language="javascript" description="Calls target for each file in fileset">
+        <element name="fileset" type="fileset"/>
+        <attribute name="target" />
+        <![CDATA[
+            callee = project.createTask("antcall");
+            callee.setTaskName(attributes.get("target"));
+            callee.init();
+            callee.setTarget(attributes.get("target"));
+            callee.setInheritAll(true);
+            callee.setInheritRefs(false);
+            p1 = callee.createParam();
+            p1.setName("dir");
+            p2 = callee.createParam();
+            p2.setName("file");
+            p3 = callee.createParam();
+            p3.setName("filename");
+            p4 = callee.createParam();
+            p4.setName("dirname");
+
+          	filesets = elements.get("fileset");
+              for (i = 0; i < filesets.size(); ++i) {
+          	    fileset = filesets.get(i);
+          	    dir = fileset.getDir(project)
+          	    ds = fileset.getDirectoryScanner();
+          	    files = ds.getIncludedFiles();
+          	    for (n = 0; n < files.length; n++) {
+          	      f = files[n]
+                  p1.setValue(dir);
+                  p2.setValue(f);
+                  p3.setValue(f.substring(0, f.length() - 4)); // no .ext
+                  p4.setValue(dir.getName());
+          	      callee.execute();
+          	  }
+            }
+    ]]>
+    </scriptdef>
+
+    <scriptdef language="javascript" name="contains">
+        <attribute name="list" />
+        <attribute name="item" />
+        <attribute name="property" />
+        project.setProperty(attributes.get("property"), attributes.get("list").contains(attributes.get("item")));
+    </scriptdef>
 </project>
