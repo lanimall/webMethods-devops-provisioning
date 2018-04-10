@@ -3,12 +3,12 @@ version: "3"
 networks:
   sagdevops:
 
+volumes:
+  wmdb_is_oradata:
+
 services:
   wmis:
     image: registry.docker.tests:5000/softwareag/wmis_stateful:10.1
-    build:
-      context: ./is_statefull
-      dockerfile: Dockerfile
     hostname: wmis
     networks:
       - sagdevops
@@ -29,9 +29,11 @@ services:
       - tc
 
   wmdb_is:
-    image: softwareag/base-oracle-xe-11g
+    image: registry.docker.tests:5000/softwareag/base-oracle-xe-11g
     networks:
       - sagdevops
+    volumes:
+      - wmdb_is_oradata:/u01/app/oracle/oradata/XE
     expose:
       - "22"
       - "1521"
@@ -68,7 +70,7 @@ services:
       - "9040"
 
   setup_db_wmis:
-    image: softwareag/dbcreator
+    image: registry.docker.tests:5000/softwareag/dbcreator
     networks:
       - sagdevops
     environment:
