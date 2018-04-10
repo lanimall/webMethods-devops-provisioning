@@ -1,0 +1,89 @@
+version: "3"
+
+networks:
+  sagdevops:
+
+services:
+  wmis:
+    image: registry.docker.tests:5000/softwareag/wmis_stateful:10.1
+    build:
+      context: ./is_statefull
+      dockerfile: Dockerfile
+    hostname: wmis
+    networks:
+      - sagdevops
+    volumes:
+      - ./licenses/lnxamd64/Integration_Server.xml:/opt/softwareag/IntegrationServer/instances/default/config/licenseKey.xml
+      - ./licenses/lnxamd64/terracotta-license.key:/opt/softwareag/common/conf/terracotta-license.key
+    expose:
+      - "8092"
+      - "8093"
+      - "5555"
+      - "9999"
+      - "8094"
+    ports:
+      - "5555:5555"
+    depends_on:
+      - wmdb_is
+      - um
+      - tc
+
+  wmdb_is:
+    image: softwareag/base-oracle-xe-11g
+    networks:
+      - sagdevops
+    expose:
+      - "22"
+      - "1521"
+    environment:
+      - ORACLE_ALLOW_REMOTE=true
+      - ORACLE_DISABLE_ASYNCH_IO=true
+      - ORACLE_ENABLE_XDB=false
+
+  um:
+    image: registry.docker.tests:5000/softwareag/umserver:10.1
+    hostname: um
+    networks:
+      - sagdevops
+    volumes:
+      - ./licenses/lnxamd64/UniversalMessaging.xml:/opt/softwareag/UniversalMessaging/server/umserver/licence.xml
+    expose:
+      - "8092"
+      - "8093"
+      - "9000"
+    ports:
+      - "9000:9000"
+
+  tc:
+    image: registry.docker.tests:5000/softwareag/tcserver:10.1
+    hostname: tc
+    networks:
+      - sagdevops
+    volumes:
+      - ./licenses/lnxamd64/terracotta-license.key:/opt/softwareag/Terracotta/terracotta-license.key
+    expose:
+      - "9010"
+      - "9020"
+      - "9030"
+      - "9040"
+
+  setup_db_wmis:
+    image: softwareag/dbcreator
+    networks:
+      - sagdevops
+    environment:
+      - db.name=webm
+      - db.type=oracle
+      - db.host=wmdb_is
+      - db.port=1521
+      - db.tablespace.dir=/u01/app/oracle/oradata/XE
+      - db.admin.username=system
+      - db.admin.password=oracle
+      - db.username=wmdb_isuser
+      - db.password=strong123!
+      - db.product.version=latest
+      - db.component.version=latest
+      - db.components=[STR]
+      - db.products=[IS]
+    depends_on:
+      - wmdb_is

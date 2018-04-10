@@ -1,4 +1,4 @@
-alias: um-layer
+alias: um-layer-bak
 description: Universal Messaging single server or two instance cluster layer
 version: 1.2
 changes:
@@ -29,21 +29,22 @@ environments:
     spm.configure:  [spm-tuneup]
     spm.fixes:      [wMFix.SPM]             # SPM/SUM/SD core fixes by default
 
-    os.platform: "lnxamd64"                 # w64/lnxamd64/solamd64/sol/aix
-    um.license.key.alias: "UniversalMessaging-${os.platform}"
+    um.license.key.alias: ${}
 
     # UM Server Instance Configuration - use installer defaults
-    um.host:             um                # REQUIRED: First instance hostname
-    um.instance.port:    9000               # Primary port
-    um.memory.init:      128                # Initial memory size
-    um.memory.max:       256                # Maximum memory size
-    um.memory.direct:    100m                # Direct memory size
+    um.host:             ${}                # REQUIRED: First instance hostname
+    um.instance.port:    ${}               # Primary port
+    um.memory.init:      ${}                # Initial memory size
+    um.memory.max:       ${}                # Maximum memory size
+    um.memory.direct:    ${}                # Direct memory size
     um.fixes:            [wMFix.NUMRealmServer]                # No fixes by default
     um.configure:        [um-server]        # List of templates to apply to the first instance
 
+  server:
+
   cluster:                                  # Two-instance production cluster setup
     um.configure:  [um-server, um-cluster]  # Configure server and cluster
-    um.host2:      um2                      # REQUIRED: First instance hostname
+    um.host2:      ${}                      # REQUIRED: First instance hostname
     um.cluster:    cluster                  # Cluster name
     
 layers:
@@ -111,6 +112,12 @@ templates:
 
 provision:      
   default:
+    spm: ["${um.host}"]
+    um:  ["${um.host}"]
+  dev:                                      # single dev instance 
+    spm: ["${spm.alias}"]
+    um:  ["${spm.alias}"]
+  server:                                   # single remote instance
     spm: ["${um.host}"]
     um:  ["${um.host}"]
   cluster:                                  # two clustered remote instances

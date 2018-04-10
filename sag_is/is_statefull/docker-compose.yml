@@ -1,8 +1,8 @@
 version: "3.0"
 
 services:
-  msc:
-    image: softwareag/msc:10.1
+  wmis:
+    image: softwareag/wmis_stateful:10.1
     build:
       context: .
       dockerfile: Dockerfile
@@ -10,8 +10,8 @@ services:
       - "5555:5555"
       - "9999:9999"
 
-  msc_managed:
-    image: softwareag/msc_managed:10.1
+  wmis_managed:
+    image: softwareag/wmis_stateful_managed:10.1
     build:
       context: .    
       dockerfile: Dockerfile.managed
@@ -21,13 +21,13 @@ services:
       - "8092:8092"
       - "8093:8093"
     environment:
-      - CC_SERVER=cc
+      - CC_SERVER=cce
       - CC_AUTO_REGISTER=1
-    links:
-      - cc      
+    depends_on:
+      - cce
 
-  cc:
-    image: store/softwareag/commandcentral:10.1.0.1-server
+  cce:
+    image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-server
     ports:
       - "8090:8090"
       - "8091:8091"

@@ -1,4 +1,4 @@
-alias: bpms-layer
+alias: 9bpms
 description: BPMS environment with UM,TC,BPM,MWS layers/clusters
 version: 1.2
 changes:

@@ -1,9 +1,5 @@
-alias: is-layer
+alias: container
 description: Integration Server single instance or a layer
-version: 1.1
-changes:
-  - 1.0 Initial version shipped with 9.8
-  - 1.1 Added db schema management, alias keys support
 
 environments:
   default:
@@ -13,7 +9,7 @@ environments:
     spm.port:       8092                    # SPM connection port
     spm.secure:     false                   # Use HTTPS connection to SPM: true,false
     spm.memory.max: 512                     # max mem
-    spm.configure:  [spm-tuneup]    
+    spm.configure:  [spm-tuneup]
     spm.fixes:      [wMFix.SPM]             # SPM/SUM/SD core fixes by default
 
     # Integration Server Instance Configuration
@@ -21,7 +17,6 @@ environments:
     is.license.key.alias:  "Integration_Server-${os.platform}"
     tc.license.key.alias:  "terracotta-license-${os.platform}"
 
-    is.host:            wmis                 # REQUIRED: IS host
     is.instance.name:   default             # Instance name
     is.primary.port:    5555                # Primary port number
     is.diagnostic.port: 9999                # Dialgnostic port number
@@ -35,7 +30,7 @@ environments:
 
     is.cluster.enabled:  true
     is.cluster.name:     iscluster
-    is.tsa.url:          "tc:9010"
+    is.tsa.url:          "tc:9510"
 
     # Database connection
     db.type:             oracle             # REQUIRED: Database type: oracle,sqlserver,db2
@@ -51,7 +46,7 @@ layers:
   default:
     productRepo: ${repo.product}
     fixRepo:     ${repo.fix}
-  
+
   spm:
     description: Management layer of SPM's
     templates:   ${spm.configure}
@@ -68,23 +63,23 @@ templates:
       ISspm:
 
   is-server:
-    licenses:
-      "IntegrationServer/config/licenseKey.xml": ${is.license.key.alias} 
-      "common/conf/terracotta-license.key":      ${tc.license.key.alias} 
+#    licenses:
+#      "IntegrationServer/config/licenseKey.xml": ${is.license.key.alias}
+#      "common/conf/terracotta-license.key":      ${tc.license.key.alias}
     fixes: ${is.fixes}
     products:
       integrationServer:
-        ${is.instance.name}: 
+        ${is.instance.name}:
           primary.port:    ${is.primary.port}
           diagnostic.port: ${is.diagnostic.port}
           jmx.port:        ${is.jmx.port}
-          license.file:    IntegrationServer/config/licenseKey.xml
+#          license.file:    IntegrationServer/config/licenseKey.xml
           install.service: ${is.install.service}
           db.type:         ${db.type}
           db.url:          ${db.url}
           db.username:     ${db.username}
           db.password:     ${db.password}
-          db.alias: Default
+          db.alias:        Default
           configuration:
             OSGI-IS_${instance.name}:
               COMMON-MEMORY:
@@ -98,8 +93,8 @@ templates:
                   Enabled: true
                   Password: ${is.password}
                   ExtendedProperties:
-                    Property: 
-                      - 
+                    Property:
+                      -
                        "@name": "AllowDigestAuthentication"
                        $: false
               COMMON-CLUSTER:
@@ -107,18 +102,11 @@ templates:
                   Name: ${is.instance.name}-cluster
                   Enabled: ${is.cluster.enabled}
                   Servers:
-                    Server: 
-                      - 
-                        URL: ${is.tsa.url} 
+                    Server:
+                      -
+                        URL: ${is.tsa.url}
 
-# Provisioning
 provision:
   default:
-    spm: ["${is.host}"]
-    is:  ["${is.host}"]
-                  
-nodes:
-  default:
-    default:
-      port:   ${spm.port}
-      secure: ${spm.secure}
+    spm: local
+    is: local

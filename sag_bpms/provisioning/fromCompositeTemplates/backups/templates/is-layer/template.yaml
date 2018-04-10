@@ -17,11 +17,10 @@ environments:
     spm.fixes:      [wMFix.SPM]             # SPM/SUM/SD core fixes by default
 
     # Integration Server Instance Configuration
-    os.platform:           lnxamd64
-    is.license.key.alias:  "Integration_Server-${os.platform}"
-    tc.license.key.alias:  "terracotta-license-${os.platform}"
+    is.license.key.alias: "Integration_Server"       # REQUIRED
+    tc.license.key.alias: "Terracotta"               # REQUIRED
 
-    is.host:            wmis                 # REQUIRED: IS host
+    is.host:            ${}                 # REQUIRED: IS host
     is.instance.name:   default             # Instance name
     is.primary.port:    5555                # Primary port number
     is.diagnostic.port: 9999                # Dialgnostic port number
@@ -35,17 +34,27 @@ environments:
 
     is.cluster.enabled:  true
     is.cluster.name:     iscluster
-    is.tsa.url:          "tc:9010"
+    is.tsa.url:          "tc1:9010"
 
     # Database connection
     db.type:             oracle             # REQUIRED: Database type: oracle,sqlserver,db2
-    db.host:             wmdb_is            # REQUIRED: Database server hostname
+    db.host:             oracle             # REQUIRED: Database server hostname
     db.port:             1521               # REQUIRED: Database server port
     db.name:             webm
-    db.username:         wmdb_isuser        # Database username
+    db.username:         webmis             # Database username
     db.password:         strong123!         # Database password
     db.sid:              XE                 # Database name
     db.url:              "jdbc:wm:oracle://${db.host}:${db.port};SID=${db.sid}"
+
+  dev:                                      # local dev setup with derby db by default
+    is.memory.max: 256
+    
+  server:
+    
+  cluster:
+    is.hosts:      ["${is.host1}", "${is.host2}"]                      # REQUIRED list of all IS hosts
+    is.cluster.enabled: true
+    is.tsa.url:    "tc1:9010"
 
 layers:
   default:
@@ -116,6 +125,15 @@ provision:
   default:
     spm: ["${is.host}"]
     is:  ["${is.host}"]
+  dev:
+    spm: ["${spm.alias}"]
+    is:  ["${spm.alias}"]
+  server:
+    spm: ["${is.host}"]
+    is:  ["${is.host}"]
+  cluster:
+    spm: ${is.hosts}
+    is:  ${is.hosts}
                   
 nodes:
   default:

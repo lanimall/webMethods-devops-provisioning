@@ -1,8 +1,9 @@
-# MUST start with builder image to run provisioning using template.yaml
-FROM store/softwareag/commandcentral:10.1.0.1-builder as builder
+#FROM store/softwareag/commandcentral:10.1.0.1-builder as builder
+# Use instead the custom CCE-builder tht contains the repos and licenses
+FROM registry.docker.tests:5000/softwareag/commandcentral/custom/empower:10.1-builder as builder
 
 # This is the same as the unmanaged one + management support
-FROM softwareag/dbc:10.1
+FROM softwareag/wmis:10.1
 
 ### ADD management support
 ENV CC_CLI_HOME=$SAG_HOME/CommandCentral/client

@@ -43,10 +43,10 @@
         <property id="cc.spm.port" name="cc.spm.port" value="${env.CC_SPM_PORT}" if:set="env.CC_SPM_PORT" />
 
         <!-- check SSH -->
-        <echo>Checking connectivity to ${cc.spm.host}:22</echo>
-        <waitfor maxwait="600" maxwaitunit="second" checkevery="5" checkeveryunit="second">
-            <socket server="${cc.spm.host}" port="22"/>
-        </waitfor>
+        <!--<echo>Checking connectivity to ${cc.spm.host}:22</echo>-->
+        <!--<waitfor maxwait="600" maxwaitunit="second" checkevery="5" checkeveryunit="second">-->
+            <!--<socket server="${cc.spm.host}" port="22"/>-->
+        <!--</waitfor>-->
 
         <!-- check SPM -->
         <echo>Checking connectivity to ${cc.spm.host}:${cc.spm.port}</echo>

@@ -1,5 +1,6 @@
-# MUST start with builder image to run provisioning using template.yaml
-FROM store/softwareag/commandcentral:10.1.0.1-builder as builder
+#FROM store/softwareag/commandcentral:10.1.0.1-builder as builder
+# Use instead the custom CCE-builder tht contains the repos and licenses
+FROM registry.docker.tests:5000/softwareag/commandcentral/custom/empower:10.1-builder as builder
 
 # ADOPTED from docker file created by running /opt/softwareag/IntegrationServer/docker/is_container.sh createDockerfile
 FROM centos:7
@@ -43,9 +44,6 @@ COPY --from=builder $SAG_HOME/profiles/IS_${INSTANCE_NAME}/ $SAG_HOME/profiles/I
 EXPOSE 5555 9999
 
 LABEL com.softwareag.product="IntegrationServer" \com.softwareag.product.version="10.1.0.0" \com.softwareag.webmethodscloud.primaryPort="5555"
-
-# copy license file in the right place
-COPY licenseKey.xml $SAG_HOME/IntegrationServer/instances/$INSTANCE_NAME/config/licenseKey.xml
 
 #add entrypoint in the global bin
 COPY entrypoint.sh /usr/bin

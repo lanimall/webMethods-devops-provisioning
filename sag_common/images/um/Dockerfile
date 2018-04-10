@@ -1,8 +1,6 @@
-# MUST start with builder image to run provisioning using template.yaml
 #FROM store/softwareag/commandcentral:10.1.0.1-builder as builder
-
 # Use instead the custom CCE-builder tht contains the repos and licenses
-FROM softwareag/custom/commandcentral/custom-empower:10.1.0.1-builder
+FROM registry.docker.tests:5000/softwareag/commandcentral/custom/empower:10.1-builder as builder
 
 # ADOPTED from docker file created by UM install
 FROM centos:7

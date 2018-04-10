@@ -1,29 +1,22 @@
-alias: tc-layer
-description: Terracotta Big Memory server
+alias: container
+description: Terracotta Server or array layer
 
 environments:
   default:
     repo.product:        products
     repo.fix:            fixes
 
-    # Remote system configuration
-    spm.port:       8092                    # SPM connection port
-    spm.secure:     false                   # Use HTTPS connection to SPM: true,false
-    spm.fixes:      [wMFix.SPM]
+    os.platform:           lnxamd64
+    tc.license.key.alias:  terracotta-license-${os.platform}
 
-    os.platform: "lnxamd64"                 # w64/lnxamd64/solamd64/sol/aix
-    tc.license.key.alias: "terracotta-license-${os.platform}"
-
-    # TC Server Instance Configuration
-    tc.host:              tc                       # REQURIED tc installation host
-    tc.tsa.port:         9010
-    tc.jmx.port:         9020
-    tc.grp.port:         9030
-    tc.mgt.port:         9040
-    tc.memory.init:      128                # minimil memory configuration
-    tc.memory.max:       512                # minimal memory configuration
-    tc.storage.size:     2g
-    tc.offheap.size:     1g
+    tc.tsa.port:         9510
+    tc.jmx.port:         9520
+    tc.grp.port:         9530
+    tc.mgt.port:         9540
+    tc.memory.init:      512                # minimil memory configuration
+    tc.memory.max:       1024                # minimal memory configuration
+    tc.storage.size:     5g
+    tc.offheap.size:     2g
     tc.fixes:            [wMFix.TES]        # ALL
     tc.data.dir:         ../data
     tc.logs.dir:         ../logs
@@ -33,21 +26,11 @@ layers:
   default:
     productRepo: ${repo.product}
     fixRepo:     ${repo.fix}
-  spm:
-    description: Management layer of SPM's
-    templates:
-      - spm-tuneup
   tc:
     templates:
       - tc-server
 
 templates:
-  spm-tuneup:
-    description: SPM customizations
-    fixes: ${spm.fixes}
-    products:
-      TESspm: # TES plugin
-
   tc-server:
     licenses:
       "Terracotta/terracotta-license.key": ${tc.license.key.alias}
@@ -72,10 +55,10 @@ templates:
                         <tsa-port>${tc.tsa.port}</tsa-port>
                         <jmx-port>${tc.jmx.port}</jmx-port>
                         <tsa-group-port>${tc.grp.port}</tsa-group-port>
-                        <management-port>${tc.mgt.port}</management-port> 
-                        <dataStorage size="${tc.storage.size}"> 
-                           <offheap size="${tc.offheap.size}"/> 
-                           <hybrid/> 
+                        <management-port>${tc.mgt.port}</management-port>
+                        <dataStorage size="${tc.storage.size}">
+                           <offheap size="${tc.offheap.size}"/>
+                           <hybrid/>
                         </dataStorage>
                       </server>
                     </servers>
@@ -83,14 +66,6 @@ templates:
               TC-SERVER-NAME:
                 TC-SERVER-NAME:
                   serverName: ${node.alias}
-           
 provision:
   default:
-    spm:  ["${tc.host}"]
-    tc:   ["${tc.host}"]
-
-nodes:
-  default:
-    default:
-      port:   ${spm.port}
-      secure: ${spm.secure}
+    tc: local

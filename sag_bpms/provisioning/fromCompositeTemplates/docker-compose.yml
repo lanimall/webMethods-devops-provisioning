@@ -4,44 +4,68 @@ networks:
   sagdevops:
 
 services:
+
+########################## CCE setup ################################
+
   cce:
-    image: softwareag/commandcentral/custom/empower:10.1.0.1-server
+    #image: softwareag/commandcentral/custom/mymirror:10.1.0.1-server
+    image: registry.docker.tests:5000/softwareag/commandcentral/custom/empower:10.1-server
+    hostname: cce
     networks:
       - sagdevops
     ports:
       - "8090:8090"
       - "8091:8091"
 
-  um1:
-    image: store/softwareag/commandcentral:10.1.0.1-node
-    hostname: um1
+  setup_cce:
+    image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-client
+    environment:
+      - CC_CLIENT=docker
+    volumes:
+      - ./:/src
     networks:
       - sagdevops
-    volumes:
-      - ./licenses/lnxamd64/0000364696_UniversalMessaging_FullyFeatured100.xml:/opt/softwareag/UniversalMessaging/server/templates/licence.xml
-    ports:
-      - "9000:9000"
-      - "8092:8092"
-      - "8093:8093"
+    command: sagccant licenses
     depends_on:
       - cce
 
-  tc1:
-    image: store/softwareag/commandcentral:10.1.0.1-node
-    hostname: tc1
+########################## IS setup ################################
+
+  wmis:
+    image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-node
+    hostname: wmis
     networks:
       - sagdevops
-    volumes:
-      - ./licenses/lnxamd64/terracotta-license.key:/opt/softwareag/Terracotta/terracotta-license.key
+    environment:
+      - CC_AUTO_REGISTER=0
     expose:
-      - "9010"
-      - "9020"
-      - "9030"
-      - "9040"
+      - "8092"
+      - "8093"
+      - "5555"
+      - "9999"
+      - "8094"
+    ports:
+      - "5555:5555"
+
+  setup_wmis:
+    image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-client
+    volumes:
+      - ./:/src
+    networks:
+      - sagdevops
+    environment:
+      - CC_CLIENT=docker
+      - CC_TEMPLATE=is-layer
+      - CC_BASE_ENV=is
+      - CC_SPM_HOST=wmis
+      - CC_SPM_PORT=8092
+    command: sagccant setup
     depends_on:
+      - wmis
+      - setup_db_wmis
       - cce
 
-  wMIS_db:
+  wmdb_is:
     image: softwareag/base-oracle-xe-11g
     networks:
       - sagdevops
@@ -53,7 +77,64 @@ services:
       - ORACLE_DISABLE_ASYNCH_IO=true
       - ORACLE_ENABLE_XDB=false
 
-  wMBPMS_db:
+  setup_db_wmis:
+    image: softwareag/dbcreator
+    networks:
+      - sagdevops
+    environment:
+      - db.name=webm
+      - db.type=oracle
+      - db.host=wmdb_is
+      - db.port=1521
+      - db.tablespace.dir=/u01/app/oracle/oradata/XE
+      - db.admin.username=system
+      - db.admin.password=oracle
+      - db.username=wmdb_isuser
+      - db.password=strong123!
+      - db.product.version=latest
+      - db.component.version=latest
+      - db.components=[STR]
+      - db.products=[IS]
+    depends_on:
+      - wmdb_is
+
+########################## BPMS setup ################################
+
+  wmbpms:
+    image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-node
+    hostname: wmbpms
+    networks:
+      - sagdevops
+    environment:
+      - CC_AUTO_REGISTER=0
+    expose:
+      - "8092"
+      - "8093"
+      - "5555"
+      - "9999"
+      - "8094"
+    ports:
+      - "5555:5555"
+
+  setup_wmbpms:
+    image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-client
+    volumes:
+      - ./:/src
+    networks:
+      - sagdevops
+    environment:
+      - CC_CLIENT=docker
+      - CC_TEMPLATE=bpms-layer
+      - CC_BASE_ENV=bpms
+      - CC_SPM_HOST=wmbpms
+      - CC_SPM_PORT=8092
+    command: sagccant setup
+    depends_on:
+      - wmbpms
+      - setup_db_bpms
+      - cce
+
+  wmdb_bpms:
     image: softwareag/base-oracle-xe-11g
     networks:
       sagdevops:
@@ -65,27 +146,6 @@ services:
       - ORACLE_DISABLE_ASYNCH_IO=true
       - ORACLE_ENABLE_XDB=false
 
-  setup_db_is:
-    image: softwareag/dbcreator
-    networks:
-      - sagdevops
-    environment:
-      - db.name=webm
-      - db.type=oracle
-      - db.host=wMIS_db
-      - db.port=1521
-      - db.tablespace.dir=/u01/app/oracle/oradata/XE
-      - db.admin.username=system
-      - db.admin.password=oracle
-      - db.username=webmis
-      - db.password=strong123!
-      - db.product.version=latest
-      - db.component.version=latest
-      - db.components=[STR]
-      - db.products=[IS]
-    depends_on:
-      - wMIS_db
-
   setup_db_bpms:
     image: softwareag/dbcreator
     networks:
@@ -93,22 +153,38 @@ services:
     environment:
       - db.name=webm
       - db.type=oracle
-      - db.host=wMBPMS_db
+      - db.host=wmdb_bpms
       - db.port=1521
       - db.tablespace.dir=/u01/app/oracle/oradata/XE
       - db.admin.username=system
       - db.admin.password=oracle
-      - db.username=webmbpms
+      - db.username=wmdb_bpmsuser
       - db.password=strong123!
       - db.product.version=latest
       - db.component.version=latest
       - db.components=[STR]
       - db.products=[IS,BPM,MWS]
     depends_on:
-      - wMBPMS_db
+      - wmdb_bpms
+
+########################## UM setup ################################
+
+  um:
+    image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-node
+    hostname: um
+    networks:
+      - sagdevops
+    environment:
+      - CC_AUTO_REGISTER=0
+    expose:
+      - "8092"
+      - "8093"
+      - "9000"
+    ports:
+      - "9000:9000"
 
   setup_um:
-    image: softwareag/commandcentral/custom:10.1.0.1-cli
+    image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-client
     volumes:
       - ./:/src
     networks:
@@ -117,14 +193,30 @@ services:
       - CC_CLIENT=docker
       - CC_TEMPLATE=um-layer
       - CC_BASE_ENV=um
-      - CC_SPM_HOST=um1
+      - CC_SPM_HOST=um
       - CC_SPM_PORT=8092
     command: sagccant setup
     depends_on:
+      - um
       - cce
 
+########################## TC setup ################################
+
+  tc:
+    image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-node
+    hostname: tc
+    networks:
+      - sagdevops
+    environment:
+      - CC_AUTO_REGISTER=0
+    expose:
+      - "9010"
+      - "9020"
+      - "9030"
+      - "9040"
+
   setup_tc:
-    image: softwareag/commandcentral/custom:10.1.0.1-cli
+    image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-client
     volumes:
       - ./:/src
     networks:
@@ -133,8 +225,9 @@ services:
       - CC_CLIENT=docker
       - CC_TEMPLATE=tc-layer
       - CC_BASE_ENV=tc
-      - CC_SPM_HOST=tc1
+      - CC_SPM_HOST=tc
       - CC_SPM_PORT=8092
     command: sagccant setup
     depends_on:
+      - tc
       - cce

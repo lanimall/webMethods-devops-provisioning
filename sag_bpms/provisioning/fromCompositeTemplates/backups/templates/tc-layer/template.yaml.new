@@ -11,11 +11,8 @@ environments:
     spm.secure:     false                   # Use HTTPS connection to SPM: true,false
     spm.fixes:      [wMFix.SPM]
 
-    os.platform: "lnxamd64"                 # w64/lnxamd64/solamd64/sol/aix
-    tc.license.key.alias: "terracotta-license-${os.platform}"
-
-    # TC Server Instance Configuration
-    tc.host:              tc                       # REQURIED tc installation host
+    tc.license.key.alias: ${}               # REQUIRED
+    tc.host:              ${}                        # REQURIED tc installation host
     tc.tsa.port:         9010
     tc.jmx.port:         9020
     tc.grp.port:         9030
@@ -46,6 +43,7 @@ templates:
     description: SPM customizations
     fixes: ${spm.fixes}
     products:
+      # SUM: #no longer needed in 10.1
       TESspm: # TES plugin
 
   tc-server:
