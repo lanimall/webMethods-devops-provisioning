@@ -2,7 +2,7 @@ version: "3.0"
 
 services:
   wmis:
-    image: softwareag/wmis_stateful:10.1
+    image: registry.docker.tests:5000/softwareag/wmis_stateful:10.1
     build:
       context: .
       dockerfile: Dockerfile
@@ -11,7 +11,7 @@ services:
       - "9999:9999"
 
   wmis_managed:
-    image: softwareag/wmis_stateful_managed:10.1
+    image: registry.docker.tests:5000/softwareag/wmis_stateful_managed:10.1
     build:
       context: .    
       dockerfile: Dockerfile.managed

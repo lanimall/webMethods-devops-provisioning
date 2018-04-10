@@ -2,7 +2,7 @@ version: "3.0"
 
 services:
   umserver:
-    image: softwareag/umserver:10.1
+    image: registry.docker.tests:5000/softwareag/umserver:10.1
     build:
       context: .
       dockerfile: Dockerfile
@@ -12,7 +12,7 @@ services:
       - "9000:9000"
 
   umserver_managed:
-    image: softwareag/umserver_managed:10.1
+    image: registry.docker.tests:5000/softwareag/umserver_managed:10.1
     build:
       context: .    
       dockerfile: Dockerfile.managed

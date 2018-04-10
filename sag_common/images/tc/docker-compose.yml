@@ -2,7 +2,7 @@ version: "3.0"
 
 services:
   tcserver:
-    image: softwareag/tcserver:10.1
+    image: registry.docker.tests:5000/softwareag/tcserver:10.1
     build:
       context: .
       dockerfile: Dockerfile
@@ -13,7 +13,7 @@ services:
       - "9540"
 
   tcserver_managed:
-    image: softwareag/tcserver_managed:10.1
+    image: registry.docker.tests:5000/softwareag/tcserver_managed:10.1
     build:
       context: .    
       dockerfile: Dockerfile.managed
