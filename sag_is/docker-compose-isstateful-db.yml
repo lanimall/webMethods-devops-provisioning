@@ -1,0 +1,44 @@
+version: "3"
+
+networks:
+  sagdevops:
+    external: true
+
+volumes:
+  wmdb_is_oradata:
+
+services:
+  wmdb_is:
+    image: registry.docker.tests:5000/softwareag/base-oracle-xe-11g
+    networks:
+      - sagdevops
+    volumes:
+      - wmdb_is_oradata:/u01/app/oracle
+    expose:
+      - "22"
+      - "1521"
+    environment:
+      - ORACLE_ALLOW_REMOTE=true
+      - ORACLE_DISABLE_ASYNCH_IO=true
+      - ORACLE_ENABLE_XDB=false
+
+  setup_db_wmis:
+    image: registry.docker.tests:5000/softwareag/dbcreator
+    networks:
+      - sagdevops
+    environment:
+      - db.name=webm
+      - db.type=oracle
+      - db.host=wmdb_is
+      - db.port=1521
+      - db.tablespace.dir=/u01/app/oracle/oradata/XE
+      - db.admin.username=system
+      - db.admin.password=oracle
+      - db.username=wmdb_isuser
+      - db.password=strong123!
+      - db.product.version=latest
+      - db.component.version=latest
+      - db.components=[STR]
+      - db.products=[IS]
+    depends_on:
+      - wmdb_is

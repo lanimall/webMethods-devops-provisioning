@@ -6,7 +6,6 @@ networks:
 services:
 
 ########################## CCE setup ################################
-
   cce:
     #image: softwareag/commandcentral/custom/mymirror:10.1.0.1-server
     image: registry.docker.tests:5000/softwareag/commandcentral/custom/empower:10.1-server
@@ -31,9 +30,9 @@ services:
 
 ########################## IS setup ################################
 
-  wmis:
+  is:
     image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-node
-    hostname: wmis
+    hostname: is
     networks:
       - sagdevops
     environment:
@@ -47,7 +46,7 @@ services:
     ports:
       - "5555:5555"
 
-  setup_wmis:
+  setup_is:
     image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-client
     volumes:
       - ./:/src
@@ -57,16 +56,16 @@ services:
       - CC_CLIENT=docker
       - CC_TEMPLATE=is-layer
       - CC_BASE_ENV=is
-      - CC_SPM_HOST=wmis
+      - CC_SPM_HOST=is
       - CC_SPM_PORT=8092
     command: sagccant setup
     depends_on:
-      - wmis
-      - setup_db_wmis
+      - setup_is_db
+      - is
       - cce
 
-  wmdb_is:
-    image: softwareag/base-oracle-xe-11g
+  is_db:
+    image: registry.docker.tests:5000/softwareag/base-oracle-xe-11g
     networks:
       - sagdevops
     expose:
@@ -77,46 +76,45 @@ services:
       - ORACLE_DISABLE_ASYNCH_IO=true
       - ORACLE_ENABLE_XDB=false
 
-  setup_db_wmis:
-    image: softwareag/dbcreator
+  setup_is_db:
+    image: registry.docker.tests:5000/softwareag/dbcreator
     networks:
       - sagdevops
     environment:
       - db.name=webm
       - db.type=oracle
-      - db.host=wmdb_is
+      - db.host=is_db
       - db.port=1521
       - db.tablespace.dir=/u01/app/oracle/oradata/XE
       - db.admin.username=system
       - db.admin.password=oracle
-      - db.username=wmdb_isuser
+      - db.username=is_dbuser
       - db.password=strong123!
       - db.product.version=latest
       - db.component.version=latest
       - db.components=[STR]
       - db.products=[IS]
     depends_on:
-      - wmdb_is
+      - is_db
 
-########################## BPMS setup ################################
+########################## MWS setup ################################
 
-  wmbpms:
+  mws:
     image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-node
-    hostname: wmbpms
+    hostname: mws
     networks:
       - sagdevops
     environment:
       - CC_AUTO_REGISTER=0
     expose:
+      - "8585"
+      - "8586"
       - "8092"
       - "8093"
-      - "5555"
-      - "9999"
-      - "8094"
     ports:
-      - "5555:5555"
+      - "8585:8585"
 
-  setup_wmbpms:
+  setup_mws:
     image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-client
     volumes:
       - ./:/src
@@ -124,18 +122,18 @@ services:
       - sagdevops
     environment:
       - CC_CLIENT=docker
-      - CC_TEMPLATE=bpms-layer
-      - CC_BASE_ENV=bpms
-      - CC_SPM_HOST=wmbpms
+      - CC_TEMPLATE=mws-layer
+      - CC_BASE_ENV=mws
+      - CC_SPM_HOST=mws
       - CC_SPM_PORT=8092
     command: sagccant setup
     depends_on:
-      - wmbpms
-      - setup_db_bpms
+      - setup_mws_db
+      - mws
       - cce
 
-  wmdb_bpms:
-    image: softwareag/base-oracle-xe-11g
+  mws_db:
+    image: registry.docker.tests:5000/softwareag/base-oracle-xe-11g
     networks:
       sagdevops:
     expose:
@@ -146,26 +144,95 @@ services:
       - ORACLE_DISABLE_ASYNCH_IO=true
       - ORACLE_ENABLE_XDB=false
 
-  setup_db_bpms:
-    image: softwareag/dbcreator
+  setup_mws_db:
+    image: registry.docker.tests:5000/softwareag/dbcreator
     networks:
       - sagdevops
     environment:
       - db.name=webm
       - db.type=oracle
-      - db.host=wmdb_bpms
+      - db.host=mws_db
       - db.port=1521
       - db.tablespace.dir=/u01/app/oracle/oradata/XE
       - db.admin.username=system
       - db.admin.password=oracle
-      - db.username=wmdb_bpmsuser
+      - db.username=mws_dbuser
+      - db.password=strong123!
+      - db.product.version=latest
+      - db.component.version=latest
+      - db.components=[STR]
+      - db.products=[MWS]
+    depends_on:
+      - mws_db
+
+########################## BPMS setup ################################
+
+  bpms:
+    image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-node
+    hostname: bpms
+    networks:
+      - sagdevops
+    environment:
+      - CC_AUTO_REGISTER=0
+    expose:
+      - "8092"
+      - "8093"
+      - "5555"
+      - "9999"
+      - "8094"
+    ports:
+      - "5555:5555"
+
+  setup_bpms:
+    image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-client
+    volumes:
+      - ./:/src
+    networks:
+      - sagdevops
+    environment:
+      - CC_CLIENT=docker
+      - CC_TEMPLATE=bpms-layer
+      - CC_BASE_ENV=bpms
+      - CC_SPM_HOST=bpms
+      - CC_SPM_PORT=8092
+    command: sagccant setup
+    depends_on:
+      - setup_bpms_db
+      - bpms
+      - cce
+
+  bpms_db:
+    image: registry.docker.tests:5000/softwareag/base-oracle-xe-11g
+    networks:
+      sagdevops:
+    expose:
+      - "22"
+      - "1521"
+    environment:
+      - ORACLE_ALLOW_REMOTE=true
+      - ORACLE_DISABLE_ASYNCH_IO=true
+      - ORACLE_ENABLE_XDB=false
+
+  setup_bpms_db:
+    image: registry.docker.tests:5000/softwareag/dbcreator
+    networks:
+      - sagdevops
+    environment:
+      - db.name=webm
+      - db.type=oracle
+      - db.host=bpms_db
+      - db.port=1521
+      - db.tablespace.dir=/u01/app/oracle/oradata/XE
+      - db.admin.username=system
+      - db.admin.password=oracle
+      - db.username=bpms_dbuser
       - db.password=strong123!
       - db.product.version=latest
       - db.component.version=latest
       - db.components=[STR]
       - db.products=[IS,BPM,MWS]
     depends_on:
-      - wmdb_bpms
+      - bpms_db
 
 ########################## UM setup ################################
 
