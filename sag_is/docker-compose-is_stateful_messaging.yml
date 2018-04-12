@@ -5,12 +5,8 @@ networks:
     external: true
 
 services:
-  wmis:
-    build:
-      context: is_stateful
-      dockerfile: Dockerfile
-    image: registry.docker.tests:5000/softwareag/wmis_stateful:10.1
-    hostname: wmis
+  is_stateful:
+    image: registry.docker.tests:5000/softwareag/is_stateful:10.1
     networks:
       - sagdevops
     volumes:
@@ -25,12 +21,24 @@ services:
     ports:
       - "5555:5555"
     depends_on:
+      - is_db
       - um
       - tc
 
-  um:
+  is_db:
+    image: registry.docker.tests:5000/softwareag_dbs/is-oracle:10.1
+    networks:
+      - sagdevops
+    expose:
+      - "22"
+      - "1521"
+    environment:
+      - ORACLE_ALLOW_REMOTE=true
+      - ORACLE_DISABLE_ASYNCH_IO=true
+      - ORACLE_ENABLE_XDB=false
+
+  umserver:
     image: registry.docker.tests:5000/softwareag/umserver:10.1
-    hostname: um
     networks:
       - sagdevops
     volumes:
@@ -42,15 +50,14 @@ services:
     ports:
       - "9000:9000"
 
-  tc:
+  tcserver:
     image: registry.docker.tests:5000/softwareag/tcserver:10.1
-    hostname: tc
     networks:
       - sagdevops
     volumes:
       - ./licenses/lnxamd64/terracotta-license.key:/opt/softwareag/Terracotta/terracotta-license.key
     expose:
-      - "9010"
-      - "9020"
-      - "9030"
-      - "9040"
+      - "9510"
+      - "9520"
+      - "9530"
+      - "9540"

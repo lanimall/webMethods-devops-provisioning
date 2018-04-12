@@ -15,11 +15,11 @@ environments:
     tc.license.key.alias: "terracotta-license-${os.platform}"
 
     # TC Server Instance Configuration
-    tc.host:              tc                       # REQURIED tc installation host
-    tc.tsa.port:         9010
-    tc.jmx.port:         9020
-    tc.grp.port:         9030
-    tc.mgt.port:         9040
+    tc.host:             tc                       # REQURIED tc installation host
+    tc.tsa.port:         9510
+    tc.jmx.port:         9520
+    tc.grp.port:         9530
+    tc.mgt.port:         9540
     tc.memory.init:      128                # minimil memory configuration
     tc.memory.max:       512                # minimal memory configuration
     tc.storage.size:     2g

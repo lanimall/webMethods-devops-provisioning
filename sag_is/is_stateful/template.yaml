@@ -6,9 +6,6 @@ environments:
     repo.product:        products
     repo.fix:            fixes
 
-    spm.port:       8092                    # SPM connection port
-    spm.secure:     false                   # Use HTTPS connection to SPM: true,false
-    spm.memory.max: 512                     # max mem
     spm.configure:  [spm-tuneup]
     spm.fixes:      [wMFix.SPM]             # SPM/SUM/SD core fixes by default
 
@@ -26,18 +23,18 @@ environments:
     is.memory.max:      1024                # Maximum memory size
     is.install.service: false
     is.configure:       [is-server]         # List of templates to apply
-    is.fixes:           [wMFix.integrationServer.Core,wMFix.integrationServer.ART]
+    is.fixes:           [wMFix.integrationServer.Core]
 
     is.cluster.enabled:  true
-    is.cluster.name:     iscluster
-    is.tsa.url:          "tc:9510"
+    is.cluster.name:     "${is.instance.name}-cluster"
+    is.tsa.url:          "tcserver:9510"
 
     # Database connection
     db.type:             oracle             # REQUIRED: Database type: oracle,sqlserver,db2
-    db.host:             wmdb_is            # REQUIRED: Database server hostname
+    db.host:             is_db            # REQUIRED: Database server hostname
     db.port:             1521               # REQUIRED: Database server port
     db.name:             webm
-    db.username:         wmdb_isuser        # Database username
+    db.username:         is_dbuser        # Database username
     db.password:         strong123!         # Database password
     db.sid:              XE                 # Database name
     db.url:              "jdbc:wm:oracle://${db.host}:${db.port};SID=${db.sid}"
@@ -60,6 +57,7 @@ templates:
     description: SPM customizations
     fixes: ${spm.fixes}
     products:
+      SPM:
       ISspm:
 
   is-server:
@@ -99,13 +97,14 @@ templates:
                        $: false
               COMMON-CLUSTER:
                 COMMON-CLUSTER:
-                  Name: ${is.instance.name}-cluster
+                  Name: ${is.cluster.name}
                   Enabled: ${is.cluster.enabled}
                   Servers:
                     Server:
                       -
                         URL: ${is.tsa.url}
 
+# Provisioning
 provision:
   default:
     spm: local

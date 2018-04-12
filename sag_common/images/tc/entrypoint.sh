@@ -12,6 +12,11 @@ fi
 echo "Remove old logs"
 rm -rf $SAG_HOME/Terracotta/server/wrapper/logs/*
 
+
+# before starting the terracotta server, we update the tc-config.xml configuration file
+CONFIG_XML="$SAG_HOME/Terracotta/server/wrapper/conf/tc-config.xml"
+#sed -i.bak -r 's/OFFHEAP_ENABLED/'$OFFHEAP_ENABLED'/; s/OFFHEAP_MAX_SIZE/'$OFFHEAP_MAX_SIZE'/; s/TC_SERVER1/'$TC_SERVER1'/g; s/TC_SERVER2/'$TC_SERVER2'/g' $CONFIG_XML
+
 # start in background
 $SAG_HOME/Terracotta/server/wrapper/bin/tsa-service start
 

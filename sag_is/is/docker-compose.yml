@@ -1,8 +1,8 @@
 version: "3.0"
 
 services:
-  is_stateful:
-    image: registry.docker.tests:5000/softwareag/is_stateful:10.1
+  is:
+    image: registry.docker.tests:5000/softwareag/is:10.1
     build:
       context: .
       dockerfile: Dockerfile
@@ -10,8 +10,8 @@ services:
       - "5555:5555"
       - "9999:9999"
 
-  is_stateful_managed:
-    image: registry.docker.tests:5000/softwareag/is_stateful_managed:10.1
+  is_managed:
+    image: registry.docker.tests:5000/softwareag/is_managed:10.1
     build:
       context: .    
       dockerfile: Dockerfile.managed

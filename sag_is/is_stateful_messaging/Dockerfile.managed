@@ -3,7 +3,7 @@
 FROM registry.docker.tests:5000/softwareag/commandcentral/custom/empower:10.1-builder as builder
 
 # This is the same as the unmanaged one + management support
-FROM registry.docker.tests:5000/softwareag/is_stateful:10.1
+FROM registry.docker.tests:5000/softwareag/is_stateful_messaging:10.1
 
 ### ADD management support
 ENV CC_CLI_HOME=$SAG_HOME/CommandCentral/client

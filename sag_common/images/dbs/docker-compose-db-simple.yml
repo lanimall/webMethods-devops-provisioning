@@ -1,0 +1,48 @@
+version: "3"
+
+networks:
+  sagdevops_dbs:
+
+services:
+
+########################## IS DB setup ################################
+
+  is_db:
+    image: registry.docker.tests:5000/softwareag_dbs/is-oracle:10.1
+    networks:
+      - sagdevops_bpms
+    expose:
+      - "22"
+      - "1521"
+    environment:
+      - ORACLE_ALLOW_REMOTE=true
+      - ORACLE_DISABLE_ASYNCH_IO=true
+      - ORACLE_ENABLE_XDB=false
+
+########################## MWS DB setup ################################
+
+  mws_db:
+    image: registry.docker.tests:5000/softwareag_dbs/mws-oracle:10.1
+    networks:
+      - sagdevops_bpms
+    expose:
+      - "22"
+      - "1521"
+    environment:
+      - ORACLE_ALLOW_REMOTE=true
+      - ORACLE_DISABLE_ASYNCH_IO=true
+      - ORACLE_ENABLE_XDB=false
+
+########################## BPMS DB setup ################################
+
+  bpms_db:
+    image: registry.docker.tests:5000/softwareag_dbs/bpms-oracle:10.1
+    networks:
+      - sagdevops_bpms
+    expose:
+      - "22"
+      - "1521"
+    environment:
+      - ORACLE_ALLOW_REMOTE=true
+      - ORACLE_DISABLE_ASYNCH_IO=true
+      - ORACLE_ENABLE_XDB=false

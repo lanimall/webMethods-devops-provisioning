@@ -9,7 +9,8 @@ environments:
     os.platform:          lnxamd64
     um.license.key.alias: UniversalMessaging-${os.platform}
 
-    um.instance.name:    umserver            # realm server instance name
+    um.host:             umserver
+    um.instance.name:    umserver           # realm server instance name
     um.instance.port:    9000               # primary port
     um.jmx.port:         9988               # jmx port
     um.memory.init:      64                 # memory configuration
@@ -34,7 +35,7 @@ templates:
       NUMRealmServer:
         ${um.instance.name}:                                       # instance name is different from realm
           instance.port: ${um.instance.port}                       # instance port
-          instance.ip:   ${node.host}                              # bind to node's host name
+          instance.ip:   ${um.host}                                # bind to node's host name
           runtimeComponentId: Universal-Messaging-${instance.name} # hint for CC to skip instance creation if it exists
           configuration:
             Universal-Messaging-${instance.name}:
@@ -49,7 +50,7 @@ templates:
                        $: ${um.memory.direct}
               COMMON-JAVASYSPROPS:
                 COMMON-JAVASYSPROPS: |
-                   REALM=${node.host}                             # IMPORTANT: this can only be set before first startup
+                   REALM=${um.instance.name}                             # IMPORTANT: this can only be set before first startup
                    com.sun.management.jmxremote.port=${um.jmx.port}
                    com.sun.management.jmxremote.authenticate=false
                    com.sun.management.jmxremote.ssl=false

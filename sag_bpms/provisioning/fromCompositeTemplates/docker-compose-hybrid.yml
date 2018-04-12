@@ -46,6 +46,10 @@ services:
       - "8094"
     ports:
       - "5555:5555"
+    depends_on:
+      - is_db
+      - um
+      - tc
 
   setup_is:
     image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-client
@@ -61,12 +65,11 @@ services:
       - CC_SPM_PORT=8092
     command: sagccant setup
     depends_on:
-      - setup_is_db
       - is
       - cce
 
   is_db:
-    image: registry.docker.tests:5000/softwareag/base-oracle-xe-11g
+    image: registry.docker.tests:5000/softwareag_dbs/is-oracle:10.1
     networks:
       - sagdevops_bpms
     expose:
@@ -76,27 +79,6 @@ services:
       - ORACLE_ALLOW_REMOTE=true
       - ORACLE_DISABLE_ASYNCH_IO=true
       - ORACLE_ENABLE_XDB=false
-
-  setup_is_db:
-    image: registry.docker.tests:5000/softwareag/dbcreator
-    networks:
-      - sagdevops_bpms
-    environment:
-      - db.name=webm
-      - db.type=oracle
-      - db.host=is_db
-      - db.port=1521
-      - db.tablespace.dir=/u01/app/oracle/oradata/XE
-      - db.admin.username=system
-      - db.admin.password=oracle
-      - db.username=is_dbuser
-      - db.password=strong123!
-      - db.product.version=latest
-      - db.component.version=latest
-      - db.components=[STR]
-      - db.products=[IS]
-    depends_on:
-      - is_db
 
 ########################## MWS setup ################################
 
@@ -114,6 +96,8 @@ services:
       - "8093"
     ports:
       - "8585:8585"
+    depends_on:
+      - mws_db
 
   setup_mws:
     image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-client
@@ -129,12 +113,11 @@ services:
       - CC_SPM_PORT=8092
     command: sagccant setup
     depends_on:
-      - setup_mws_db
       - mws
       - cce
 
   mws_db:
-    image: registry.docker.tests:5000/softwareag/base-oracle-xe-11g
+    image: registry.docker.tests:5000/softwareag_dbs/mws-oracle:10.1
     networks:
       - sagdevops_bpms
     expose:
@@ -144,27 +127,6 @@ services:
       - ORACLE_ALLOW_REMOTE=true
       - ORACLE_DISABLE_ASYNCH_IO=true
       - ORACLE_ENABLE_XDB=false
-
-  setup_mws_db:
-    image: registry.docker.tests:5000/softwareag/dbcreator
-    networks:
-      - sagdevops_bpms
-    environment:
-      - db.name=webm
-      - db.type=oracle
-      - db.host=mws_db
-      - db.port=1521
-      - db.tablespace.dir=/u01/app/oracle/oradata/XE
-      - db.admin.username=system
-      - db.admin.password=oracle
-      - db.username=mws_dbuser
-      - db.password=strong123!
-      - db.product.version=latest
-      - db.component.version=latest
-      - db.components=[STR]
-      - db.products=[MWS]
-    depends_on:
-      - mws_db
 
 ########################## BPMS setup ################################
 
@@ -183,6 +145,10 @@ services:
       - "8094"
     ports:
       - "5555:5555"
+    depends_on:
+      - bpms_db
+      - um
+      - tc
 
   setup_bpms:
     image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-client
@@ -198,14 +164,13 @@ services:
       - CC_SPM_PORT=8092
     command: sagccant setup
     depends_on:
-      - setup_bpms_db
       - bpms
       - cce
 
   bpms_db:
-    image: registry.docker.tests:5000/softwareag/base-oracle-xe-11g
+    image: registry.docker.tests:5000/softwareag_dbs/bpms-oracle:10.1
     networks:
-      sagdevops:
+      - sagdevops_bpms
     expose:
       - "22"
       - "1521"
@@ -214,36 +179,15 @@ services:
       - ORACLE_DISABLE_ASYNCH_IO=true
       - ORACLE_ENABLE_XDB=false
 
-  setup_bpms_db:
-    image: registry.docker.tests:5000/softwareag/dbcreator
-    networks:
-      - sagdevops_bpms
-    environment:
-      - db.name=webm
-      - db.type=oracle
-      - db.host=bpms_db
-      - db.port=1521
-      - db.tablespace.dir=/u01/app/oracle/oradata/XE
-      - db.admin.username=system
-      - db.admin.password=oracle
-      - db.username=bpms_dbuser
-      - db.password=strong123!
-      - db.product.version=latest
-      - db.component.version=latest
-      - db.components=[STR]
-      - db.products=[IS,BPM,MWS]
-    depends_on:
-      - bpms_db
-
-########################## UM setup ################################
+########################## IS / UM setup directly from docker ################################
 
   um:
-    image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-node
+    image: registry.docker.tests:5000/softwareag/umserver:10.1
     hostname: um
     networks:
       - sagdevops_bpms
-    environment:
-      - CC_AUTO_REGISTER=0
+    volumes:
+      - ./licenses/lnxamd64/UniversalMessaging.xml:/opt/softwareag/UniversalMessaging/server/umserver/licence.xml
     expose:
       - "8092"
       - "8093"
@@ -251,51 +195,15 @@ services:
     ports:
       - "9000:9000"
 
-  setup_um:
-    image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-client
-    volumes:
-      - ./:/src
-    networks:
-      - sagdevops_bpms
-    environment:
-      - CC_CLIENT=docker
-      - CC_TEMPLATE=um-layer
-      - CC_BASE_ENV=um
-      - CC_SPM_HOST=um
-      - CC_SPM_PORT=8092
-    command: sagccant setup
-    depends_on:
-      - um
-      - cce
-
-########################## TC setup ################################
-
   tc:
-    image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-node
+    image: registry.docker.tests:5000/softwareag/tcserver:10.1
     hostname: tc
     networks:
       - sagdevops_bpms
-    environment:
-      - CC_AUTO_REGISTER=0
-    expose:
-      - "9010"
-      - "9020"
-      - "9030"
-      - "9040"
-
-  setup_tc:
-    image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-client
     volumes:
-      - ./:/src
-    networks:
-      - sagdevops_bpms
-    environment:
-      - CC_CLIENT=docker
-      - CC_TEMPLATE=tc-layer
-      - CC_BASE_ENV=tc
-      - CC_SPM_HOST=tc
-      - CC_SPM_PORT=8092
-    command: sagccant setup
-    depends_on:
-      - tc
-      - cce
+      - ./licenses/lnxamd64/terracotta-license.key:/opt/softwareag/Terracotta/terracotta-license.key
+    expose:
+      - "9510"
+      - "9520"
+      - "9530"
+      - "9540"

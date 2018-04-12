@@ -9,12 +9,14 @@ environments:
     os.platform:           lnxamd64
     tc.license.key.alias:  terracotta-license-${os.platform}
 
+    tc.host:             tcserver
+    tc.instance.name:    tcserver
     tc.tsa.port:         9510
     tc.jmx.port:         9520
     tc.grp.port:         9530
     tc.mgt.port:         9540
     tc.memory.init:      512                # minimil memory configuration
-    tc.memory.max:       1024                # minimal memory configuration
+    tc.memory.max:       2g                # minimal memory configuration
     tc.storage.size:     5g
     tc.offheap.size:     2g
     tc.fixes:            [wMFix.TES]        # ALL
@@ -48,7 +50,7 @@ templates:
                 TC-CONFIG: |
                   <ns2:tc-config xmlns:ns2="http://www.terracotta.org/config">
                     <servers>
-                      <server name="${node.alias}" host="${node.host}" >
+                      <server name="${tc.instance.name}" host="%h" >
                         <data>${tc.data.dir}</data>
                         <logs>${tc.logs.dir}</logs>
                         <index>${tc.index.dir}</index>
@@ -65,7 +67,7 @@ templates:
                   </ns2:tc-config>
               TC-SERVER-NAME:
                 TC-SERVER-NAME:
-                  serverName: ${node.alias}
+                  serverName: ${tc.instance.name}
 provision:
   default:
     tc: local

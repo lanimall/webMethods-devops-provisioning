@@ -1,0 +1,50 @@
+version: "3"
+
+networks:
+  sagdevops:
+    external: true
+
+services:
+  is_stateful:
+    image: registry.docker.tests:5000/softwareag/is_stateful:10.1
+    networks:
+      - sagdevops
+    volumes:
+      - ./licenses/lnxamd64/Integration_Server.xml:/opt/softwareag/IntegrationServer/instances/default/config/licenseKey.xml
+      - ./licenses/lnxamd64/terracotta-license.key:/opt/softwareag/common/conf/terracotta-license.key
+    expose:
+      - "8092"
+      - "8093"
+      - "5555"
+      - "9999"
+      - "8094"
+    ports:
+      - "5555:5555"
+    depends_on:
+      - is_db
+      - um
+      - tc
+
+  is_db:
+    image: registry.docker.tests:5000/softwareag_dbs/is-oracle:10.1
+    networks:
+      - sagdevops
+    expose:
+      - "22"
+      - "1521"
+    environment:
+      - ORACLE_ALLOW_REMOTE=true
+      - ORACLE_DISABLE_ASYNCH_IO=true
+      - ORACLE_ENABLE_XDB=false
+
+  tcserver:
+    image: registry.docker.tests:5000/softwareag/tcserver:10.1
+    networks:
+      - sagdevops
+    volumes:
+      - ./licenses/lnxamd64/terracotta-license.key:/opt/softwareag/Terracotta/terracotta-license.key
+    expose:
+      - "9510"
+      - "9520"
+      - "9530"
+      - "9540"

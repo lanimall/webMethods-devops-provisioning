@@ -10,6 +10,10 @@ MAINTAINER fabien.sanglier@softwareaggov.com
 ENV SAG_HOME=/opt/softwareag
 ENV JAVA_HOME $SAG_HOME/jvm/jvm/
 
+# default values for offheap, that you can override when starting your container with docker run -e OFFHEAP_MAX_SIZE=512g for example
+#ENV OFFHEAP_ENABLED "true"
+#ENV OFFHEAP_MAX_SIZE "1g"
+
 # Set path to the main executable folder in the IS profile
 ENV PATH=/bin:/usr/bin:$JAVA_HOME/bin
 

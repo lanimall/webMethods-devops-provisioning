@@ -1,0 +1,111 @@
+version: "3"
+
+networks:
+  sagdevops_dbs:
+
+services:
+
+########################## IS DB setup ################################
+
+  is_db:
+    image: registry.docker.tests:5000/softwareag/base-oracle-xe-11g
+    networks:
+      - sagdevops_dbs
+    expose:
+      - "22"
+      - "1521"
+    environment:
+      - ORACLE_ALLOW_REMOTE=true
+      - ORACLE_DISABLE_ASYNCH_IO=true
+      - ORACLE_ENABLE_XDB=false
+
+  setup_is_db:
+    image: registry.docker.tests:5000/softwareag/dbcreator
+    networks:
+      - sagdevops_dbs
+    environment:
+      - db.name=webm
+      - db.type=oracle
+      - db.host=is_db
+      - db.port=1521
+      - db.tablespace.dir=/u01/app/oracle/oradata/XE
+      - db.admin.username=system
+      - db.admin.password=oracle
+      - db.username=is_dbuser
+      - db.password=strong123!
+      - db.product.version=latest
+      - db.component.version=latest
+      - db.components=[STR]
+      - db.products=[IS]
+    depends_on:
+      - is_db
+
+########################## MWS DB setup ################################
+
+  mws_db:
+    image: registry.docker.tests:5000/softwareag/base-oracle-xe-11g
+    networks:
+      - sagdevops_dbs
+    expose:
+      - "22"
+      - "1521"
+    environment:
+      - ORACLE_ALLOW_REMOTE=true
+      - ORACLE_DISABLE_ASYNCH_IO=true
+      - ORACLE_ENABLE_XDB=false
+
+  setup_mws_db:
+    image: registry.docker.tests:5000/softwareag/dbcreator
+    networks:
+      - sagdevops_dbs
+    environment:
+      - db.name=webm
+      - db.type=oracle
+      - db.host=mws_db
+      - db.port=1521
+      - db.tablespace.dir=/u01/app/oracle/oradata/XE
+      - db.admin.username=system
+      - db.admin.password=oracle
+      - db.username=mws_dbuser
+      - db.password=strong123!
+      - db.product.version=latest
+      - db.component.version=latest
+      - db.components=[STR]
+      - db.products=[MWS]
+    depends_on:
+      - mws_db
+
+########################## BPMS DB setup ################################
+
+  bpms_db:
+    image: registry.docker.tests:5000/softwareag/base-oracle-xe-11g
+    networks:
+      - sagdevops_dbs
+    expose:
+      - "22"
+      - "1521"
+    environment:
+      - ORACLE_ALLOW_REMOTE=true
+      - ORACLE_DISABLE_ASYNCH_IO=true
+      - ORACLE_ENABLE_XDB=false
+
+  setup_bpms_db:
+    image: registry.docker.tests:5000/softwareag/dbcreator
+    networks:
+      - sagdevops_dbs
+    environment:
+      - db.name=webm
+      - db.type=oracle
+      - db.host=bpms_db
+      - db.port=1521
+      - db.tablespace.dir=/u01/app/oracle/oradata/XE
+      - db.admin.username=system
+      - db.admin.password=oracle
+      - db.username=bpms_dbuser
+      - db.password=strong123!
+      - db.product.version=latest
+      - db.component.version=latest
+      - db.components=[STR]
+      - db.products=[IS,BPM,MWS]
+    depends_on:
+      - bpms_db
