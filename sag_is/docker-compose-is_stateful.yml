@@ -22,8 +22,7 @@ services:
       - "5555:5555"
     depends_on:
       - is_db
-      - um
-      - tc
+      - tcserver
 
   is_db:
     image: registry.docker.tests:5000/softwareag_dbs/is-oracle:10.1

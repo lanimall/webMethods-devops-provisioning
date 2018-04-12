@@ -6,6 +6,9 @@ environments:
     repo.product:        products
     repo.fix:            fixes
 
+    spm.configure:  [spm-tuneup]
+    spm.fixes:      [wMFix.SPM]             # SPM/SUM/SD core fixes by default
+
     os.platform:           lnxamd64
     tc.license.key.alias:  terracotta-license-${os.platform}
 
@@ -28,11 +31,21 @@ layers:
   default:
     productRepo: ${repo.product}
     fixRepo:     ${repo.fix}
+  spm:
+    description: Management layer of SPM's
+    templates:   ${spm.configure}
   tc:
     templates:
       - tc-server
 
 templates:
+  spm-tuneup:
+    description: SPM customizations
+    fixes: ${spm.fixes}
+    products:
+      SPM:
+      TESspm:
+
   tc-server:
     licenses:
       "Terracotta/terracotta-license.key": ${tc.license.key.alias}
