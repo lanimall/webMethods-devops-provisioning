@@ -1,0 +1,80 @@
+version: "3"
+
+networks:
+  sagdevops_bpms:
+    external: true
+
+services:
+########################## IS setup ################################
+  is1:
+    image: registry.docker.tests:5000/softwareag/is_stateful:10.1
+    hostname: is1
+    networks:
+      - sagdevops_bpms
+    expose:
+      - "8092"
+      - "8093"
+      - "5555"
+      - "9999"
+      - "8094"
+    ports:
+      - "5555:5555"
+    depends_on:
+      - is_db
+      - umserver
+      - tcserver
+
+  is2:
+    image: registry.docker.tests:5000/softwareag/is_stateful:10.1
+    hostname: is2
+    networks:
+      - sagdevops_bpms
+    expose:
+      - "8092"
+      - "8093"
+      - "5555"
+      - "9999"
+      - "8094"
+    ports:
+      - "5555:5555"
+    depends_on:
+      - is_db
+      - umserver
+      - tcserver
+
+  is_db:
+    image: registry.docker.tests:5000/softwareag_dbs/is-oracle:10.1
+    networks:
+      - sagdevops_bpms
+    expose:
+      - "22"
+      - "1521"
+    environment:
+      - ORACLE_ALLOW_REMOTE=true
+      - ORACLE_DISABLE_ASYNCH_IO=true
+      - ORACLE_ENABLE_XDB=false
+
+########################## UM setup ################################
+
+  umserver:
+    image: registry.docker.tests:5000/softwareag/umserver:10.1
+    hostname: um
+    networks:
+      - sagdevops_bpms
+    expose:
+      - "8092"
+      - "8093"
+      - "9000"
+
+########################## TC setup ################################
+
+  tcserver:
+    image: registry.docker.tests:5000/softwareag/tcserver:10.1
+    hostname: tc
+    networks:
+      - sagdevops_bpms
+    expose:
+      - "9010"
+      - "9020"
+      - "9030"
+      - "9040"

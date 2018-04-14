@@ -1,0 +1,194 @@
+<?xml version="1.0"?>
+<project name="main" xmlns="antlib:org.apache.tools.ant" basedir="../sag_bpms/provisioning/fromCompositeTemplates" default="apply" xmlns:if="ant:if" xmlns:unless="ant:unless">
+    <import file="antcc/main.xml" />
+
+    <!-- standard header start -->
+    <dirname file="${ant.file.main}" property="project.dir" />
+    <property name="build.dir" location="${project.dir}/build" />
+    <property name="install.dir" location="/opt/softwareag" />
+
+    <property environment="env" />
+
+    <!--<property name="apply.params" location="environment.type=server" />-->
+
+    <target name="_localinit" depends="sagenvInit, _setenvproperties">
+    </target>
+
+    <!-- _copyDefaultEnvToRuntimeEnv must be called first so the copy process happens right -->
+    <target name="setup" depends="_setTemplateEnvToRuntimeEnv,_apply_licenses,waitForTargetNodeUp,templateApply" />
+
+    <target name="setup_withccestart" depends="startcc,setup" />
+
+    <target name="waitForTargetNodeUp" description="Wait for target node up" depends="_localinit">
+        <property id="cc.spm.host" name="cc.spm.host" value="${env.CC_SPM_HOST}" if:set="env.CC_SPM_HOST" />
+        <property id="cc.spm.port" name="cc.spm.port" value="${env.CC_SPM_PORT}" if:set="env.CC_SPM_PORT" />
+
+        <!-- check SPM -->
+        <echo>Checking connectivity to ${cc.spm.host}:${cc.spm.port}</echo>
+        <waitfor maxwait="600" maxwaitunit="second" checkevery="5" checkeveryunit="second">
+            <socket server="${cc.spm.host}" port="${cc.spm.port}"/>
+        </waitfor>
+    </target>
+
+    <target name="bogusWait" description="Wait some more time...useful for Docker Troubleshooting">
+        <echo>Bogus wait...</echo>
+        <waitfor maxwait="120" maxwaitunit="second" checkevery="5" checkeveryunit="second">
+            <socket server="localhost" port="9999"/>
+        </waitfor>
+    </target>
+
+    <target name="templateApply" description="Apply $CC_TEMPLATE" depends="_localinit" >
+        <!--<echoproperties/>-->
+        <antcall target="sagenv.apply">
+            <param name="t" value="templates/${env.CC_TEMPLATE}"/>
+            <param name="env.properties" value="${env.properties}"/>
+        </antcall>
+    </target>
+
+    <target name="_setTemplateEnvToRuntimeEnv">
+        <property id="sagenv.template.env" name="template.env" value="${env.CC_TEMPLATE_ENV}" if:set="env.CC_TEMPLATE_ENV" />
+        <property name="template.env" value="default" />
+
+        <condition property="default.template.env.properties" value="environments/${template.env}/env.properties">
+            <available file="environments/${template.env}/env.properties"/>
+        </condition>
+        <condition property="default.template.env.properties" value="environments/${template.env}.properties">
+            <available file="environments/${template.env}.properties"/>
+        </condition>
+        <condition property="default.template.env.properties.exists" >
+            <available file="${default.template.env.properties}"/>
+        </condition>
+
+        <echo message="Template Environment File: ${default.template.env.properties}" if:set="default.template.env.properties.exists" />
+
+        <property name="runtime.template.env" value="runtime-${template.env}" />
+        <property name="runtime.template.env.properties" value="environments/${runtime.template.env}.properties" />
+        <copy file="${default.template.env.properties}" tofile="${runtime.template.env.properties}" overwrite="true" if:set="default.template.env.properties.exists"/>
+
+        <condition property="runtime.template.env.properties.exists" >
+            <available file="${runtime.template.env.properties}"/>
+        </condition>
+
+        <!-- force env file to be "runtime" as it is the file that should be used by the template apply command -->
+        <property name="env" value="${runtime.template.env}" if:set="runtime.template.env.properties.exists"/>
+        <echo message="New Environment Property Runtime: ${runtime.template.env}" if:set="runtime.template.env.properties.exists" />
+    </target>
+
+    <target name="_cleansetenvproperties" depends="sagenvInit">
+        <propertyfile file="${env.properties}">
+            <entry key="environment.type" value="" if:set="env.ENV_TYPE" />
+        </propertyfile>
+    </target>
+
+    <target name="_setenvproperties" depends="sagenvInit">
+        <set-property-if-nonempty name="environment.type" if-property-isset="env.ENV_TYPE" />
+
+        <!-- saving to env file because there's no other way...we need to pass these values using that env file -->
+        <propertyfile file="${env.properties}">
+            <entry key="environment.type" value="${environment.type}" if:set="environment.type" />
+        </propertyfile>
+
+        <property file="${env.properties}" />
+    </target>
+
+
+    <target name="_apply_licenses" depends="waitcc,_localinit" description="Import licence keys">
+        <property file="${env.properties}" />
+
+        <property name="licenses.dir" value="licenses" unless:set="licenses.zip.url"/>
+        <property name="licenses.dir" value="build/licenses" if:set="licenses.zip.url"/>
+
+        <echo if:set="licenses.zip.url">Downloading license keys .zip from: ${licenses.zip.url}</echo>
+        <mkdir dir="../sag_bpms/provisioning/fromCompositeTemplates/build/downloads" />
+        <get src="${licenses.zip.url}" dest="build/downloads/licenses.zip" usetimestamp="true" if:set="licenses.zip.url" />
+        <unzip src="build/downloads/licenses.zip" dest="licenses" if:set="licenses.zip.url" />
+
+        <cc command="list license-tools keys includeHeaders=false" format="csv" outputproperty="aliases" />
+
+        <iterate target="_import-license-files">
+            <fileset dir="${licenses.dir}/lnxamd64" includes="*.xml" />
+            <fileset dir="${licenses.dir}/w64" includes="*.xml" />
+            <fileset dir="${licenses.dir}/any" includes="*.xml" />
+            <fileset dir="${licenses.dir}/lnxamd64" includes="*.key" />
+            <fileset dir="${licenses.dir}/w64" includes="*.key" />
+            <fileset dir="${licenses.dir}/any" includes="*.key" />
+        </iterate>
+
+        <echo>Registered license keys</echo>
+        <cc command="list license-tools keys" format="tsv"/>
+    </target>
+
+    <target name="_import-license-files">
+        <property name="alias" value="${filename}-${dirname}"/>
+        <!-- chcek if we already have this license key -->
+        <contains list="${aliases}" item="${alias}" property="exists" />
+
+        <echo if:true="${exists}">${alias}: already present!</echo>
+
+        <sequential unless:true="${exists}">
+            <echo>${alias}: importing from ${dir}/${file}</echo>
+            <cc command="add license-tools keys ${alias}" input="${dir}/${file}" failonerror="false" />
+        </sequential>
+    </target>
+
+    <macrodef name="set-property-if-nonempty">
+        <attribute name="name" />
+        <attribute name="if-property-isset" />
+        <attribute name="value" default="${@{if-property-isset}}" />
+
+        <sequential>
+            <condition property="@{name}" value="@{value}">
+                <and>
+                    <isset property="@{if-property-isset}" />
+                    <not>
+                        <equals arg1="${@{if-property-isset}}" arg2="" />
+                    </not>
+                </and>
+            </condition>
+        </sequential>
+    </macrodef>
+
+    <scriptdef name="iterate" language="javascript" description="Calls target for each file in fileset">
+        <element name="fileset" type="fileset"/>
+        <attribute name="target" />
+        <![CDATA[
+            callee = project.createTask("antcall");
+            callee.setTaskName(attributes.get("target"));
+            callee.init();
+            callee.setTarget(attributes.get("target"));
+            callee.setInheritAll(true);
+            callee.setInheritRefs(false);
+            p1 = callee.createParam();
+            p1.setName("dir");
+            p2 = callee.createParam();
+            p2.setName("file");
+            p3 = callee.createParam();
+            p3.setName("filename");
+            p4 = callee.createParam();
+            p4.setName("dirname");
+
+          	filesets = elements.get("fileset");
+              for (i = 0; i < filesets.size(); ++i) {
+          	    fileset = filesets.get(i);
+          	    dir = fileset.getDir(project)
+          	    ds = fileset.getDirectoryScanner();
+          	    files = ds.getIncludedFiles();
+          	    for (n = 0; n < files.length; n++) {
+          	      f = files[n]
+                  p1.setValue(dir);
+                  p2.setValue(f);
+                  p3.setValue(f.substring(0, f.length() - 4)); // no .ext
+                  p4.setValue(dir.getName());
+          	      callee.execute();
+          	  }
+            }
+    ]]>
+    </scriptdef>
+
+    <scriptdef language="javascript" name="contains">
+        <attribute name="list" />
+        <attribute name="item" />
+        <attribute name="property" />
+        project.setProperty(attributes.get("property"), attributes.get("list").contains(attributes.get("item")));
+    </scriptdef>
+</project>

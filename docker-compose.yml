@@ -1,0 +1,150 @@
+version: "3"
+
+networks:
+  sagdevops_bpms:
+    external: true
+
+services:
+
+########################## CCE setup ################################
+  cce:
+    #image: softwareag/commandcentral/custom/mymirror:10.1.0.1-server
+    image: registry.docker.tests:5000/softwareag/commandcentral/custom/empower:10.1-server
+    hostname: cce
+    networks:
+      - sagdevops_bpms
+    ports:
+      - "8090:8090"
+      - "8091:8091"
+
+########################## IS setup ################################
+
+  is:
+    image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-node
+    hostname: is
+    networks:
+      - sagdevops_bpms
+    environment:
+      - CC_AUTO_REGISTER=0
+    expose:
+      - "8092"
+      - "8093"
+      - "5555"
+      - "9999"
+      - "8094"
+    ports:
+      - "5555:5555"
+    depends_on:
+      - is_db
+      - umserver
+      - tcserver
+
+  is_db:
+    image: registry.docker.tests:5000/softwareag/base-oracle-xe-11g
+    networks:
+      - sagdevops_bpms
+    expose:
+      - "22"
+      - "1521"
+    environment:
+      - ORACLE_ALLOW_REMOTE=true
+      - ORACLE_DISABLE_ASYNCH_IO=true
+      - ORACLE_ENABLE_XDB=false
+
+########################## MWS setup ################################
+
+  mws:
+    image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-node
+    hostname: mws
+    networks:
+      - sagdevops_bpms
+    environment:
+      - CC_AUTO_REGISTER=0
+    expose:
+      - "8585"
+      - "8586"
+      - "8092"
+      - "8093"
+    ports:
+      - "8585:8585"
+    depends_on:
+      - mws_db
+      - umserver
+      - tcserver
+
+  mws_db:
+    image: registry.docker.tests:5000/softwareag/base-oracle-xe-11g
+    networks:
+      - sagdevops_bpms
+    expose:
+      - "22"
+      - "1521"
+    environment:
+      - ORACLE_ALLOW_REMOTE=true
+      - ORACLE_DISABLE_ASYNCH_IO=true
+      - ORACLE_ENABLE_XDB=false
+
+########################## BPMS setup ################################
+
+  bpms:
+    image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-node
+    hostname: bpms
+    networks:
+      - sagdevops_bpms
+    environment:
+      - CC_AUTO_REGISTER=0
+    expose:
+      - "8092"
+      - "8093"
+      - "5555"
+      - "9999"
+      - "8094"
+    ports:
+      - "5566:5555"
+    depends_on:
+      - bpms_db
+      - umserver
+      - tcserver
+
+  bpms_db:
+    image: registry.docker.tests:5000/softwareag/base-oracle-xe-11g
+    networks:
+      - sagdevops_bpms
+    expose:
+      - "22"
+      - "1521"
+    environment:
+      - ORACLE_ALLOW_REMOTE=true
+      - ORACLE_DISABLE_ASYNCH_IO=true
+      - ORACLE_ENABLE_XDB=false
+
+########################## UM setup ################################
+
+  umserver:
+    image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-node
+    hostname: um
+    networks:
+      - sagdevops_bpms
+    environment:
+      - CC_AUTO_REGISTER=0
+    expose:
+      - "8092"
+      - "8093"
+      - "9000"
+    ports:
+      - "9000:9000"
+
+########################## TC setup ################################
+
+  tcserver:
+    image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-node
+    hostname: tc
+    networks:
+      - sagdevops_bpms
+    environment:
+      - CC_AUTO_REGISTER=0
+    expose:
+      - "9010"
+      - "9020"
+      - "9030"
+      - "9040"

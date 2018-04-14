@@ -1,0 +1,92 @@
+version: "3"
+
+networks:
+  sagdevops_bpms:
+    external: true
+
+services:
+########################## CCE setup ################################
+  cce:
+    #image: softwareag/commandcentral/custom/mymirror:10.1.0.1-server
+    image: registry.docker.tests:5000/softwareag/commandcentral/custom/empower:10.1-server
+    hostname: cce
+    networks:
+      - sagdevops_bpms
+    ports:
+      - "9090:8090"
+      - "9091:8091"
+
+########################## IS setup ################################
+  is1:
+    image: registry.docker.tests:5000/softwareag/is_stateful_managed:10.1
+    hostname: is1
+    networks:
+      - sagdevops_bpms
+    environment:
+      - CC_SERVER=cce
+      - CC_AUTO_REGISTER=1
+    expose:
+      - "8092"
+      - "8093"
+      - "5555"
+      - "9999"
+      - "8094"
+    ports:
+      - "5555:5555"
+    depends_on:
+      - is_db
+      - tcserver
+      - cce
+
+  is2:
+    image: registry.docker.tests:5000/softwareag/is_stateful_managed:10.1
+    hostname: is2
+    networks:
+      - sagdevops_bpms
+    environment:
+      - CC_SERVER=cce
+      - CC_AUTO_REGISTER=1
+    expose:
+      - "8092"
+      - "8093"
+      - "5555"
+      - "9999"
+      - "8094"
+    ports:
+      - "5556:5555"
+    depends_on:
+      - is_db
+      - tcserver
+      - cce
+
+  is_db:
+    image: registry.docker.tests:5000/softwareag_dbs/is-oracle:10.1
+    networks:
+      - sagdevops_bpms
+    expose:
+      - "22"
+      - "1521"
+    environment:
+      - ORACLE_ALLOW_REMOTE=true
+      - ORACLE_DISABLE_ASYNCH_IO=true
+      - ORACLE_ENABLE_XDB=false
+
+########################## TC setup ################################
+
+  tcserver:
+    image: registry.docker.tests:5000/softwareag/tcserver_managed:10.1
+    networks:
+      - sagdevops_bpms
+    environment:
+      - TC_HOST=tcserver
+      - TC_STORAGE=1g
+      - TC_OFFHEAP=1g
+      - CC_SERVER=cce
+      - CC_AUTO_REGISTER=1
+    expose:
+      - "9510"
+      - "9520"
+      - "9530"
+      - "9540"
+    depends_on:
+      - cce

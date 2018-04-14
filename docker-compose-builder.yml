@@ -1,0 +1,8 @@
+version: "3.0"
+
+services:
+  custombuilder:
+    image: softwareag/custombuilder:10.1
+    build:
+      context: .
+      dockerfile: Dockerfile.builder

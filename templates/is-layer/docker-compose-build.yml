@@ -1,0 +1,78 @@
+version: "3.0"
+
+services:
+  is_stateless_builder:
+    image: $PREFIX/is_stateless_builder:$TAG
+    build:
+      context: .
+      dockerfile: Dockerfile.builder
+      args:
+        ENV_TYPE: docker
+        CC_TEMPLATE: is-layer/tpl_is_stateless.yaml
+        CC_TEMPLATE_ENV: is
+        CC_SPM_HOST: localhost
+        CC_SPM_PORT: 8092
+    expose:
+      - "5555"
+      - "9999"
+
+  is_stateless:
+    image: $PREFIX/is_stateless:$TAG
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        PARENT_BUILDER: $PREFIX/is_stateless_builder:$TAG
+        PARENT_IMAGE: centos:7
+    expose:
+      - "5555"
+      - "9999"
+    depends_on:
+      - is_stateless_builder
+
+  is_stateless_managed:
+    image: $PREFIX/is_stateless_managed:$TAG
+    build:
+      context: .
+      dockerfile: Dockerfile.managed
+      args:
+        PARENT_BUILDER: $PREFIX/is_stateless_builder:$TAG
+        PARENT_IMAGE: $PREFIX/is_stateless:$TAG
+    expose:
+      - "5555"
+      - "9999"
+      - "8092"
+      - "8093"
+    depends_on:
+      - is_stateless_builder
+      - is_stateless
+
+#  is_stateful:
+#    image: registry.docker.tests:5000/softwareag/is_stateful:10.1
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+#      args:
+#        ENV_TYPE: docker
+#        CC_TEMPLATE: is-layer/tpl_is_stateful.yaml
+#        CC_TEMPLATE_ENV: is
+#        CC_SPM_HOST: localhost
+#        CC_SPM_PORT: 8092
+#    expose:
+#      - "5555"
+#      - "9999"
+#
+#  is_stateful_messaging:
+#    image: registry.docker.tests:5000/softwareag/is_stateful_messaging:10.1
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+#      args:
+#        ENV_TYPE: docker
+#        CC_TEMPLATE: is-layer/tpl_is_stateful_messaging.yaml
+#        CC_TEMPLATE_ENV: is
+#        CC_SPM_HOST: localhost
+#        CC_SPM_PORT: 8092
+#    expose:
+#      - "5555"
+#      - "9999"
