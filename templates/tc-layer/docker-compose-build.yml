@@ -3,7 +3,7 @@ version: "3.0"
 services:
 
   tcserver_builder:
-    image: softwareag/tcserver_builder:${TAG}
+    image: ${BUILDER_REGISTRY}softwareag/tcserver_builder:${TAG}
     build:
       context: .
       dockerfile: Dockerfile.builder
@@ -20,7 +20,7 @@ services:
       context: .
       dockerfile: Dockerfile.unmanaged
       args:
-        PARENT_BUILDER: softwareag/tcserver_builder:${TAG}
+        PARENT_BUILDER: ${BUILDER_REGISTRY}softwareag/tcserver_builder:${TAG}
         PARENT_IMAGE: centos:7
     expose:
       - "9510"
@@ -36,7 +36,7 @@ services:
       context: .
       dockerfile: Dockerfile.managed
       args:
-        PARENT_BUILDER: softwareag/tcserver_builder:${TAG}
+        PARENT_BUILDER: ${BUILDER_REGISTRY}softwareag/tcserver_builder:${TAG}
         PARENT_IMAGE: ${REGISTRY}softwareag/tcserver:${TAG}
     expose:
       - "9510"
