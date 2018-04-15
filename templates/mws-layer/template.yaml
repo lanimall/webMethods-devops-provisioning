@@ -6,11 +6,11 @@ environments:
     repo.product:        products
     repo.fix:            fixes
 
-    spm.port:       8092                    # SPM connection port
-    spm.secure:     false                   # Use HTTPS connection to SPM: true,false
-    spm.memory.max: 512                     # max mem
-    spm.configure:  [spm-tuneup]
-    spm.fixes:      [wMFix.SPM]             # SPM/SUM/SD core fixes by default
+    spm.port:            8092                    # SPM connection port
+    spm.secure:          false                   # Use HTTPS connection to SPM: true,false
+    spm.memory.max:      512                     # max mem
+    spm.configure:       [spm-tuneup]
+    spm.fixes:           [wMFix.SPM]             # SPM/SUM/SD core fixes by default
 
     # My webMethods Server
     mws.host:            mws                # REQUIRED:
@@ -42,6 +42,12 @@ environments:
     db.url.oracle:       "jdbc:wm:oracle://${db.host}:${db.port};SID=${db.sid}"
     db.url.sqlserver:    "jdbc:wm:${db.type}://${db.host}:${db.port};databaseName=${db.name}"
     db.url:              ${db.url.oracle}
+
+  server:
+
+  docker:
+    tc.host:        localhost
+    spm.alias:      local
 
 layers:
   default:
@@ -206,14 +212,22 @@ templates:
                   Auth:
                     "@type": AUTO
 
-# Provisioning
 provision:
   default:
     spm: ["${mws.host}"]
-    mws: ["${mws.host}"]
+    mws:  ["${mws.host}"]
+  server:
+    spm: ["${mws.host}"]
+    mws:  ["${mws.host}"]
+  docker:
+    spm: ["${spm.alias}"]
+    mws:  ["${spm.alias}"]
 
 nodes:
   default:
     default:
       port:   ${spm.port}
       secure: ${spm.secure}
+  docker:
+    ${spm.alias}:
+      host: ${mws.host}

@@ -2,7 +2,6 @@ ARG PARENT_BUILDER
 ARG PARENT_IMAGE
 
 FROM $PARENT_BUILDER as builder
-#FROM softwareag/is_stateless_builder:10.1 as builder
 
 FROM $PARENT_IMAGE
 

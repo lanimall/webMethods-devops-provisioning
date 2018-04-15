@@ -1,0 +1,45 @@
+version: "3.0"
+
+services:
+  bpms_builder:
+    image: ${BUILDER_REGISTRY}softwareag/bpms_builder:${TAG}
+    build:
+      context: .
+      dockerfile: Dockerfile.builder
+      args:
+        ENV_TYPE: docker
+        CC_TEMPLATE: bpms-layer/template.yaml
+        CC_TEMPLATE_ENV: bpms
+        CC_SPM_HOST: localhost
+        CC_SPM_PORT: 8092
+
+  bpms:
+    image: ${REGISTRY}softwareag/bpms:${TAG}
+    build:
+      context: .
+      dockerfile: Dockerfile.unmanaged
+      args:
+        PARENT_BUILDER: ${BUILDER_REGISTRY}softwareag/bpms_builder:${TAG}
+        PARENT_IMAGE: centos:7
+    expose:
+      - "5555"
+      - "9999"
+    depends_on:
+      - bpms_builder
+
+  bpms_managed:
+    image: ${REGISTRY}softwareag/bpms_managed:${TAG}
+    build:
+      context: .
+      dockerfile: Dockerfile.managed
+      args:
+        PARENT_BUILDER: ${BUILDER_REGISTRY}softwareag/bpms_builder:${TAG}
+        PARENT_IMAGE: ${REGISTRY}softwareag/bpms:${TAG}
+    expose:
+      - "5555"
+      - "9999"
+      - "8092"
+      - "8093"
+    depends_on:
+      - bpms_builder
+      - bpms

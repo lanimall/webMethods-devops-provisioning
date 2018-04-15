@@ -1,0 +1,45 @@
+version: "3.0"
+
+services:
+  mws_builder:
+    image: ${BUILDER_REGISTRY}softwareag/mws_builder:${TAG}
+    build:
+      context: .
+      dockerfile: Dockerfile.builder
+      args:
+        ENV_TYPE: docker
+        CC_TEMPLATE: mws-layer/template.yaml
+        CC_TEMPLATE_ENV: mws
+        CC_SPM_HOST: localhost
+        CC_SPM_PORT: 8092
+
+  mws:
+    image: ${REGISTRY}softwareag/mws:${TAG}
+    build:
+      context: .
+      dockerfile: Dockerfile.unmanaged
+      args:
+        PARENT_BUILDER: ${BUILDER_REGISTRY}softwareag/mws_builder:${TAG}
+        PARENT_IMAGE: centos:7
+    expose:
+      - "5555"
+      - "9999"
+    depends_on:
+      - mws_builder
+
+  mws_managed:
+    image: ${REGISTRY}softwareag/mws_managed:${TAG}
+    build:
+      context: .
+      dockerfile: Dockerfile.managed
+      args:
+        PARENT_BUILDER: ${BUILDER_REGISTRY}softwareag/mws_builder:${TAG}
+        PARENT_IMAGE: ${REGISTRY}softwareag/mws:${TAG}
+    expose:
+      - "5555"
+      - "9999"
+      - "8092"
+      - "8093"
+    depends_on:
+      - mws_builder
+      - mws

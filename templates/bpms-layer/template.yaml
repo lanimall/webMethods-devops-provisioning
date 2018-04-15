@@ -12,14 +12,8 @@ environments:
     spm.configure:  [spm-tuneup]    
     spm.fixes:      [wMFix.SPM]             # SPM/SUM/SD core fixes by default
 
-    # Universal Messaging Server.
-    um.host:              um
-
-    # Terracotta Server.
-    tc.host:              tc
-
     # BPMS / Integration Server. See is-layer template for parameters documentation
-    bpms.host:           bpms
+    is.host:             bpms
     is.instance.name:    default            # IS BPM instance
     is.primary.port:     5555
     is.diagnostic.port:  9999
@@ -28,14 +22,23 @@ environments:
     is.memory.init:      256                # memory configuration
     is.memory.max:       1024               # memory configuration
     is.lb.protocol:      HTTP               # external load balancer protocol
-    is.lb.host:          ${bpms.host}        # external load balancer host
+    is.lb.host:          ${is.host}        # external load balancer host
     is.lb.port:          ${is.primary.port} # external load balancer port
     is.fixes:            ALL
     is.configure:        [bpm-server]
-    is.cluster.enabled:  true
-    is.tsa.url:          "tcserver:9510"
 
     env.password:        manage             # IS/MWS Administrator password
+
+    # IS clustering
+    is.cluster.enabled:   true
+    is.cluster.name:      "${is.instance.name}-cluster"
+    tsa.url:              "tcserver:9510"
+
+    # IS Messaging
+    um.host:              "umserver"
+    um.port:              "9000"
+    um.url:               "nsp://${um.host}:${um.port}"
+    um.jndi.cf:           umcf
 
     # licenses
     os.platform:             lnxamd64
@@ -112,19 +115,19 @@ templates:
           db.password:     ${db.password}
           db.alias:        Default
           configuration:
-            OSGI-IS_${instance.name}:
+            OSGI-IS_${is.instance.name}:
               COMMON-MEMORY:
                 COMMON-MEMORY:
                   InitSize: ${is.memory.init}
                   MaxSize: ${is.memory.max}
-            integrationServer-${instance.name}:
+            integrationServer-${is.instance.name}:
               COMMON-JNDI:
                 COMMON-JNDI-DEFAULT_IS_JNDI_PROVIDER:
                   JNDI: 
                     "@alias": DEFAULT_IS_JNDI_PROVIDER
                     Description: Default JNDI provider alias
                     Provider: 
-                      URL: "${um.cluster.url}"
+                      URL: "${um.url}"
                       InitialContextFactory: com.pcbsys.nirvana.nSpace.NirvanaContextFactory
               COMMON-WMMESSAGING:
                 COMMON-WMMESSAGING-IS_UM_CONNECTION:
@@ -136,7 +139,7 @@ templates:
                     Enabled: true
                     Provider: 
                       "@type": UM
-                      URL: "${um.cluster.url}"
+                      URL: "${um.url}"
                       MaxRetryAttempts: 5
                       RetryInterval: 30000
               COMMON-JMS:
@@ -230,14 +233,14 @@ templates:
                     Description: "Central User Management Configuration"
               COMMON-CLUSTER:
                 COMMON-CLUSTER:
-                  Name: ${instance.name}-cluster
+                  Name: ${is.cluster.name}
                   Enabled: ${is.cluster.enabled}
                   Servers:
                     Server: 
                       - 
-                        URL: ${is.tsa.url} 
+                        URL: ${tsa.url}
 
-            OSGI-IS_${instance.name}-WmMonitor: &MwsEndpoint
+            OSGI-IS_${is.instance.name}-WmMonitor: &MwsEndpoint
               COMMON-COMPONENT-ENDPOINTS:
                 COMMON-COMPONENT-ENDPOINTS-MWS:
                   "@alias": MWS
@@ -249,17 +252,26 @@ templates:
                     "@type": BASIC
                     User: Administrator
                     Password: ${env.password}
-            OSGI-IS_${instance.name}-WmTaskClient: *MwsEndpoint
+            OSGI-IS_${is.instance.name}-WmTaskClient: *MwsEndpoint
 
 provision:
   default:
-    spm:  ["${bpms.host}"]
-    bpm:  ["${bpms.host}"]
+    spm:  ["${is.host}"]
+    is:   ["${is.host}"]
+  server:
+    spm:  ["${is.host}"]
+    is:   ["${is.host}"]
+  docker:
+    spm:  ["${spm.alias}"]
+    is:   ["${spm.alias}"]
 
 nodes:
   default:
     default:
       port:   ${spm.port}
       secure: ${spm.secure}
+  docker:
+    ${spm.alias}:
+      host: ${is.host}
  
  

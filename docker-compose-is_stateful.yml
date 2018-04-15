@@ -1,0 +1,101 @@
+version: "3"
+
+networks:
+  sagdevops_bpms:
+    external: true
+
+services:
+########################## IS setup ################################
+  is_stateless_builder:
+    image: ${PREFIX}softwareag/is_stateful_builder:${TAG}
+    build:
+      context: templates/is-layer
+      dockerfile: Dockerfile.builder
+      args:
+        ENV_TYPE: docker
+        CC_TEMPLATE: is-layer/tpl_is_stateful.yaml
+        CC_TEMPLATE_ENV: is
+        CC_SPM_HOST: localhost
+        CC_SPM_PORT: 8092
+    expose:
+      - "5555"
+      - "9999"
+
+  is1:
+    image: ${PREFIX}softwareag/is_stateful:${TAG}
+    build:
+      context: templates/is-layer
+      dockerfile: Dockerfile.unmanaged
+      args:
+        PARENT_BUILDER: ${PREFIX}softwareag/is_stateful_builder:${TAG}
+        PARENT_IMAGE: centos:7
+    hostname: is1
+    networks:
+      - sagdevops
+    ports:
+      - "5555:5555"
+    depends_on:
+      - is_stateless_builder
+      - is_db
+      - tcserver
+
+  is2:
+    image: ${PREFIX}softwareag/is_stateful:${TAG}
+    build:
+      context: templates/is-layer
+      dockerfile: Dockerfile.unmanaged
+      args:
+        PARENT_BUILDER: ${PREFIX}softwareag/is_stateful_builder:${TAG}
+        PARENT_IMAGE: centos:7
+    hostname: is2
+    networks:
+      - sagdevops
+    ports:
+      - "5556:5555"
+    depends_on:
+      - is_stateless_builder
+      - is_db
+      - tcserver
+
+  is_db:
+    image: ${PREFIX}softwareag_dbs/is-oracle:${TAG}
+    networks:
+      - sagdevops
+    expose:
+      - "22"
+      - "1521"
+    environment:
+      - ORACLE_ALLOW_REMOTE=true
+      - ORACLE_DISABLE_ASYNCH_IO=true
+      - ORACLE_ENABLE_XDB=false
+
+########################## TC setup ################################
+
+  tcserver_builder:
+    image: ${REGISTRY}softwareag/tcserver_builder:${TAG}
+    build:
+      context: templates/tc-layer
+      dockerfile: Dockerfile.builder
+      args:
+        ENV_TYPE: docker
+        CC_TEMPLATE: tc-layer
+        CC_TEMPLATE_ENV: tc
+        CC_SPM_HOST: localhost
+        CC_SPM_PORT: 8092
+
+  tcserver:
+    image: ${REGISTRY}softwareag/tcserver:${TAG}
+    build:
+      context: templates/tc-layer
+      dockerfile: Dockerfile.unmanaged
+      args:
+        PARENT_BUILDER: ${REGISTRY}softwareag/tcserver_builder:${TAG}
+        PARENT_IMAGE: centos:7
+    networks:
+      - sagdevops
+    environment:
+      - TC_HOST=tcserver
+      - TC_STORAGE=1g
+      - TC_OFFHEAP=1g
+    depends_on:
+      - tcserver_builder

@@ -31,13 +31,13 @@ environments:
     # IS clustering
     is.cluster.enabled:   true
     is.cluster.name:      "${is.instance.name}-cluster"
-    is.tsa.url:           "tcserver:9510"
+    tsa.url:              "tcserver:9510"
 
     # IS Messaging
-    is.um.host:           "umserver"
-    is.um.port:           "9000"
-    is.um.url:            "nsp://${um.host}:${um.instance.port}"
-    is.um.jndi.cf:        umcf
+    um.host:           "umserver"
+    um.port:           "9000"
+    um.url:            "nsp://${um.host}:${um.port}"
+    um.jndi.cf:        umcf
 
     # Database connection
     db.type:             oracle             # REQUIRED: Database type: oracle,sqlserver,db2
@@ -107,7 +107,7 @@ templates:
                     "@alias": DEFAULT_IS_JNDI_PROVIDER
                     Description: Default JNDI provider alias
                     Provider:
-                      URL: "${is.um.url}"
+                      URL: "${um.url}"
                       InitialContextFactory: com.pcbsys.nirvana.nSpace.NirvanaContextFactory
               COMMON-WMMESSAGING:
                 COMMON-WMMESSAGING-IS_UM_CONNECTION:
@@ -119,7 +119,7 @@ templates:
                     Enabled: true
                     Provider:
                       "@type": UM
-                      URL: "${is.um.url}"
+                      URL: "${um.url}"
                       MaxRetryAttempts: 5
                       RetryInterval: 30000
               COMMON-JMS:
@@ -133,7 +133,7 @@ templates:
                     Provider:
                       "@type": JNDI
                       JNDIAlias: DEFAULT_IS_JNDI_PROVIDER
-                      JNDIConnectionFactoryName: ${is.um.jndi.cf}
+                      JNDIConnectionFactoryName: ${um.jndi.cf}
                     User: ""
                     MaxRetryAttempts: 0
                     RetryInterval: 0
@@ -177,7 +177,7 @@ templates:
                   Servers:
                     Server:
                       -
-                        URL: ${is.tsa.url}
+                        URL: ${tsa.url}
 
 provision:
   default:
