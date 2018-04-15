@@ -4,7 +4,6 @@ ARG PARENT_IMAGE
 FROM $PARENT_BUILDER as builder
 #FROM softwareag/is_stateless_builder:10.1 as builder
 
-# This is the same as the unmanaged one + management support
 FROM $PARENT_IMAGE
 
 ### ADD management support

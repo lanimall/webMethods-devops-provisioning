@@ -2,7 +2,7 @@ version: "3.0"
 
 services:
   is_stateless_builder:
-    image: $PREFIX/is_stateless_builder:$TAG
+    image: softwareag/is_stateless_builder:${TAG}
     build:
       context: .
       dockerfile: Dockerfile.builder
@@ -12,17 +12,14 @@ services:
         CC_TEMPLATE_ENV: is
         CC_SPM_HOST: localhost
         CC_SPM_PORT: 8092
-    expose:
-      - "5555"
-      - "9999"
 
   is_stateless:
-    image: $PREFIX/is_stateless:$TAG
+    image: ${REGISTRY}softwareag/is_stateless:${TAG}
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.unmanaged
       args:
-        PARENT_BUILDER: $PREFIX/is_stateless_builder:$TAG
+        PARENT_BUILDER: softwareag/is_stateless_builder:${TAG}
         PARENT_IMAGE: centos:7
     expose:
       - "5555"
@@ -31,13 +28,13 @@ services:
       - is_stateless_builder
 
   is_stateless_managed:
-    image: $PREFIX/is_stateless_managed:$TAG
+    image: ${REGISTRY}softwareag/is_stateless_managed:${TAG}
     build:
       context: .
       dockerfile: Dockerfile.managed
       args:
-        PARENT_BUILDER: $PREFIX/is_stateless_builder:$TAG
-        PARENT_IMAGE: $PREFIX/is_stateless:$TAG
+        PARENT_BUILDER: softwareag/is_stateless_builder:${TAG}
+        PARENT_IMAGE: ${REGISTRY}softwareag/is_stateless:${TAG}
     expose:
       - "5555"
       - "9999"

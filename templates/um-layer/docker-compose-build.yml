@@ -1,0 +1,41 @@
+version: "3.0"
+
+services:
+  umserver_builder:
+    image: softwareag/umserver_builder:${TAG}
+    build:
+      context: .
+      dockerfile: Dockerfile.builder
+      args:
+        ENV_TYPE: docker
+        CC_TEMPLATE: um-layer
+        CC_TEMPLATE_ENV: um
+        CC_SPM_HOST: localhost
+        CC_SPM_PORT: 8092
+
+  umserver:
+    image: ${REGISTRY}softwareag/umserver:${TAG}
+    build:
+      context: .
+      dockerfile: Dockerfile.unmanaged
+      args:
+        PARENT_BUILDER: softwareag/umserver_builder:${TAG}
+        PARENT_IMAGE: centos:7
+    expose:
+      - "9000"
+    depends_on:
+      - umserver_builder
+
+  umserver_managed:
+    image: ${REGISTRY}softwareag/umserver_managed:${TAG}
+    build:
+      context: .    
+      dockerfile: Dockerfile.managed
+      args:
+        PARENT_BUILDER: softwareag/umserver_builder:${TAG}
+        PARENT_IMAGE: ${REGISTRY}softwareag/umserver:${TAG}
+    expose:
+      - "9000"
+    depends_on:
+      - umserver_builder
+      - umserver

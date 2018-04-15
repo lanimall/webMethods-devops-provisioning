@@ -1,7 +1,9 @@
-FROM softwareag/custombuilder:10.1 as builder
+ARG PARENT_BUILDER
+ARG PARENT_IMAGE
 
-# This is the same as the un-managed one + management support
-FROM softwareag/umserver:10.1
+FROM $PARENT_BUILDER as builder
+
+FROM $PARENT_IMAGE
 
 ### ADD management support
 ENV CC_CLI_HOME=$SAG_HOME/CommandCentral/client

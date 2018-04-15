@@ -1,6 +1,9 @@
-FROM softwareag/custombuilder:10.1 as builder
+ARG PARENT_BUILDER
+ARG PARENT_IMAGE
 
-FROM centos:7
+FROM $PARENT_BUILDER as builder
+
+FROM $PARENT_IMAGE
 
 MAINTAINER fabien.sanglier@softwareaggov.com
 
