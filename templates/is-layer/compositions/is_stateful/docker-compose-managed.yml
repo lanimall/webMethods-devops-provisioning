@@ -1,7 +1,7 @@
 version: "3"
 
 networks:
-  sagdevops_bpms:
+  sagdevops:
     external: true
 
 services:
@@ -11,7 +11,7 @@ services:
     image: registry.docker.tests:5000/softwareag/commandcentral/custom/empower:10.1-server
     hostname: cce
     networks:
-      - sagdevops_bpms
+      - sagdevops
     ports:
       - "9090:8090"
       - "9091:8091"
@@ -21,7 +21,7 @@ services:
     image: registry.docker.tests:5000/softwareag/is_stateful_managed:10.1
     hostname: is1
     networks:
-      - sagdevops_bpms
+      - sagdevops
     environment:
       - CC_SERVER=cce
       - CC_AUTO_REGISTER=1
@@ -42,7 +42,7 @@ services:
     image: registry.docker.tests:5000/softwareag/is_stateful_managed:10.1
     hostname: is2
     networks:
-      - sagdevops_bpms
+      - sagdevops
     environment:
       - CC_SERVER=cce
       - CC_AUTO_REGISTER=1
@@ -62,7 +62,7 @@ services:
   is_db:
     image: registry.docker.tests:5000/softwareag_dbs/is-oracle:10.1
     networks:
-      - sagdevops_bpms
+      - sagdevops
     expose:
       - "22"
       - "1521"
@@ -76,7 +76,7 @@ services:
   tcserver:
     image: registry.docker.tests:5000/softwareag/tcserver_managed:10.1
     networks:
-      - sagdevops_bpms
+      - sagdevops
     environment:
       - TC_HOST=tcserver
       - TC_STORAGE=1g
