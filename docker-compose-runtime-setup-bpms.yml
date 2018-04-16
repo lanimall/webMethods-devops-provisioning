@@ -7,18 +7,8 @@ networks:
 services:
 
 ########################## CCE setup ################################
-  cce:
-    #image: softwareag/commandcentral/custom/mymirror:10.1.0.1-server
-    image: registry.docker.tests:5000/softwareag/commandcentral/custom/empower:10.1-server
-    hostname: cce
-    networks:
-      - sagdevops_bpms
-    ports:
-      - "8090:8090"
-      - "8091:8091"
-
   setup_cce:
-    image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-client
+    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-client
     environment:
       - CC_CLIENT=docker
     volumes:
@@ -32,7 +22,7 @@ services:
 ########################## IS setup ################################
 
   is:
-    image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-node
+    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-node
     hostname: is
     networks:
       - sagdevops_bpms
@@ -52,7 +42,7 @@ services:
       - tcserver
 
   setup_is:
-    image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-client
+    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-client
     volumes:
       - ./:/src
     networks:
@@ -70,7 +60,7 @@ services:
       - cce
 
   is_db:
-    image: registry.docker.tests:5000/softwareag/base-oracle-xe-11g
+    image: ${REGISTRY}softwareag/base-oracle-xe-11g
     networks:
       - sagdevops_bpms
     expose:
@@ -82,7 +72,7 @@ services:
       - ORACLE_ENABLE_XDB=false
 
   setup_is_db:
-    image: registry.docker.tests:5000/softwareag/dbcreator
+    image: ${REGISTRY}softwareag/dbcreator
     networks:
       - sagdevops_bpms
     environment:
@@ -105,7 +95,7 @@ services:
 ########################## MWS setup ################################
 
   mws:
-    image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-node
+    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-node
     hostname: mws
     networks:
       - sagdevops_bpms
@@ -124,7 +114,7 @@ services:
       - tcserver
 
   setup_mws:
-    image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-client
+    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-client
     volumes:
       - ./:/src
     networks:
@@ -142,7 +132,7 @@ services:
       - cce
 
   mws_db:
-    image: registry.docker.tests:5000/softwareag/base-oracle-xe-11g
+    image: ${REGISTRY}softwareag/base-oracle-xe-11g
     networks:
       - sagdevops_bpms
     expose:
@@ -154,7 +144,7 @@ services:
       - ORACLE_ENABLE_XDB=false
 
   setup_mws_db:
-    image: registry.docker.tests:5000/softwareag/dbcreator
+    image: ${REGISTRY}softwareag/dbcreator
     networks:
       - sagdevops_bpms
     environment:
@@ -177,7 +167,7 @@ services:
 ########################## BPMS setup ################################
 
   bpms:
-    image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-node
+    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-node
     hostname: bpms
     networks:
       - sagdevops_bpms
@@ -197,7 +187,7 @@ services:
       - tcserver
 
   setup_bpms:
-    image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-client
+    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-client
     volumes:
       - ./:/src
     networks:
@@ -215,7 +205,7 @@ services:
       - cce
 
   bpms_db:
-    image: registry.docker.tests:5000/softwareag/base-oracle-xe-11g
+    image: ${REGISTRY}softwareag/base-oracle-xe-11g
     networks:
       - sagdevops_bpms
     expose:
@@ -227,7 +217,7 @@ services:
       - ORACLE_ENABLE_XDB=false
 
   setup_bpms_db:
-    image: registry.docker.tests:5000/softwareag/dbcreator
+    image: ${REGISTRY}softwareag/dbcreator
     networks:
       - sagdevops_bpms
     environment:
@@ -250,7 +240,7 @@ services:
 ########################## UM setup ################################
 
   umserver:
-    image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-node
+    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-node
     hostname: um
     networks:
       - sagdevops_bpms
@@ -264,7 +254,7 @@ services:
       - "9000:9000"
 
   setup_um:
-    image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-client
+    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-client
     volumes:
       - ./:/src
     networks:
@@ -283,20 +273,20 @@ services:
 ########################## TC setup ################################
 
   tcserver:
-    image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-node
+    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-node
     hostname: tc
     networks:
       - sagdevops_bpms
     environment:
       - CC_AUTO_REGISTER=0
     expose:
-      - "9010"
-      - "9020"
-      - "9030"
-      - "9040"
+      - "9510"
+      - "9520"
+      - "9530"
+      - "9540"
 
   setup_tc:
-    image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-client
+    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-client
     volumes:
       - ./:/src
     networks:
@@ -306,23 +296,6 @@ services:
       - CC_TEMPLATE=tc-layer
       - CC_BASE_ENV=tc
       - CC_SPM_HOST=tcserver
-      - CC_SPM_PORT=8092
-    command: sagccant setup
-    depends_on:
-      - tcserver
-      - cce
-
-  setup_tc_local:
-    image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-client
-    volumes:
-      - ./:/src
-    networks:
-      - sagdevops_bpms
-    environment:
-      - CC_CLIENT=docker
-      - CC_TEMPLATE=tc-layer-local
-      - CC_BASE_ENV=tc
-      - CC_SPM_HOST=cce
       - CC_SPM_PORT=8092
     command: sagccant setup
     depends_on:

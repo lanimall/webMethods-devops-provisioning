@@ -8,8 +8,7 @@ services:
 
 ########################## CCE setup ################################
   cce:
-    #image: softwareag/commandcentral/custom/mymirror:10.1.0.1-server
-    image: registry.docker.tests:5000/softwareag/commandcentral/custom/empower:10.1-server
+    image: ${REGISTRY}softwareag/commandcentral/custom/empower:${TAG}-server
     hostname: cce
     networks:
       - sagdevops_bpms
@@ -18,7 +17,7 @@ services:
       - "9091:8091"
 
   setup_cce:
-    image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-client
+    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-client
     environment:
       - CC_CLIENT=docker
     volumes:
@@ -32,7 +31,7 @@ services:
 ########################## IS setup ################################
 
   is:
-    image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-node
+    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-node
     hostname: is
     networks:
       - sagdevops_bpms
@@ -48,11 +47,11 @@ services:
       - "5555:5555"
     depends_on:
       - is_db
-      - um
-      - tc
+      - umserver
+      - tcserver
 
   setup_is:
-    image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-client
+    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-client
     volumes:
       - ./:/src
     networks:
@@ -69,7 +68,7 @@ services:
       - cce
 
   is_db:
-    image: registry.docker.tests:5000/softwareag_dbs/is-oracle:10.1
+    image: ${REGISTRY}softwareag_dbs/is-oracle:${TAG}
     networks:
       - sagdevops_bpms
     expose:
@@ -83,7 +82,7 @@ services:
 ########################## MWS setup ################################
 
   mws:
-    image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-node
+    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-node
     hostname: mws
     networks:
       - sagdevops_bpms
@@ -100,7 +99,7 @@ services:
       - mws_db
 
   setup_mws:
-    image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-client
+    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-client
     volumes:
       - ./:/src
     networks:
@@ -117,7 +116,7 @@ services:
       - cce
 
   mws_db:
-    image: registry.docker.tests:5000/softwareag_dbs/mws-oracle:10.1
+    image: ${REGISTRY}softwareag_dbs/mws-oracle:${TAG}
     networks:
       - sagdevops_bpms
     expose:
@@ -131,7 +130,7 @@ services:
 ########################## BPMS setup ################################
 
   bpms:
-    image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-node
+    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-node
     hostname: bpms
     networks:
       - sagdevops_bpms
@@ -147,11 +146,11 @@ services:
       - "5555:5555"
     depends_on:
       - bpms_db
-      - um
-      - tc
+      - umserver
+      - tcserver
 
   setup_bpms:
-    image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-client
+    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-client
     volumes:
       - ./:/src
     networks:
@@ -168,7 +167,7 @@ services:
       - cce
 
   bpms_db:
-    image: registry.docker.tests:5000/softwareag_dbs/bpms-oracle:10.1
+    image: ${REGISTRY}softwareag_dbs/bpms-oracle:${TAG}
     networks:
       - sagdevops_bpms
     expose:
@@ -181,13 +180,11 @@ services:
 
 ########################## IS / UM setup directly from docker ################################
 
-  um:
-    image: registry.docker.tests:5000/softwareag/umserver:10.1
+  umserver:
+    image: ${REGISTRY}softwareag/umserver:${TAG}
     hostname: um
     networks:
       - sagdevops_bpms
-    volumes:
-      - ./licenses/lnxamd64/UniversalMessaging.xml:/opt/softwareag/UniversalMessaging/server/umserver/licence.xml
     expose:
       - "8092"
       - "8093"
@@ -195,13 +192,11 @@ services:
     ports:
       - "9000:9000"
 
-  tc:
-    image: registry.docker.tests:5000/softwareag/tcserver:10.1
+  tcserver:
+    image: ${REGISTRY}softwareag/tcserver:${TAG}
     hostname: tc
     networks:
       - sagdevops_bpms
-    volumes:
-      - ./licenses/lnxamd64/terracotta-license.key:/opt/softwareag/Terracotta/terracotta-license.key
     expose:
       - "9510"
       - "9520"
