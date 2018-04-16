@@ -3,7 +3,7 @@ description: Default master repositories registration
 
 environments:
   default:  # Input parameters
-    repo.products.location: http://sdc.softwareag.com/dataservewebM101/repository/
+    repo.products.location: ${}
     repo.products.description: ${}
     repo.fixes.location: ${}
     repo.fixes.description: ${}

@@ -1,4 +1,4 @@
-alias: dbconfig
+alias: dbcreator
 description: Database Configurator
 version: 1.0
 changes:
@@ -7,8 +7,8 @@ changes:
 environments:
   default:                                  # defaults
     # product and fix repositories
-    #repo.product: products
-    #repo.fix:     fixes
+    repo.product: products
+    repo.fix:     fixes
     dbc.fixes:           ALL
     
     # Database connection
@@ -36,8 +36,8 @@ environments:
 
 layers:
   default:
-    #productRepo: ${repo.product}            # install products from
-    #fixRepo:     ${repo.fix}                # install fixes from
+    productRepo: ${repo.product}            # install products from
+    fixRepo:     ${repo.fix}                # install fixes from
   dbc:
     templates:
       - dbc
@@ -70,7 +70,7 @@ templates:
     description: DB Schema Management using DatabaseComponentConfigurator
     products:
       DatabaseComponentConfigurator:
-    #fixes: ${dbc.fixes}
+    fixes: ${dbc.fixes}
 
 provision:
   default:
