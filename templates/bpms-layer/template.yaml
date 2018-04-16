@@ -24,7 +24,7 @@ environments:
     is.lb.protocol:      HTTP               # external load balancer protocol
     is.lb.host:          ${is.host}        # external load balancer host
     is.lb.port:          ${is.primary.port} # external load balancer port
-    is.fixes:            ALL
+    is.fixes:            [wMFix.integrationServer.Core]
     is.configure:        [bpm-server]
 
     env.password:        manage             # IS/MWS Administrator password
@@ -58,6 +58,12 @@ environments:
     db.url.sqlserver:    "jdbc:wm:${db.type}://${db.host}:${db.port};databaseName=${db.name}"
     db.url:              ${db.url.oracle}
 
+  server:
+
+  docker:
+    is.host:        localhost
+    spm.alias:      local
+
 layers:
   default:
     productRepo: ${repo.product}
@@ -67,7 +73,7 @@ layers:
     description: Management layer of SPM's
     templates:   ${spm.configure}
 
-  bpm:
+  bpms:
     description: Business Process Management layer based on Integration Server
     templates:   ${is.configure}
 
@@ -257,13 +263,13 @@ templates:
 provision:
   default:
     spm:  ["${is.host}"]
-    is:   ["${is.host}"]
+    bpms:   ["${is.host}"]
   server:
     spm:  ["${is.host}"]
-    is:   ["${is.host}"]
+    bpms:   ["${is.host}"]
   docker:
     spm:  ["${spm.alias}"]
-    is:   ["${spm.alias}"]
+    bpms:   ["${spm.alias}"]
 
 nodes:
   default:
