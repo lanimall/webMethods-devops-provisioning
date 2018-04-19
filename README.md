@@ -5,7 +5,7 @@ Author: Fabien Sanglier
 ## Table of content
 1. [Introduction](#introduction)
 2. [Pre-requisites](#prerequisites)
-3. [Quick Start](#quickstart)
+3. [Provisoning an environment - Quick Start](#env_quickstart)
 4. [Building Product-specific Docker Images](#building_product_docker)
 
 ## Intro <a name="introduction"></a>
@@ -90,7 +90,7 @@ This will create 2 images for internal use only. No need to push them to a regis
  - softwareag/custombuilder:10.1
  - softwareag/setupnode:10.1
  
-## Quick Start  <a name="quickstart"></a>
+## Provisoning an Environment - Quick Start  <a name="env_quickstart"></a>
 
 Once the requirements are done, we're ready to build some docker images and full environments.
 In the following quick start, we will be provisoning an IS "stateful" cluster environment comprised of:
