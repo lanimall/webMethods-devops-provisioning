@@ -8,8 +8,7 @@ services:
 
 ########################## CCE setup ################################
   cce:
-    #image: softwareag/commandcentral/custom/mymirror:10.1.0.1-server
-    image: registry.docker.tests:5000/softwareag/commandcentral/custom/empower:10.1-server
+    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-server
     hostname: cce
     networks:
       - sagdevops_bpms
@@ -20,7 +19,7 @@ services:
 ########################## IS setup ################################
 
   is:
-    image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-node
+    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-node
     hostname: is
     networks:
       - sagdevops_bpms
@@ -40,7 +39,7 @@ services:
       - tcserver
 
   is_db:
-    image: registry.docker.tests:5000/softwareag/base-oracle-xe-11g
+    image: ${REGISTRY}softwareag/base-oracle-xe-11g
     networks:
       - sagdevops_bpms
     expose:
@@ -54,7 +53,7 @@ services:
 ########################## MWS setup ################################
 
   mws:
-    image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-node
+    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-node
     hostname: mws
     networks:
       - sagdevops_bpms
@@ -73,7 +72,7 @@ services:
       - tcserver
 
   mws_db:
-    image: registry.docker.tests:5000/softwareag/base-oracle-xe-11g
+    image: ${REGISTRY}softwareag/base-oracle-xe-11g
     networks:
       - sagdevops_bpms
     expose:
@@ -87,7 +86,7 @@ services:
 ########################## BPMS setup ################################
 
   bpms:
-    image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-node
+    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-node
     hostname: bpms
     networks:
       - sagdevops_bpms
@@ -107,7 +106,7 @@ services:
       - tcserver
 
   bpms_db:
-    image: registry.docker.tests:5000/softwareag/base-oracle-xe-11g
+    image: ${REGISTRY}softwareag/base-oracle-xe-11g
     networks:
       - sagdevops_bpms
     expose:
@@ -121,7 +120,7 @@ services:
 ########################## UM setup ################################
 
   umserver:
-    image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-node
+    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-node
     hostname: um
     networks:
       - sagdevops_bpms
@@ -137,14 +136,14 @@ services:
 ########################## TC setup ################################
 
   tcserver:
-    image: registry.docker.tests:5000/ccdevops/commandcentral:10.1-node
+    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-node
     hostname: tc
     networks:
       - sagdevops_bpms
     environment:
       - CC_AUTO_REGISTER=0
     expose:
-      - "9010"
-      - "9020"
-      - "9030"
-      - "9040"
+      - "9510"
+      - "9520"
+      - "9530"
+      - "9540"

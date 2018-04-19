@@ -1,6 +1,9 @@
-# MUST start with builder image to run provisioning using template.yaml
+ARG PARENT_IMAGE
+
+FROM $PARENT_IMAGE
+
 #FROM store/softwareag/commandcentral:10.1.0.1-server
-FROM registry.docker.tests:5000/softwareag/commandcentral/custom/empower:10.1-server as builder
+#FROM registry.docker.tests:5000/softwareag/commandcentral/custom/empower:10.1-server as builder
 
 MAINTAINER fabien.sanglier@softwareaggov.com
 
@@ -20,6 +23,9 @@ ONBUILD ENV CC_SPM_PORT=$CC_SPM_PORT
 ADD . /src
 WORKDIR /src
 
-# start tooling, apply template(s), cleanup
-ONBUILD RUN sagccant startcc setup stopcc -Dbuild.dir=/tmp && \
+# start tooling, apply licenses, apply repos, template(s), and cleanup
+ONBUILD RUN sagccant startcc apply_licenses && \
+    sagccant setup -Denv.CC_TEMPLATE=sag-repos -Denv.CC_TEMPLATE_ENV=sag-repos && \
+    sagccant setup -Dbuild.dir=/tmp && \
+    sagccant stopcc && \
     cd /opt/softwareag && rm -fr /tmp/* common/conf/nodeId.txt profiles/SPM/logs/* profiles/CCE/logs/*

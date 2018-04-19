@@ -8,7 +8,7 @@ services:
 
 ########################## CCE setup ################################
   cce:
-    image: ${REGISTRY}softwareag/commandcentral/custom/empower:${TAG}-server
+    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-server
     hostname: cce
     networks:
       - sagdevops_bpms
@@ -17,11 +17,9 @@ services:
       - "9091:8091"
 
   setup_cce:
-    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-client
+    image: softwareag/setupnode:${TAG}
     environment:
       - CC_CLIENT=docker
-    volumes:
-      - ./:/src
     networks:
       - sagdevops_bpms
     command: sagccant licenses
@@ -51,9 +49,7 @@ services:
       - tcserver
 
   setup_is:
-    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-client
-    volumes:
-      - ./:/src
+    image: softwareag/setupnode:${TAG}
     networks:
       - sagdevops_bpms
     environment:
@@ -99,9 +95,7 @@ services:
       - mws_db
 
   setup_mws:
-    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-client
-    volumes:
-      - ./:/src
+    image: softwareag/setupnode:${TAG}
     networks:
       - sagdevops_bpms
     environment:
@@ -150,9 +144,7 @@ services:
       - tcserver
 
   setup_bpms:
-    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-client
-    volumes:
-      - ./:/src
+    image: softwareag/setupnode:${TAG}
     networks:
       - sagdevops_bpms
     environment:

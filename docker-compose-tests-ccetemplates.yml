@@ -1,0 +1,49 @@
+version: "3"
+
+networks:
+  sagdevops:
+
+services:
+  cce:
+    image: ${REGISTRY}softwareag/commandcentral/custom/empower:${TAG}-server
+    hostname: cce
+    networks:
+      - sagdevops
+    ports:
+      - "8090:8090"
+      - "8091:8091"
+
+  targetnode:
+    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-node
+    hostname: is
+    networks:
+      - sagdevops
+    environment:
+      - CC_AUTO_REGISTER=0
+    expose:
+      - "8092"
+      - "8093"
+      - "5555"
+      - "9999"
+      - "8094"
+    ports:
+      - "5555:5555"
+    depends_on:
+      - cce
+
+  setup_cce:
+    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-client
+    volumes:
+      - ./:/src
+    networks:
+      - sagdevops
+    environment:
+      - CC_CLIENT=docker
+      - CC_SPM_HOST=cce
+      - CC_SPM_PORT=8092
+      - REPO_USR=$EMPOWER_USER
+      - REPO_PWD=$EMPOWER_PWD
+    command: bash -c "sagccant apply_licenses && sagccant setup -Denv.CC_TEMPLATE=sag-repos -Denv.CC_TEMPLATE_ENV=sag-repos"
+    depends_on:
+      - cce
+      - targetnode

@@ -1,0 +1,18 @@
+version: "3.0"
+
+services:
+  custombuilder:
+    image: softwareag/custombuilder:$TAG
+    build:
+      context: .
+      dockerfile: Dockerfile.builder
+      args:
+        PARENT_IMAGE: ${REGISTRY}ccdevops/commandcentral:${TAG}-server
+
+  setupnode:
+    image: softwareag/setupnode:$TAG
+    build:
+      context: .
+      dockerfile: Dockerfile.setupnode
+      args:
+        PARENT_IMAGE: ${REGISTRY}ccdevops/commandcentral:${TAG}-client

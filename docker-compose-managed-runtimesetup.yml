@@ -1,0 +1,316 @@
+version: "3"
+
+networks:
+  sagdevops_bpms:
+    external: true
+
+services:
+
+########################## CCE setup ################################
+  cce:
+    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-server
+    hostname: cce
+    networks:
+      - sagdevops_bpms
+    ports:
+      - "8090:8090"
+      - "8091:8091"
+
+  setup_cce:
+    image: softwareag/setupnode:${TAG}
+    environment:
+      - CC_CLIENT=docker
+      - CC_TEMPLATE=sag-repos
+      - CC_TEMPLATE_ENV=sag-repos
+      - REPO_USR=$EMPOWER_USER
+      - REPO_PWD=$EMPOWER_PWD
+    networks:
+      - sagdevops_bpms
+    volumes:
+      - ./:/src
+    command: bash -c "sagccant apply_licenses && sagccant setup"
+    depends_on:
+      - cce
+
+########################## IS setup ################################
+
+  is:
+    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-node
+    hostname: is
+    networks:
+      - sagdevops_bpms
+    environment:
+      - CC_AUTO_REGISTER=0
+    expose:
+      - "8092"
+      - "8093"
+      - "5555"
+      - "9999"
+      - "8094"
+    ports:
+      - "5555:5555"
+    depends_on:
+      - is_db
+      - umserver
+      - tcserver
+
+  setup_is:
+    image: softwareag/setupnode:${TAG}
+    networks:
+      - sagdevops_bpms
+    environment:
+      - CC_CLIENT=docker
+      - CC_TEMPLATE=is-layer
+      - CC_TEMPLATE_ENV=is
+      - CC_SPM_HOST=is
+      - CC_SPM_PORT=8092
+    volumes:
+      - ./:/src
+    command: sagccant setup
+    depends_on:
+      - setup_is_db
+      - is
+      - cce
+
+  is_db:
+    image: ${REGISTRY}softwareag/base-oracle-xe-11g
+    networks:
+      - sagdevops_bpms
+    expose:
+      - "22"
+      - "1521"
+    environment:
+      - ORACLE_ALLOW_REMOTE=true
+      - ORACLE_DISABLE_ASYNCH_IO=true
+      - ORACLE_ENABLE_XDB=false
+
+  setup_is_db:
+    image: ${REGISTRY}softwareag/dbcreator
+    networks:
+      - sagdevops_bpms
+    environment:
+      - db.name=webm
+      - db.type=oracle
+      - db.host=is_db
+      - db.port=1521
+      - db.tablespace.dir=/u01/app/oracle/oradata/XE
+      - db.admin.username=system
+      - db.admin.password=oracle
+      - db.username=is_dbuser
+      - db.password=strong123!
+      - db.product.version=latest
+      - db.component.version=latest
+      - db.components=[STR]
+      - db.products=[IS]
+    depends_on:
+      - is_db
+
+########################## MWS setup ################################
+
+  mws:
+    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-node
+    hostname: mws
+    networks:
+      - sagdevops_bpms
+    environment:
+      - CC_AUTO_REGISTER=0
+    expose:
+      - "8585"
+      - "8586"
+      - "8092"
+      - "8093"
+    ports:
+      - "8585:8585"
+    depends_on:
+      - mws_db
+      - umserver
+      - tcserver
+
+  setup_mws:
+    image: softwareag/setupnode:${TAG}
+    networks:
+      - sagdevops_bpms
+    environment:
+      - CC_CLIENT=docker
+      - CC_TEMPLATE=mws-layer
+      - CC_TEMPLATE_ENV=mws
+      - CC_SPM_HOST=mws
+      - CC_SPM_PORT=8092
+    volumes:
+      - ./:/src
+    command: sagccant setup
+    depends_on:
+      - setup_mws_db
+      - mws
+      - cce
+
+  mws_db:
+    image: ${REGISTRY}softwareag/base-oracle-xe-11g
+    networks:
+      - sagdevops_bpms
+    expose:
+      - "22"
+      - "1521"
+    environment:
+      - ORACLE_ALLOW_REMOTE=true
+      - ORACLE_DISABLE_ASYNCH_IO=true
+      - ORACLE_ENABLE_XDB=false
+
+  setup_mws_db:
+    image: ${REGISTRY}softwareag/dbcreator
+    networks:
+      - sagdevops_bpms
+    environment:
+      - db.name=webm
+      - db.type=oracle
+      - db.host=mws_db
+      - db.port=1521
+      - db.tablespace.dir=/u01/app/oracle/oradata/XE
+      - db.admin.username=system
+      - db.admin.password=oracle
+      - db.username=mws_dbuser
+      - db.password=strong123!
+      - db.product.version=latest
+      - db.component.version=latest
+      - db.components=[STR]
+      - db.products=[MWS]
+    depends_on:
+      - mws_db
+
+########################## BPMS setup ################################
+
+  bpms:
+    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-node
+    hostname: bpms
+    networks:
+      - sagdevops_bpms
+    environment:
+      - CC_AUTO_REGISTER=0
+    expose:
+      - "8092"
+      - "8093"
+      - "5555"
+      - "9999"
+      - "8094"
+    ports:
+      - "5566:5555"
+    depends_on:
+      - bpms_db
+      - umserver
+      - tcserver
+
+  setup_bpms:
+    image: softwareag/setupnode:${TAG}
+    networks:
+      - sagdevops_bpms
+    environment:
+      - CC_CLIENT=docker
+      - CC_TEMPLATE=bpms-layer
+      - CC_TEMPLATE_ENV=bpms
+      - CC_SPM_HOST=bpms
+      - CC_SPM_PORT=8092
+    volumes:
+      - ./:/src
+    command: sagccant setup
+    depends_on:
+      - setup_bpms_db
+      - bpms
+      - cce
+
+  bpms_db:
+    image: ${REGISTRY}softwareag/base-oracle-xe-11g
+    networks:
+      - sagdevops_bpms
+    expose:
+      - "22"
+      - "1521"
+    environment:
+      - ORACLE_ALLOW_REMOTE=true
+      - ORACLE_DISABLE_ASYNCH_IO=true
+      - ORACLE_ENABLE_XDB=false
+
+  setup_bpms_db:
+    image: ${REGISTRY}softwareag/dbcreator
+    networks:
+      - sagdevops_bpms
+    environment:
+      - db.name=webm
+      - db.type=oracle
+      - db.host=bpms_db
+      - db.port=1521
+      - db.tablespace.dir=/u01/app/oracle/oradata/XE
+      - db.admin.username=system
+      - db.admin.password=oracle
+      - db.username=bpms_dbuser
+      - db.password=strong123!
+      - db.product.version=latest
+      - db.component.version=latest
+      - db.components=[STR]
+      - db.products=[IS,BPM,MWS]
+    depends_on:
+      - bpms_db
+
+########################## UM setup ################################
+
+  umserver:
+    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-node
+    hostname: um
+    networks:
+      - sagdevops_bpms
+    environment:
+      - CC_AUTO_REGISTER=0
+    expose:
+      - "8092"
+      - "8093"
+      - "9000"
+    ports:
+      - "9000:9000"
+
+  setup_um:
+    image: softwareag/setupnode:${TAG}
+    networks:
+      - sagdevops_bpms
+    environment:
+      - CC_CLIENT=docker
+      - CC_TEMPLATE=um-layer
+      - CC_TEMPLATE_ENV=um
+      - CC_SPM_HOST=umserver
+      - CC_SPM_PORT=8092
+    volumes:
+      - ./:/src
+    command: sagccant setup
+    depends_on:
+      - umserver
+      - cce
+
+########################## TC setup ################################
+
+  tcserver:
+    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-node
+    hostname: tc
+    networks:
+      - sagdevops_bpms
+    environment:
+      - CC_AUTO_REGISTER=0
+    expose:
+      - "9510"
+      - "9520"
+      - "9530"
+      - "9540"
+
+  setup_tc:
+    image: softwareag/setupnode:${TAG}
+    networks:
+      - sagdevops_bpms
+    environment:
+      - CC_CLIENT=docker
+      - CC_TEMPLATE=tc-layer
+      - CC_TEMPLATE_ENV=tc
+      - CC_SPM_HOST=tcserver
+      - CC_SPM_PORT=8092
+    volumes:
+      - ./:/src
+    command: sagccant setup
+    depends_on:
+      - tcserver
+      - cce

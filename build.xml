@@ -15,38 +15,51 @@
     </target>
 
     <!-- _copyDefaultEnvToRuntimeEnv must be called first so the copy process happens right -->
-    <target name="setup" depends="_setTemplateEnvToRuntimeEnv,_apply_licenses,waitForTargetNodeUp,templateApply" />
+    <target name="setup" depends="_setRuntimeTemplateEnv,waitForTargetNodeUp,templateApply, sagenv.clean" />
 
     <target name="setup_withccestart" depends="startcc,setup" />
 
+    <target name="templateApply" description="Apply $CC_TEMPLATE" depends="waitcc,_localinit" >
+        <echo message="Applying template with env.properties = ${env.properties}" />
+        <property name="template.path" value="templates/${env.CC_TEMPLATE}" />
+
+        <antcall target="sagenv.apply">
+            <param name="t" value="${template.path}"/>
+            <param name="env.properties" value="${env.properties}"/>
+        </antcall>
+
+        <antcall target="_cleanRuntimeTemplateEnv" />
+    </target>
+
     <target name="waitForTargetNodeUp" description="Wait for target node up" depends="_localinit">
-        <property id="cc.spm.host" name="cc.spm.host" value="${env.CC_SPM_HOST}" if:set="env.CC_SPM_HOST" />
-        <property id="cc.spm.port" name="cc.spm.port" value="${env.CC_SPM_PORT}" if:set="env.CC_SPM_PORT" />
+        <set-property-if-nonempty name="cc.spm.host" if-property-isset="env.CC_SPM_HOST" />
+        <set-property-if-nonempty name="cc.spm.port" if-property-isset="env.CC_SPM_PORT" />
 
         <!-- check SPM -->
-        <echo>Checking connectivity to ${cc.spm.host}:${cc.spm.port}</echo>
-        <waitfor maxwait="600" maxwaitunit="second" checkevery="5" checkeveryunit="second">
-            <socket server="${cc.spm.host}" port="${cc.spm.port}"/>
-        </waitfor>
-    </target>
-
-    <target name="bogusWait" description="Wait some more time...useful for Docker Troubleshooting">
-        <echo>Bogus wait...</echo>
-        <waitfor maxwait="120" maxwaitunit="second" checkevery="5" checkeveryunit="second">
-            <socket server="localhost" port="9999"/>
-        </waitfor>
-    </target>
-
-    <target name="templateApply" description="Apply $CC_TEMPLATE" depends="_localinit" >
-        <!--<echoproperties/>-->
-        <antcall target="sagenv.apply">
-            <param name="t" value="templates/${env.CC_TEMPLATE}"/>
-            <param name="env.properties" value="${env.properties}"/>
+        <antcall target="_waitForSocketConnect">
+            <param name="wait.host" value="${cc.spm.host}" if:set="cc.spm.host" />
+            <param name="wait.port" value="${cc.spm.port}" if:set="cc.spm.port"/>
         </antcall>
     </target>
 
-    <target name="_setTemplateEnvToRuntimeEnv">
-        <property id="sagenv.template.env" name="template.env" value="${env.CC_TEMPLATE_ENV}" if:set="env.CC_TEMPLATE_ENV" />
+    <target name="_waitForSocketConnect" description="Wait for socker host:port is accessible">
+        <condition property="wait.enabled">
+            <and>
+                <isset property="wait.host" />
+                <isset property="wait.port" />
+            </and>
+        </condition>
+
+        <echo message="Checking connectivity to ${wait.host}:${wait.port}" if:true="wait.enabled"/>
+        <echo message="Ignoring... host not set!!" unless:true="wait.enabled" />
+        <waitfor maxwait="600" maxwaitunit="second" checkevery="5" checkeveryunit="second" if:true="wait.enabled">
+            <socket server="${wait.host}" port="${wait.port}"/>
+        </waitfor>
+    </target>
+
+    <target name="_getRuntimeTemplateEnv">
+        <set-property-if-nonempty name="template.env" if-property-isset="env.CC_TEMPLATE_ENV" />
+        <!--<property id="sagenv.template.env" name="template.env" value="${env.CC_TEMPLATE_ENV}" if:set="env.CC_TEMPLATE_ENV" />-->
         <property name="template.env" value="default" />
 
         <condition property="default.template.env.properties" value="environments/${template.env}/env.properties">
@@ -58,41 +71,80 @@
         <condition property="default.template.env.properties.exists" >
             <available file="${default.template.env.properties}"/>
         </condition>
+        <echo message="Success: Template Environment File: ${default.template.env.properties}" if:set="default.template.env.properties.exists" />
+        <echo message="Error: Template Environment File does not exist" unless:set="default.template.env.properties.exists" />
 
-        <echo message="Template Environment File: ${default.template.env.properties}" if:set="default.template.env.properties.exists" />
-
+        <!-- copy the file tu runtime file -->
         <property name="runtime.template.env" value="runtime-${template.env}" />
+    </target>
+
+    <target name="_setRuntimeTemplateEnv" depends="_getRuntimeTemplateEnv">
+        <!-- copy the file tu runtime file -->
         <property name="runtime.template.env.properties" value="environments/${runtime.template.env}.properties" />
         <copy file="${default.template.env.properties}" tofile="${runtime.template.env.properties}" overwrite="true" if:set="default.template.env.properties.exists"/>
 
+        <!-- check if the copy really happened -->
         <condition property="runtime.template.env.properties.exists" >
             <available file="${runtime.template.env.properties}"/>
         </condition>
 
         <!-- force env file to be "runtime" as it is the file that should be used by the template apply command -->
         <property name="env" value="${runtime.template.env}" if:set="runtime.template.env.properties.exists"/>
-        <echo message="New Environment Property Runtime: ${runtime.template.env}" if:set="runtime.template.env.properties.exists" />
+        <echo message="New Environment Property Runtime: ${env}" if:set="env" />
     </target>
 
-    <target name="_cleansetenvproperties" depends="sagenvInit">
-        <propertyfile file="${env.properties}">
-            <entry key="environment.type" value="" if:set="env.ENV_TYPE" />
-        </propertyfile>
+    <target name="_cleanRuntimeTemplateEnv" depends="_getRuntimeTemplateEnv">
+        <echo message="Cleaning runtime env.properties file = ${runtime.template.env.properties}" />
+        <delete file="${runtime.template.env.properties}"/>
+
+        <!-- check if the delete really happened -->
+        <condition property="runtime.template.env.properties.exists" >
+            <available file="${runtime.template.env.properties}"/>
+        </condition>
+
+        <echo message="Error: Template Environment File was not cleaned" if:set="default.template.env.properties.exists" />
+        <echo message="Success: Template Environment File was cleaned" unless:set="default.template.env.properties.exists" />
     </target>
 
     <target name="_setenvproperties" depends="sagenvInit">
+        <!-- get all properties that starts with SAVEENV_<propname> -->
+        <!--<propertyselector property="saveenv.list"-->
+                          <!--delimiter=","-->
+                          <!--match="SAVEENV_(.*)$"-->
+                          <!--select="\1"-->
+                          <!--casesensitive="false" />-->
+
+        <!--<foreach list="${pack.list}"-->
+                 <!--delimiter=","-->
+                 <!--target="print.name"-->
+                 <!--param="pack.id" />-->
+
+        <set-property-if-nonempty name="repo.username" if-property-isset="env.REPO_USR" />
+        <set-property-if-nonempty name="repo.password" if-property-isset="env.REPO_PWD" />
         <set-property-if-nonempty name="environment.type" if-property-isset="env.ENV_TYPE" />
 
         <!-- saving to env file because there's no other way...we need to pass these values using that env file -->
         <propertyfile file="${env.properties}">
+            <entry key="repo.username" value="${repo.username}" if:set="repo.username" />
+            <entry key="repo.password" value="${repo.password}" if:set="repo.password" />
             <entry key="environment.type" value="${environment.type}" if:set="environment.type" />
         </propertyfile>
 
         <property file="${env.properties}" />
     </target>
 
+    <!--<target name="_setproperties" depends="sagenvInit">-->
+        <!--${pack.id}-->
+        <!---->
+        <!--<set-property-if-nonempty name="environment.type" if-property-isset="env.ENV_TYPE" />-->
 
-    <target name="_apply_licenses" depends="waitcc,_localinit" description="Import licence keys">
+        <!-- saving to env file because there's no other way...we need to pass these values using that env file -->
+        <!--<propertyfile file="${env.properties}">-->
+            <!--<entry key="environment.type" value="${environment.type}" if:set="environment.type" />-->
+        <!--</propertyfile>-->
+    <!--</target>-->
+
+    <target name="apply_licenses" depends="waitcc,_localinit" description="Import licence keys">
         <property file="${env.properties}" />
 
         <property name="licenses.dir" value="licenses" unless:set="licenses.zip.url"/>
@@ -147,48 +199,4 @@
             </condition>
         </sequential>
     </macrodef>
-
-    <scriptdef name="iterate" language="javascript" description="Calls target for each file in fileset">
-        <element name="fileset" type="fileset"/>
-        <attribute name="target" />
-        <![CDATA[
-            callee = project.createTask("antcall");
-            callee.setTaskName(attributes.get("target"));
-            callee.init();
-            callee.setTarget(attributes.get("target"));
-            callee.setInheritAll(true);
-            callee.setInheritRefs(false);
-            p1 = callee.createParam();
-            p1.setName("dir");
-            p2 = callee.createParam();
-            p2.setName("file");
-            p3 = callee.createParam();
-            p3.setName("filename");
-            p4 = callee.createParam();
-            p4.setName("dirname");
-
-          	filesets = elements.get("fileset");
-              for (i = 0; i < filesets.size(); ++i) {
-          	    fileset = filesets.get(i);
-          	    dir = fileset.getDir(project)
-          	    ds = fileset.getDirectoryScanner();
-          	    files = ds.getIncludedFiles();
-          	    for (n = 0; n < files.length; n++) {
-          	      f = files[n]
-                  p1.setValue(dir);
-                  p2.setValue(f);
-                  p3.setValue(f.substring(0, f.length() - 4)); // no .ext
-                  p4.setValue(dir.getName());
-          	      callee.execute();
-          	  }
-            }
-    ]]>
-    </scriptdef>
-
-    <scriptdef language="javascript" name="contains">
-        <attribute name="list" />
-        <attribute name="item" />
-        <attribute name="property" />
-        project.setProperty(attributes.get("property"), attributes.get("list").contains(attributes.get("item")));
-    </scriptdef>
 </project>

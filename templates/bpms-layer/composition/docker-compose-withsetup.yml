@@ -7,15 +7,22 @@ networks:
 services:
 
 ########################## CCE setup ################################
-  setup_cce:
-    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-client
-    environment:
-      - CC_CLIENT=docker
-    volumes:
-      - ./:/src
+  cce:
+    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-server
+    hostname: cce
     networks:
       - sagdevops_bpms
-    command: sagccant licenses
+    ports:
+      - "8090:8090"
+      - "8091:8091"
+
+  setup_cce:
+    image: softwareag/setupnode:${TAG}
+    environment:
+      - CC_CLIENT=docker
+    networks:
+      - sagdevops_bpms
+    command: bash -c "sagccant apply_licenses && sagccant setup -Denv.CC_TEMPLATE=sag-repos -Denv.CC_TEMPLATE_ENV=sag-repos"
     depends_on:
       - cce
 
@@ -42,9 +49,7 @@ services:
       - tcserver
 
   setup_is:
-    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-client
-    volumes:
-      - ./:/src
+    image: softwareag/setupnode:${TAG}
     networks:
       - sagdevops_bpms
     environment:
@@ -114,9 +119,7 @@ services:
       - tcserver
 
   setup_mws:
-    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-client
-    volumes:
-      - ./:/src
+    image: softwareag/setupnode:${TAG}
     networks:
       - sagdevops_bpms
     environment:
@@ -187,9 +190,7 @@ services:
       - tcserver
 
   setup_bpms:
-    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-client
-    volumes:
-      - ./:/src
+    image: softwareag/setupnode:${TAG}
     networks:
       - sagdevops_bpms
     environment:
@@ -254,9 +255,7 @@ services:
       - "9000:9000"
 
   setup_um:
-    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-client
-    volumes:
-      - ./:/src
+    image: softwareag/setupnode:${TAG}
     networks:
       - sagdevops_bpms
     environment:
@@ -286,9 +285,7 @@ services:
       - "9540"
 
   setup_tc:
-    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-client
-    volumes:
-      - ./:/src
+    image: softwareag/setupnode:${TAG}
     networks:
       - sagdevops_bpms
     environment:
