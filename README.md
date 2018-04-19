@@ -32,26 +32,26 @@ allowing to dynamically set product DBs on-the-fly using environment variables..
 Refer to "setup_is_db" service in [docker-compose-managed-runtimesetup.yml](./docker-compose-managed-runtimesetup.yml) for details.
 
 3. All the provisioning templates require:
-  1. Connecting to a central product repository to download the binaries needed by the products and fixes to install.
+    1. Connecting to a central product repository to download the binaries needed by the products and fixes to install.
   
-     You'll need to update the file [environments/sag-repos.properties](environments/sag-repos.properties)
-  and specify the right URLs, descriptions, and connection usename/password for the product/fix repos you'll want to use.
+       You'll need to update the file [environments/sag-repos.properties](environments/sag-repos.properties)
+    and specify the right URLs, descriptions, and connection usename/password for the product/fix repos you'll want to use.
   
-     For the username/passqword, it's perfectly valid (and frankly expected) to not want to hardcode this in the file.
-  So these values can be passed via env variables.
-  Simply define the following 2 env variable in your machine and these will be used by the scripts instead of the values in the 
-  [environments/sag-repos.properties](environments/sag-repos.properties) file.
+       For the username/passqword, it's perfectly valid (and frankly expected) to not want to hardcode this in the file.
+    So these values can be passed via env variables.
+    Simply define the following 2 env variable in your machine and these will be used by the scripts instead of the values in the
+    [environments/sag-repos.properties](environments/sag-repos.properties) file.
      - REPO_USR: my_user
      - REPO_PWD: my_secret_password
   
-     Final note: By default, it is already set to use SoftwareAG Empower central repository, which is usually a good choice
-  if your machine / environment has access to the internet.
+       Final note: By default, it is already set to use SoftwareAG Empower central repository, which is usually a good choice
+    if your machine / environment has access to the internet.
   
-  2. The product licenses
+    2. The product licenses
      
      You'll need to add your product license files in the license directory, in the right subfolder.
 
-4. Build the "builder" image to be used by the other components
+4. Finally, Build the "builder" image to be used by the other components
  
 ```
   docker-compose -f docker-compose-build.yml build
