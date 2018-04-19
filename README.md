@@ -83,7 +83,7 @@ NOTE before running: If you intent to use a docker private registry, malke sure 
 with the right REGISTRY and version TAG
 
 
-### Managed Command Central dynamic provisioning
+### Managed Command Central managed provisioning
 
 Simply run:
 
@@ -91,7 +91,7 @@ Simply run:
 docker-compose -f docker-compose-runtimesetup-is_stateful.yml up
 ```
 
-### Differences / Advantages between full "native docker build" versus a dynamic provisoning
+### Differences / Advantages between full "native docker build" versus a "managed provisoning"
 
 You'll notice that the first time these scripts run, it will take *quite a long time* (in the 10s of minites) 
 FOR BOTH to pull down all the binaries and install the products and fixes etc...
@@ -135,9 +135,10 @@ docker tag registry.docker.tests:5000/softwareag/tcserver:10.1 MY.NEW.REGISTRY:5
 
 When both docker-compose are done, you should have 2 IS running and accessible at following urls:
  
- - http://localhost:5555
- - http://localhost:5556
-
+ - http://localhost:5555 (IS1)
+ - http://localhost:5556 (IS2)
+ - https://localhost:8091/cce (Command Central -- only applicable in the case of Command Central managed provisioning)
+ 
 If you login into each of these IS instances, you'll notice that 
  - They are both clustered with Terracotta (go to Settings > Clustering)
  - They are both connected to the Oracle DB (go to Settings > JDBC Pools and click the "Tests" icons...)
