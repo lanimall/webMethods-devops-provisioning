@@ -1,13 +1,12 @@
 version: "3"
 
 networks:
-  sagdevops_bpms:
-    external: true
+  sagdevops:
 
 services:
 ########################## IS setup ################################
-  is_stateless_builder:
-    image: ${PREFIX}softwareag/is_stateful_builder:${TAG}
+  is_stateful_builder:
+    image: ${REGISTRY}softwareag/is_stateful_builder:${TAG}
     build:
       context: templates/is-layer
       dockerfile: Dockerfile.builder
@@ -17,17 +16,19 @@ services:
         CC_TEMPLATE_ENV: is
         CC_SPM_HOST: localhost
         CC_SPM_PORT: 8092
+        REPO_USR: $EMPOWER_USER
+        REPO_PWD: $EMPOWER_PWD
     expose:
       - "5555"
       - "9999"
 
   is1:
-    image: ${PREFIX}softwareag/is_stateful:${TAG}
+    image: ${REGISTRY}softwareag/is_stateful:${TAG}
     build:
       context: templates/is-layer
       dockerfile: Dockerfile.unmanaged
       args:
-        PARENT_BUILDER: ${PREFIX}softwareag/is_stateful_builder:${TAG}
+        PARENT_BUILDER: ${REGISTRY}softwareag/is_stateful_builder:${TAG}
         PARENT_IMAGE: centos:7
     hostname: is1
     networks:
@@ -35,17 +36,17 @@ services:
     ports:
       - "5555:5555"
     depends_on:
-      - is_stateless_builder
+      - is_stateful_builder
       - is_db
       - tcserver
 
   is2:
-    image: ${PREFIX}softwareag/is_stateful:${TAG}
+    image: ${REGISTRY}softwareag/is_stateful:${TAG}
     build:
       context: templates/is-layer
       dockerfile: Dockerfile.unmanaged
       args:
-        PARENT_BUILDER: ${PREFIX}softwareag/is_stateful_builder:${TAG}
+        PARENT_BUILDER: ${REGISTRY}softwareag/is_stateful_builder:${TAG}
         PARENT_IMAGE: centos:7
     hostname: is2
     networks:
@@ -53,12 +54,12 @@ services:
     ports:
       - "5556:5555"
     depends_on:
-      - is_stateless_builder
+      - is_stateful_builder
       - is_db
       - tcserver
 
   is_db:
-    image: ${PREFIX}softwareag_dbs/is-oracle:${TAG}
+    image: ${REGISTRY}softwareag_dbs/is-oracle:${TAG}
     networks:
       - sagdevops
     expose:
@@ -82,6 +83,8 @@ services:
         CC_TEMPLATE_ENV: tc
         CC_SPM_HOST: localhost
         CC_SPM_PORT: 8092
+        REPO_USR: $EMPOWER_USER
+        REPO_PWD: $EMPOWER_PWD
 
   tcserver:
     image: ${REGISTRY}softwareag/tcserver:${TAG}

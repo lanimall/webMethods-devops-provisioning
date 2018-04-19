@@ -1,0 +1,161 @@
+version: "3"
+
+networks:
+  sagdevops:
+
+services:
+
+########################## CCE setup ################################
+  cce:
+    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-server
+    hostname: cce
+    networks:
+      - sagdevops
+    ports:
+      - "8090:8090"
+      - "8091:8091"
+
+  setup_cce:
+    image: softwareag/setupnode:${TAG}
+    environment:
+      - CC_CLIENT=docker
+      - CC_TEMPLATE=sag-repos
+      - CC_TEMPLATE_ENV=sag-repos
+      - REPO_USR=$EMPOWER_USER
+      - REPO_PWD=$EMPOWER_PWD
+    networks:
+      - sagdevops
+    volumes:
+      - ./:/src
+    command: bash -c "sagccant apply_licenses && sagccant setup"
+    depends_on:
+      - cce
+
+########################## IS setup ################################
+
+  is1:
+    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-node
+    hostname: is1
+    networks:
+      - sagdevops
+    environment:
+      - CC_AUTO_REGISTER=0
+    ports:
+      - "5555:5555"
+    depends_on:
+      - is_db
+      - tcserver
+
+  is2:
+    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-node
+    hostname: is2
+    networks:
+      - sagdevops
+    environment:
+      - CC_AUTO_REGISTER=0
+    ports:
+      - "5566:5555"
+    depends_on:
+      - is_db
+      - tcserver
+
+  setup_is1:
+    image: softwareag/setupnode:${TAG}
+    networks:
+      - sagdevops
+    environment:
+      - CC_CLIENT=docker
+      - CC_TEMPLATE=is-layer/tpl_is_stateful.yaml
+      - CC_TEMPLATE_ENV=is
+      - CC_SPM_HOST=is1
+      - CC_SPM_PORT=8092
+    volumes:
+      - ./:/src
+    command: sagccant setup
+    depends_on:
+      - setup_is_db
+      - is1
+      - cce
+
+  setup_is2:
+    image: softwareag/setupnode:${TAG}
+    networks:
+      - sagdevops
+    environment:
+      - CC_CLIENT=docker
+      - CC_TEMPLATE=is-layer/tpl_is_stateful.yaml
+      - CC_TEMPLATE_ENV=is
+      - CC_SPM_HOST=is2
+      - CC_SPM_PORT=8092
+    volumes:
+      - ./:/src
+    command: sagccant setup
+    depends_on:
+      - setup_is_db
+      - is2
+      - cce
+
+  is_db:
+    image: ${REGISTRY}softwareag/base-oracle-xe-11g
+    networks:
+      - sagdevops
+    expose:
+      - "22"
+      - "1521"
+    environment:
+      - ORACLE_ALLOW_REMOTE=true
+      - ORACLE_DISABLE_ASYNCH_IO=true
+      - ORACLE_ENABLE_XDB=false
+
+  setup_is_db:
+    image: ${REGISTRY}softwareag/dbcreator
+    networks:
+      - sagdevops
+    environment:
+      - db.name=webm
+      - db.type=oracle
+      - db.host=is_db
+      - db.port=1521
+      - db.tablespace.dir=/u01/app/oracle/oradata/XE
+      - db.admin.username=system
+      - db.admin.password=oracle
+      - db.username=is_dbuser
+      - db.password=strong123!
+      - db.product.version=latest
+      - db.component.version=latest
+      - db.components=[STR]
+      - db.products=[IS]
+    depends_on:
+      - is_db
+
+########################## TC setup ################################
+
+  tcserver:
+    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-node
+    hostname: tcserver
+    networks:
+      - sagdevops
+    environment:
+      - CC_AUTO_REGISTER=0
+    expose:
+      - "9510"
+      - "9520"
+      - "9530"
+      - "9540"
+
+  setup_tc:
+    image: softwareag/setupnode:${TAG}
+    networks:
+      - sagdevops
+    environment:
+      - CC_CLIENT=docker
+      - CC_TEMPLATE=tc-layer
+      - CC_TEMPLATE_ENV=tc
+      - CC_SPM_HOST=tcserver
+      - CC_SPM_PORT=8092
+    volumes:
+      - ./:/src
+    command: sagccant setup
+    depends_on:
+      - tcserver
+      - cce
