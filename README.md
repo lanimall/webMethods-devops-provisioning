@@ -71,12 +71,12 @@ In the following quick start, we will be provisoning an IS "stateful" cluster en
 
 To compare the difference between a full "native docker build" versus a dynamic provisoning, I've created 2 similar compose files.
 
-### Full "native docker build"
+### Full Native Docker Build
 
 Simply run:
 
 ```
-docker-compose -f docker-compose-fulldocker-is_stateful.yml up -d
+docker-compose -f docker-compose-fulldocker-is_stateful.yml up
 ```
 
 NOTE before running: If you intent to use a docker private registry, malke sure to update the [.env](.env) file 
@@ -88,13 +88,13 @@ with the right REGISTRY and version TAG
 Simply run:
 
 ```
-docker-compose -f docker-compose-runtimesetup-is_stateful.yml up -d
+docker-compose -f docker-compose-runtimesetup-is_stateful.yml up
 ```
 
 ### Differences / Advantages between full "native docker build" versus a dynamic provisoning
 
-You'll notice that the first time these scripts run, it will take quite a long time FOR BOTH to pull down all the binaries and 
-install the products and fixes etc...
+You'll notice that the first time these scripts run, it will take *quite a long time* (in the 10s of minites) 
+FOR BOTH to pull down all the binaries and install the products and fixes etc...
 
 But the main difference between the 2 concepts are:
  - For the full "native docker build" run, actual docker images were created for each of the products, 
@@ -104,6 +104,11 @@ But the main difference between the 2 concepts are:
  giving you essentially the ability to recreate this IS Stateful environment anywhere you wish 
  (anywhere you have access to your central repository that is)
 
+To test these advantage, you have both started these environment, try to perform a cleanup (see "Cleaning Up" below)
+and re-run the docker-compose command above.
+
+You'll notice that for the case of "Full Native Docker Build", it will take just a few seconds to create all instances and start.
+But for the "Managed Command Central dynamic provisioning", it will re-do all the same work...leading to the same long start-up time.
 
 ### Private registry for the Full "native docker build"
 
@@ -136,3 +141,28 @@ When both docker-compose are done, you should have 2 IS running and accessible a
 If you login into each of these IS instances, you'll notice that 
  - They are both clustered with Terracotta (go to Settings > Clustering)
  - They are both connected to the Oracle DB (go to Settings > JDBC Pools and click the "Tests" icons...)
+
+### Cleaning Up
+
+To clean up the created instances, simply run "docker-compose down"...
+
+For full "native docker build", Simply run:
+
+```
+docker-compose -f docker-compose-fulldocker-is_stateful.yml down
+```
+
+For Managed Command Central dynamic provisioning:
+
+```
+docker-compose -f docker-compose-runtimesetup-is_stateful.yml down
+```
+
+NOTE: when you clean up, the docker images created by "docker-compose-fulldocker-is_stateful.yml" will still be loaded...
+meaning that you can easily recreate the environment by re-runing:
+
+```
+docker-compose -f docker-compose-fulldocker-is_stateful.yml up -d
+```
+
+And this time, it will take just a few seconds to create all instances and start.
