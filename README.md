@@ -192,6 +192,11 @@ Navigate to templates/tc-layer and run:
 docker-compose -f docker-compose-build.yml build
 ```
 
+At the end (10s of minutes to give a broad idea of duration), you should have 2 images created 
+(where TAG and REGISTRY are defined in the .env file in the same folder)
+ - ${REGISTRY}softwareag/tcserver:${TAG}
+ - ${REGISTRY}softwareag/tcserver_managed:${TAG}
+
 ### Building Universdal Messaginga docker Image
 
 Navigate to templates/um-layer and run:
@@ -200,6 +205,11 @@ Navigate to templates/um-layer and run:
 docker-compose -f docker-compose-build.yml build
 ```
 
+At the end (10s of minutes to give a broad idea of duration), you should have 2 images created 
+(where TAG and REGISTRY are defined in the .env file in the same folder)
+ - ${REGISTRY}softwareag/umserver:${TAG}
+ - ${REGISTRY}softwareag/umserver_managed:${TAG}
+ 
 ### Building MWS docker Image
 
 Navigate to templates/mws-layer and run:
@@ -208,22 +218,50 @@ Navigate to templates/mws-layer and run:
 docker-compose -f docker-compose-build.yml build
 ```
 
+At the end (10s of minutes to give a broad idea of duration), you should have 2 images created 
+(where TAG and REGISTRY are defined in the .env file in the same folder)
+ - ${REGISTRY}softwareag/mws_simple:${TAG}
+ - ${REGISTRY}softwareag/mws_simple_managed:${TAG}
+ - ${REGISTRY}softwareag/mws_bpms:${TAG}
+ - ${REGISTRY}softwareag/mws_bpms_managed:${TAG}
+ 
 ### Building Integration Server docker Image
 
 Navigate to templates/is-layer and run one of the following:
 
+#### IS Stateful
 ```
 docker-compose -f docker-compose-build-stateful.yml build
 ```
-or
+
+At the end (10s of minutes to give a broad idea of duration), you should have 2 images created 
+(where TAG and REGISTRY are defined in the .env file in the same folder)
+ - ${REGISTRY}softwareag/is_stateful:${TAG}
+ - ${REGISTRY}softwareag/is_stateful_managed:${TAG}
+ 
+ 
+#### IS Stateless
+
 ```
 docker-compose -f docker-compose-build-stateless.yml build
 ```
-or
+
+At the end (10s of minutes to give a broad idea of duration), you should have 2 images created 
+(where TAG and REGISTRY are defined in the .env file in the same folder)
+ - ${REGISTRY}softwareag/is_stateless:${TAG}
+ - ${REGISTRY}softwareag/is_stateless_managed:${TAG}
+
+#### IS Stateful Messaging
+
 ```
 docker-compose -f docker-compose-build-stateful-messaging.yml build
 ```
 
+At the end (10s of minutes to give a broad idea of duration), you should have 2 images created
+(where TAG and REGISTRY are defined in the .env file in the same folder)
+ - ${REGISTRY}softwareag/is_stateful_messaging:${TAG}
+ - ${REGISTRY}softwareag/is_stateful_messaging_managed:${TAG}
+ 
 ### Building BPMS docker Image
 
 Navigate to templates/bpms-layer and run:
@@ -232,10 +270,7 @@ Navigate to templates/bpms-layer and run:
 docker-compose -f docker-compose-build.yml build
 ```
 
-### Building Terracotta docker Image
-
-Navigate to templates/tc-layer and run:
-
-```
-docker-compose -f docker-compose-build.yml build
-```
+At the end (10s of minutes to give a broad idea of duration), you should have 2 images created 
+(where TAG and REGISTRY are defined in the .env file in the same folder)
+ - ${REGISTRY}softwareag/bpms:${TAG}
+ - ${REGISTRY}softwareag/bpms_managed:${TAG}
