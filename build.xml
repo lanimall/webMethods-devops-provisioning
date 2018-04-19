@@ -9,7 +9,7 @@
 
     <property environment="env" />
 
-    <target name="_localinit" depends="sagenvInit, _setenvproperties">
+    <target name="_localinit" depends="sagenvInit">
     </target>
 
     <target name="_localclean" depends="_cleanRuntimeTemplateEnv, sagenv.clean">
@@ -22,6 +22,12 @@
 
     <target name="templateApply" description="Apply $CC_TEMPLATE" depends="waitcc,_localinit" >
         <echo message="Applying template with env.properties = ${env.properties}" />
+
+        <!-- call set properties to set soecific env variable in the env file -->
+        <antcall target="_setenvproperties">
+            <param name="env.properties" value="${env.properties}"/>
+        </antcall>
+
         <property name="template.path" value="templates/${env.CC_TEMPLATE}" />
 
         <antcall target="sagenv.apply">
@@ -104,7 +110,7 @@
         <echo message="Success: Template Environment File was cleaned" unless:set="default.template.env.properties.exists" />
     </target>
 
-    <target name="_setenvproperties" depends="sagenvInit">
+    <target name="_setenvproperties">
         <!-- get all properties that starts with SAVEENV_<propname> -->
         <!--<propertyselector property="saveenv.list"-->
                           <!--delimiter=","-->
