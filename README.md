@@ -91,7 +91,7 @@ Simply run:
 docker-compose -f docker-compose-runtimesetup-is_stateful.yml up -d
 ```
 
-### Differences / Advantages
+### Differences / Advantages between full "native docker build" versus a dynamic provisoning
 
 You'll notice that the first time these scripts run, it will take quite a long time FOR BOTH to pull down all the binaries and 
 install the products and fixes etc...
