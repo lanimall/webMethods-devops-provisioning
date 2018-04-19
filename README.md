@@ -1,5 +1,7 @@
 # sagdevops-infra-docker
 
+A sample project created to demomnstrate how to auto-provision complete SoftwareAG environments with Docker.
+
 Author: Fabien Sanglier
 
 ## Table of content
@@ -8,9 +10,9 @@ Author: Fabien Sanglier
 3. [Provisoning an environment - Quick Start](#env_quickstart)
 4. [Building Product-specific Docker Images](#building_product_docker)
 
-## Intro <a name="introduction"></a>
-A sample project created to demomnstrate how to auto-provision complete SoftwareAG environments with Docker.
-In this project, you can:
+## Introduction <a name="introduction"></a>
+
+In this project, you can for example:
  - Selectively create standalone docker images of a specific SoftwareAG product
  - Selectively create managed docker images of a specific SoftwareAG product (meaning an image that could be auto-registred and managed by Command Central)
  - Leverage docker compose sample files to:
@@ -19,7 +21,7 @@ In this project, you can:
    (which is really the same process of provisoning products on VMs as opposed to dockjer images)
    - Provision a non-managed environment using full docker images for each of the SoftwareAG product needed i nthe environment
 
-## Pre-requisites <a name="prerequisites"></a>
+## Prerequisites <a name="prerequisites"></a>
 
 1. Of course, Docker should be installed - Check official Docker doc https://docs.docker.com/install/ for details.
 
