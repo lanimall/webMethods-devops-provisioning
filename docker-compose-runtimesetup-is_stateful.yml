@@ -96,6 +96,9 @@ services:
       - cce
 
   is_db:
+    build:
+      context: templates/baseoracle
+      dockerfile: Dockerfile.baseoracle
     image: ${REGISTRY}softwareag/base-oracle-xe-11g
     networks:
       - sagdevops

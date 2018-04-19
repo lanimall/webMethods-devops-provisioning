@@ -22,6 +22,11 @@ https://github.com/lanimall/sagdevops-dbcreator-docker
   Follow the instructions in the [README.md](https://github.com/lanimall/sagdevops-dbcreator-docker/blob/master/README.md)
 to create bare Docker images Oracle DBs for IS, BPM, MWS.
 
+And if you commit these DB creation as Docker images, you should have:
+ - YOUR_REGISTRY:5000/softwareag_dbs/is-oracle:10.1
+ - YOUR_REGISTRY:softwareag_dbs/mws-oracle:10.1
+ - YOUR_REGISTRY:softwareag_dbs/bpms-oracle:10.1
+
   And the docker image "softwareag/dbcreator" created by this project will also be useful with the runtime setup...
 allowing to dynamically set product DBs on-the-fly using environment variables...
 Refer to "setup_is_db" service in [docker-compose-managed-runtimesetup.yml](./docker-compose-managed-runtimesetup.yml) for details.
