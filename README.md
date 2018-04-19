@@ -125,3 +125,14 @@ images with your registry url for this time being...
 docker tag registry.docker.tests:5000/softwareag/is_stateful:10.1 MY.NEW.REGISTRY:5000/softwareag/is_stateful:10.1 
 docker tag registry.docker.tests:5000/softwareag/tcserver:10.1 MY.NEW.REGISTRY:5000/softwareag/tcserver:10.1
 ```
+
+### Testing results
+
+When both docker-compose are done, you should have 2 IS running and accessible at following urls:
+ 
+ - http://localhost:5555
+ - http://localhost:5556
+
+If you login into each of these IS instances, you'll notice that 
+ - They are both clustered with Terracotta (go to Settings > Clustering)
+ - They are both connected to the Oracle DB (go to Settings > JDBC Pools and click the "Tests" icons...)
