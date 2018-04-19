@@ -9,13 +9,14 @@
 
     <property environment="env" />
 
-    <!--<property name="apply.params" location="environment.type=server" />-->
-
     <target name="_localinit" depends="sagenvInit, _setenvproperties">
     </target>
 
-    <!-- _copyDefaultEnvToRuntimeEnv must be called first so the copy process happens right -->
-    <target name="setup" depends="_setRuntimeTemplateEnv,waitForTargetNodeUp,templateApply, sagenv.clean" />
+    <target name="_localclean" depends="_cleanRuntimeTemplateEnv, sagenv.clean">
+    </target>
+
+    <!-- _setRuntimeTemplateEnv must be called first so the copy process happens right,  -->
+    <target name="setup" depends="_setRuntimeTemplateEnv,waitForTargetNodeUp,templateApply,_localclean" />
 
     <target name="setup_withccestart" depends="startcc,setup" />
 
@@ -27,8 +28,6 @@
             <param name="t" value="${template.path}"/>
             <param name="env.properties" value="${env.properties}"/>
         </antcall>
-
-        <antcall target="_cleanRuntimeTemplateEnv" />
     </target>
 
     <target name="waitForTargetNodeUp" description="Wait for target node up" depends="_localinit">
@@ -59,7 +58,6 @@
 
     <target name="_getRuntimeTemplateEnv">
         <set-property-if-nonempty name="template.env" if-property-isset="env.CC_TEMPLATE_ENV" />
-        <!--<property id="sagenv.template.env" name="template.env" value="${env.CC_TEMPLATE_ENV}" if:set="env.CC_TEMPLATE_ENV" />-->
         <property name="template.env" value="default" />
 
         <condition property="default.template.env.properties" value="environments/${template.env}/env.properties">

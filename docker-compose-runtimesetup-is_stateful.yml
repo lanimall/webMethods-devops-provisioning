@@ -5,6 +5,28 @@ networks:
 
 services:
 
+  setup_landscape:
+    image: softwareag/setupnode:${TAG}
+    networks:
+      - sagdevops
+    command: echo "nothing to do yet...just starting the servers and setting up the Command Central Server"
+    depends_on:
+      - setup_cce
+      - setup_is_db
+      - is1
+      - is2
+      - tcserver
+
+  setup_provisioning:
+    image: softwareag/setupnode:${TAG}
+    networks:
+      - sagdevops
+    command: echo "Setting up the provisoning with Command Central. Please check the progress of each setup on each of the runing setup instances"
+    depends_on:
+      - setup_is1
+      - setup_is2
+      - setup_tc
+
 ########################## CCE setup ################################
   cce:
     image: ${REGISTRY}ccdevops/commandcentral:${TAG}-server
@@ -21,6 +43,7 @@ services:
       - CC_CLIENT=docker
       - CC_TEMPLATE=sag-repos
       - CC_TEMPLATE_ENV=sag-repos
+      - ENV_TYPE=server
       - REPO_USR=$EMPOWER_USER
       - REPO_PWD=$EMPOWER_PWD
     networks:
@@ -54,7 +77,7 @@ services:
     environment:
       - CC_AUTO_REGISTER=0
     ports:
-      - "5566:5555"
+      - "5556:5555"
     depends_on:
       - is_db
       - tcserver
@@ -67,6 +90,7 @@ services:
       - CC_CLIENT=docker
       - CC_TEMPLATE=is-layer/tpl_is_stateful.yaml
       - CC_TEMPLATE_ENV=is
+      - ENV_TYPE=server
       - CC_SPM_HOST=is1
       - CC_SPM_PORT=8092
     volumes:
@@ -85,6 +109,7 @@ services:
       - CC_CLIENT=docker
       - CC_TEMPLATE=is-layer/tpl_is_stateful.yaml
       - CC_TEMPLATE_ENV=is
+      - ENV_TYPE=server
       - CC_SPM_HOST=is2
       - CC_SPM_PORT=8092
     volumes:
@@ -154,6 +179,7 @@ services:
       - CC_CLIENT=docker
       - CC_TEMPLATE=tc-layer
       - CC_TEMPLATE_ENV=tc
+      - ENV_TYPE=server
       - CC_SPM_HOST=tcserver
       - CC_SPM_PORT=8092
     volumes:
