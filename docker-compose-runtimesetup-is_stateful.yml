@@ -90,14 +90,14 @@ services:
       - CC_CLIENT=docker
       - CC_TEMPLATE=is-layer/tpl_is_stateful.yaml
       - CC_TEMPLATE_ENV=is
-      - ENV_TYPE=server
+      - CC_TEMPLATE_ENV_TARGET_HOST=is1
+      - CC_TEMPLATE_ENV_TYPE=server
       - CC_SPM_HOST=is1
       - CC_SPM_PORT=8092
     volumes:
       - ./:/src
     command: sagccant setup
     depends_on:
-      - setup_is_db
       - is1
       - cce
 
@@ -109,14 +109,14 @@ services:
       - CC_CLIENT=docker
       - CC_TEMPLATE=is-layer/tpl_is_stateful.yaml
       - CC_TEMPLATE_ENV=is
-      - ENV_TYPE=server
+      - CC_TEMPLATE_ENV_TARGET_HOST=is2
+      - CC_TEMPLATE_ENV_TYPE=server
       - CC_SPM_HOST=is2
       - CC_SPM_PORT=8092
     volumes:
       - ./:/src
     command: sagccant setup
     depends_on:
-      - setup_is_db
       - is2
       - cce
 
@@ -179,7 +179,8 @@ services:
       - CC_CLIENT=docker
       - CC_TEMPLATE=tc-layer
       - CC_TEMPLATE_ENV=tc
-      - ENV_TYPE=server
+      - CC_TEMPLATE_ENV_TARGET_HOST=tcserver
+      - CC_TEMPLATE_ENV_TYPE=server
       - CC_SPM_HOST=tcserver
       - CC_SPM_PORT=8092
     volumes:

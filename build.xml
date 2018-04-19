@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<project name="main" xmlns="antlib:org.apache.tools.ant" basedir="../sag_bpms/provisioning/fromCompositeTemplates" default="apply" xmlns:if="ant:if" xmlns:unless="ant:unless">
+<project name="main" xmlns="antlib:org.apache.tools.ant" basedir="." default="setup" xmlns:if="ant:if" xmlns:unless="ant:unless">
     <import file="antcc/main.xml" />
 
     <!-- standard header start -->
@@ -78,8 +78,9 @@
         <echo message="Success: Template Environment File: ${default.template.env.properties}" if:set="default.template.env.properties.exists" />
         <echo message="Error: Template Environment File does not exist" unless:set="default.template.env.properties.exists" />
 
-        <!-- copy the file tu runtime file -->
-        <property name="runtime.template.env" value="runtime-${template.env}" />
+        <!-- name of the new runtime env file + add a bit of entropy in case the same script is called at the same time...which is possible with docker -->
+        <randomint max="100000000" property="random_prop" />
+        <property name="runtime.template.env" value="runtime-${template.env}-${random_prop}" />
     </target>
 
     <target name="_setRuntimeTemplateEnv" depends="_getRuntimeTemplateEnv">
@@ -125,13 +126,15 @@
 
         <set-property-if-nonempty name="repo.username" if-property-isset="env.REPO_USR" />
         <set-property-if-nonempty name="repo.password" if-property-isset="env.REPO_PWD" />
-        <set-property-if-nonempty name="environment.type" if-property-isset="env.ENV_TYPE" />
+        <set-property-if-nonempty name="environment.type" if-property-isset="env.CC_TEMPLATE_ENV_TYPE" />
+        <set-property-if-nonempty name="target.host" if-property-isset="env.CC_TEMPLATE_ENV_TARGET_HOST" />
 
         <!-- saving to env file because there's no other way...we need to pass these values using that env file -->
         <propertyfile file="${env.properties}">
             <entry key="repo.username" value="${repo.username}" if:set="repo.username" />
             <entry key="repo.password" value="${repo.password}" if:set="repo.password" />
             <entry key="environment.type" value="${environment.type}" if:set="environment.type" />
+            <entry key="target.host" value="${target.host}" if:set="target.host" />
         </propertyfile>
 
         <property file="${env.properties}" />
@@ -187,6 +190,11 @@
         </sequential>
     </target>
 
+    <target name="_tryRandom">
+        <randomint max="100000000" property="random_prop" />
+        <echo message="my random number: ${random_prop}" />
+    </target>
+
     <macrodef name="set-property-if-nonempty">
         <attribute name="name" />
         <attribute name="if-property-isset" />
@@ -203,4 +211,15 @@
             </condition>
         </sequential>
     </macrodef>
+
+    <scriptdef language="javascript" name="randomint">
+        <attribute name="max" />
+        <attribute name="property" />
+        <![CDATA[
+        project.setProperty(attributes.get("property"), getRandomInt(attributes.get("max")));
+        function getRandomInt(max) {
+          return Math.floor(Math.random() * Math.floor(max));
+        }
+        ]]>
+    </scriptdef>
 </project>

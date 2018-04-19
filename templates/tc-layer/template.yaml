@@ -16,7 +16,7 @@ environments:
     tc.license.key.alias:  terracotta-license-${os.platform}
 
     # TC Server Instance Configuration
-    tc.host:             tcserver          ## this should be the actual machine host
+    tc.host:             ${}          ## this should be the actual machine host
     tc.instance.name:    tcserver
     tc.tsa.port:         9510
     tc.jmx.port:         9520
