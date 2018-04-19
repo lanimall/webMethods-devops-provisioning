@@ -61,7 +61,17 @@ Refer to "setup_is_db" service in [docker-compose-managed-runtimesetup.yml](./do
   
     2. The product licenses
      
-     You'll need to add your product license files in the license directory, in the right subfolder.
+     You'll need to add your product license files in the ./license directory, in the right subfolder 
+     (since all docker images are based on Centos 7, the license must be put in the ./license/lnxamd64/ directory)
+     
+     NOTE: The various command central provisoning templates (as written) expect specific license alias names...
+     So if you want everything to work as-is without having to modify the templates environment propoerties, I recommend you 
+     follow this naming convention for the license files you put in the ./license/lnxamd64/:
+     - Terracotta: "terracotta-license.key"
+     - Universal Messaging: "UniversalMessaging.xml"
+     - Integration Server: "Integration_Server.xml"
+     - Business Rules: "Business_Rules.xml"
+     - Mashzone Next Gen: "MashZoneNextGen.xml"
 
 4. Finally, Build the "builder" image to be used by the other components
  
