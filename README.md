@@ -38,11 +38,23 @@ Refer to "setup_is_db" service in [docker-compose-managed-runtimesetup.yml](./do
     and specify the right URLs, descriptions, and connection usename/password for the product/fix repos you'll want to use.
   
        For the username/passqword, it's perfectly valid (and frankly expected) to not want to hardcode this in the file.
-    So these values can be passed via env variables.
-    Simply define the following 2 env variable in your machine and these will be used by the scripts instead of the values in the
+    So these values can be passed via env variables with variables CC_SAG_REPO_USR and CC_SAG_REPO_PWD
+    And if set, their values will be used by the scripts instead of the values in the 
     [environments/sag-repos.properties](environments/sag-repos.properties) file.
-     - REPO_USR: my_user
-     - REPO_PWD: my_secret_password
+    
+       To set these variables, several options are possible based on the OS you're working with.
+    For linux or mac, I find that the simplest is to add these 2 variables in my  ~/.bash_profile as follow:
+
+        ```
+        export CC_SAG_REPO_USR=my_user
+        export CC_SAG_REPO_PWD=my_secret_password
+        ```
+    
+       And then, make sure you don't forget to source that file to load the variable in your shell:
+    
+        ```
+        source ~/.bash_profile
+        ```
   
        Final note: By default, it is already set to use SoftwareAG Empower central repository, which is usually a good choice
     if your machine / environment has access to the internet.
@@ -167,3 +179,63 @@ docker-compose -f docker-compose-fulldocker-is_stateful.yml up -d
 ```
 
 And this time, it will take just a few seconds to create all instances and start.
+
+## Building Product-Specific Docker Images
+
+It ius also possible to build product-specific Docker Images by navigating into one of the templates folders.
+
+### Building Terracotta docker Image
+
+Navigate to templates/tc-layer and run:
+
+```
+docker-compose -f docker-compose-build.yml build
+```
+
+### Building Universdal Messaginga docker Image
+
+Navigate to templates/um-layer and run:
+
+```
+docker-compose -f docker-compose-build.yml build
+```
+
+### Building MWS docker Image
+
+Navigate to templates/mws-layer and run:
+
+```
+docker-compose -f docker-compose-build.yml build
+```
+
+### Building Integration Server docker Image
+
+Navigate to templates/is-layer and run one of the following:
+
+```
+docker-compose -f docker-compose-build-stateful.yml build
+```
+or
+```
+docker-compose -f docker-compose-build-stateless.yml build
+```
+or
+```
+docker-compose -f docker-compose-build-stateful-messaging.yml build
+```
+
+### Building BPMS docker Image
+
+Navigate to templates/bpms-layer and run:
+
+```
+docker-compose -f docker-compose-build.yml build
+```
+
+### Building Terracotta docker Image
+
+Navigate to templates/tc-layer and run:
+
+```
+docker-compose -f docker-compose-build.yml build
+```

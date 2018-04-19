@@ -124,8 +124,8 @@
                  <!--target="print.name"-->
                  <!--param="pack.id" />-->
 
-        <set-property-if-nonempty name="repo.username" if-property-isset="env.REPO_USR" />
-        <set-property-if-nonempty name="repo.password" if-property-isset="env.REPO_PWD" />
+        <set-property-if-nonempty name="repo.username" if-property-isset="env.CC_SAG_REPO_USR" />
+        <set-property-if-nonempty name="repo.password" if-property-isset="env.CC_SAG_REPO_PWD" />
         <set-property-if-nonempty name="environment.type" if-property-isset="env.CC_TEMPLATE_ENV_TYPE" />
         <set-property-if-nonempty name="target.host" if-property-isset="env.CC_TEMPLATE_ENV_TARGET_HOST" />
 

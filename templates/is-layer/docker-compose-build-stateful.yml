@@ -12,6 +12,8 @@ services:
         CC_TEMPLATE_ENV: is
         CC_SPM_HOST: localhost
         CC_SPM_PORT: 8092
+        CC_SAG_REPO_USR: $CC_SAG_REPO_USR
+        CC_SAG_REPO_PWD: $CC_SAG_REPO_PWD
 
   is_stateful:
     image: ${REGISTRY}softwareag/is_stateful:${TAG}

@@ -44,8 +44,8 @@ services:
       - CC_TEMPLATE=sag-repos
       - CC_TEMPLATE_ENV=sag-repos
       - ENV_TYPE=server
-      - REPO_USR=$EMPOWER_USER
-      - REPO_PWD=$EMPOWER_PWD
+      - REPO_USR=$REPO_USR
+      - REPO_PWD=$REPO_PWD
     networks:
       - sagdevops
     volumes:

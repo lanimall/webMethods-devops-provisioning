@@ -41,8 +41,8 @@ services:
       - CC_CLIENT=docker
       - CC_SPM_HOST=cce
       - CC_SPM_PORT=8092
-      - REPO_USR=$EMPOWER_USER
-      - REPO_PWD=$EMPOWER_PWD
+      - REPO_USR=$REPO_USR
+      - REPO_PWD=$REPO_PWD
     command: bash -c "sagccant apply_licenses && sagccant setup -Denv.CC_TEMPLATE=sag-repos -Denv.CC_TEMPLATE_ENV=sag-repos"
     depends_on:
       - cce
