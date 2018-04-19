@@ -13,7 +13,7 @@ environments:
     spm.fixes:      [wMFix.SPM]             # SPM/SUM/SD core fixes by default
 
     # BPMS / Integration Server. See is-layer template for parameters documentation
-    is.host:             bpms
+    is.host:             ${}
     is.instance.name:    default            # IS BPM instance
     is.primary.port:     5555
     is.diagnostic.port:  9999

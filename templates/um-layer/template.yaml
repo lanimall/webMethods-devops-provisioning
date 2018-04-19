@@ -15,7 +15,7 @@ environments:
     os.platform:          lnxamd64
     um.license.key.alias: UniversalMessaging-${os.platform}
 
-    um.host:             umserver
+    um.host:             ${}
     um.instance.name:    umserver           # realm server instance name
     um.instance.port:    9000               # primary port
     um.jmx.port:         9988               # jmx port

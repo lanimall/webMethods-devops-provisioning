@@ -16,7 +16,7 @@ environments:
     is.license.key.alias:  "Integration_Server-${os.platform}"
     tc.license.key.alias:  "terracotta-license-${os.platform}"
 
-    is.host:            is_stateful_messaging
+    is.host:            ${}
     is.instance.name:   default             # Instance name
     is.primary.port:    5555                # Primary port number
     is.diagnostic.port: 9999                # Dialgnostic port number

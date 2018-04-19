@@ -13,7 +13,7 @@ environments:
     spm.fixes:           [wMFix.SPM]             # SPM/SUM/SD core fixes by default
 
     # My webMethods Server
-    mws.host:            mws                # REQUIRED:
+    mws.host:            ${}                # REQUIRED:
     mws.instance.name:   default
     mws.http.port:       8585
     mws.https.port:      8586
