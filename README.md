@@ -110,17 +110,57 @@ Simply run:
 docker-compose -f docker-compose-fulldocker-is_stateful.yml up
 ```
 
+(add "-d" if you want to run this in the background)
+
 NOTE before running: If you intent to use a docker private registry, malke sure to update the [.env](.env) file 
 with the right REGISTRY and version TAG
 
 
 ### Managed Command Central managed provisioning
 
-Simply run:
+Because of timing issues where CCE is not yet initialized when the other setup operation are started, we need (at this time)
+to build the env in 2 stages:
+
+1. Create the nodes landscape + configure command Central and Databases
 
 ```
-docker-compose -f docker-compose-runtimesetup-is_stateful.yml up
+docker-compose -f docker-compose-runtimesetup-is_stateful.yml up setup_landscape
 ```
+
+Wait until the instance "setup_cce" and "setup_is_db" are done and exited.
+
+Running a docker ps shoudl show 5 instances running:
+
+```
+CONTAINER ID        IMAGE                                                            COMMAND                  CREATED             STATUS              PORTS                                                   NAMES
+3ee0d68a6193        registry.docker.tests:5000/ccdevops/commandcentral:10.1-node     "/bin/sh -c $SAG_HOM…"   2 minutes ago       Up 2 minutes        0.0.0.0:5555->5555/tcp, 8092-8093/tcp                   sagdevopsinfradocker_is1_1
+2d66eff58df0        registry.docker.tests:5000/ccdevops/commandcentral:10.1-node     "/bin/sh -c $SAG_HOM…"   2 minutes ago       Up 2 minutes        8092-8093/tcp, 0.0.0.0:5556->5555/tcp                   sagdevopsinfradocker_is2_1
+d9368f90c115        registry.docker.tests:5000/ccdevops/commandcentral:10.1-server   "/bin/sh -c $SAG_HOM…"   2 minutes ago       Up 2 minutes        0.0.0.0:8090-8091->8090-8091/tcp, 8092-8093/tcp         sagdevopsinfradocker_cce_1
+214bbd02144f        registry.docker.tests:5000/ccdevops/commandcentral:10.1-node     "/bin/sh -c $SAG_HOM…"   2 minutes ago       Up 2 minutes        8092-8093/tcp, 9510/tcp, 9520/tcp, 9530/tcp, 9540/tcp   sagdevopsinfradocker_tcserver_1
+ca05674da61b        registry.docker.tests:5000/softwareag/base-oracle-xe-11g         "/bin/sh -c '/usr/sb…"   2 minutes ago       Up 2 minutes        22/tcp, 1521/tcp, 8080/tcp                              sagdevopsinfradocker_is_db_1
+```
+
+2. then, provison the products:
+
+```
+docker-compose -f docker-compose-runtimesetup-is_stateful.yml up setup_provisioning
+```
+
+After 10s of miniutes, all products should have been installed on each node, 
+which you can verify by login to Command Central UI (see next section "Testing Results")
+
+### Testing results
+
+When both docker-compose are done, you should have 2 IS running and accessible at following urls:
+ 
+ - http://localhost:5555 (IS1)
+ - http://localhost:5556 (IS2)
+ - https://localhost:8091/cce (Command Central -- only applicable in the case of Command Central managed provisioning)
+ 
+If you login into each of these IS instances, you'll notice that 
+ - They are both clustered with Terracotta (go to Settings > Clustering)
+ - They are both connected to the Oracle DB (go to Settings > JDBC Pools and click the "Tests" icons...)
+
 
 ### Differences / Advantages between full "native docker build" versus a "managed provisoning"
 
@@ -161,18 +201,6 @@ images with your registry url for this time being...
 docker tag registry.docker.tests:5000/softwareag/is_stateful:10.1 MY.NEW.REGISTRY:5000/softwareag/is_stateful:10.1 
 docker tag registry.docker.tests:5000/softwareag/tcserver:10.1 MY.NEW.REGISTRY:5000/softwareag/tcserver:10.1
 ```
-
-### Testing results
-
-When both docker-compose are done, you should have 2 IS running and accessible at following urls:
- 
- - http://localhost:5555 (IS1)
- - http://localhost:5556 (IS2)
- - https://localhost:8091/cce (Command Central -- only applicable in the case of Command Central managed provisioning)
- 
-If you login into each of these IS instances, you'll notice that 
- - They are both clustered with Terracotta (go to Settings > Clustering)
- - They are both connected to the Oracle DB (go to Settings > JDBC Pools and click the "Tests" icons...)
 
 ### Cleaning Up
 
