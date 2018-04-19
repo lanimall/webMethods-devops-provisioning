@@ -14,7 +14,7 @@ In this project, you can:
 
 ## Pre-requisites:
 
-1. Of course, Docker should be installed!
+1. Of course, Docker should be installed - Check official Docker doc https://docs.docker.com/install/ for details.
 
 2. Then, for the DB instances needed by some of the products, this project currently relies on the following solution explained at:
 https://github.com/lanimall/sagdevops-dbcreator-docker
