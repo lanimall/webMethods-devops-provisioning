@@ -7,9 +7,9 @@ services:
       context: .
       dockerfile: Dockerfile.builder
       args:
-        ENV_TYPE: docker
         CC_TEMPLATE: um-layer
         CC_TEMPLATE_ENV: um
+        CC_TEMPLATE_ENV_TYPE: docker
         CC_SPM_HOST: localhost
         CC_SPM_PORT: 8092
         CC_SAG_REPO_USR: $CC_SAG_REPO_USR

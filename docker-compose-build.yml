@@ -7,12 +7,13 @@ services:
       context: .
       dockerfile: Dockerfile.builder
       args:
-        PARENT_IMAGE: ${REGISTRY}ccdevops/commandcentral:${TAG}-server
+        PARENT_IMAGE: store/softwareag/commandcentral:${TAG}-builder
 
-  setupnode:
-    image: softwareag/setupnode:$TAG
+  cce-client:
+    image: softwareag/commandcentral:$TAG-client
     build:
       context: .
-      dockerfile: Dockerfile.setupnode
+      dockerfile: Dockerfile.cce.client
       args:
-        PARENT_IMAGE: ${REGISTRY}ccdevops/commandcentral:${TAG}-client
+        PARENT_BUILDER: store/softwareag/commandcentral:${TAG}-builder
+        PARENT_IMAGE: centos:7

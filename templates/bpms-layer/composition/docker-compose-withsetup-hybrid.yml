@@ -17,7 +17,7 @@ services:
       - "9091:8091"
 
   setup_cce:
-    image: softwareag/setupnode:${TAG}
+    image: softwareag/commandcentral:$TAG-client
     environment:
       - CC_CLIENT=docker
     networks:
@@ -49,7 +49,7 @@ services:
       - tcserver
 
   setup_is:
-    image: softwareag/setupnode:${TAG}
+    image: softwareag/commandcentral:$TAG-client
     networks:
       - sagdevops_bpms
     environment:
@@ -95,7 +95,7 @@ services:
       - mws_db
 
   setup_mws:
-    image: softwareag/setupnode:${TAG}
+    image: softwareag/commandcentral:$TAG-client
     networks:
       - sagdevops_bpms
     environment:
@@ -144,7 +144,7 @@ services:
       - tcserver
 
   setup_bpms:
-    image: softwareag/setupnode:${TAG}
+    image: softwareag/commandcentral:$TAG-client
     networks:
       - sagdevops_bpms
     environment:

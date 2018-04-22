@@ -6,7 +6,7 @@ networks:
 services:
 
   setup_landscape:
-    image: softwareag/setupnode:${TAG}
+    image: softwareag/commandcentral:$TAG-client
     networks:
       - sagdevops
     command: echo "nothing to do yet...just starting the servers and setting up the Command Central Server"
@@ -18,7 +18,7 @@ services:
       - tcserver
 
   setup_provisioning:
-    image: softwareag/setupnode:${TAG}
+    image: softwareag/commandcentral:$TAG-client
     networks:
       - sagdevops
     command: echo "Setting up the provisoning with Command Central. Please check the progress of each setup on each of the runing setup instances"
@@ -38,14 +38,14 @@ services:
       - "8091:8091"
 
   setup_cce:
-    image: softwareag/setupnode:${TAG}
+    image: softwareag/commandcentral:$TAG-client
     environment:
       - CC_CLIENT=docker
       - CC_TEMPLATE=sag-repos
       - CC_TEMPLATE_ENV=sag-repos
       - ENV_TYPE=server
-      - REPO_USR=$REPO_USR
-      - REPO_PWD=$REPO_PWD
+      - CC_SAG_REPO_USR
+      - CC_SAG_REPO_PWD
     networks:
       - sagdevops
     volumes:
@@ -83,7 +83,7 @@ services:
       - tcserver
 
   setup_is1:
-    image: softwareag/setupnode:${TAG}
+    image: softwareag/commandcentral:$TAG-client
     networks:
       - sagdevops
     environment:
@@ -102,7 +102,7 @@ services:
       - cce
 
   setup_is2:
-    image: softwareag/setupnode:${TAG}
+    image: softwareag/commandcentral:$TAG-client
     networks:
       - sagdevops
     environment:
@@ -172,7 +172,7 @@ services:
       - "9540"
 
   setup_tc:
-    image: softwareag/setupnode:${TAG}
+    image: softwareag/commandcentral:$TAG-client
     networks:
       - sagdevops
     environment:

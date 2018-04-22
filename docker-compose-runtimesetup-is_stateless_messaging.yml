@@ -4,8 +4,32 @@ networks:
   sagdevops:
 
 services:
+
+  setup_landscape:
+    image: softwareag/commandcentral:$TAG-client
+    networks:
+      - sagdevops
+    command: echo "nothing to do yet...just starting the servers and setting up the Command Central Server"
+    depends_on:
+      - setup_cce
+      - setup_is_db
+      - is1
+      - is2
+      - tcserver
+
+  setup_provisioning:
+    image: softwareag/commandcentral:$TAG-client
+    networks:
+      - sagdevops
+    command: echo "Setting up the provisoning with Command Central. Please check the progress of each setup on each of the runing setup instances"
+    depends_on:
+      - setup_is1
+      - setup_is2
+      - setup_tc
+
+########################## CCE setup ################################
   cce:
-    image: store/softwareag/commandcentral:${TAG}-server
+    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-server
     hostname: cce
     networks:
       - sagdevops
@@ -30,8 +54,10 @@ services:
     depends_on:
       - cce
 
+########################## IS setup ################################
+
   is1:
-    image: store/softwareag/commandcentral:${TAG}-node
+    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-node
     hostname: is1
     networks:
       - sagdevops
@@ -40,6 +66,7 @@ services:
     ports:
       - "5555:5555"
     depends_on:
+      - is_db
       - umserver
 
   setup_is1:
@@ -48,7 +75,7 @@ services:
       - sagdevops
     environment:
       - CC_CLIENT=docker
-      - CC_TEMPLATE=is-layer/tpl_is_stateless_messaging.yaml
+      - CC_TEMPLATE=is-layer/tpl_is_stateful.yaml
       - CC_TEMPLATE_ENV=is
       - CC_TEMPLATE_ENV_TARGET_HOST=is1
       - CC_TEMPLATE_ENV_TYPE=server
@@ -59,9 +86,13 @@ services:
     command: sagccant setup
     depends_on:
       - is1
+      - cce
+
+########################## UM setup ################################
 
   umserver:
-    image: store/softwareag/commandcentral:${TAG}-node
+    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-node
+    hostname: um
     networks:
       - sagdevops
     environment:
@@ -77,23 +108,9 @@ services:
       - CC_CLIENT=docker
       - CC_TEMPLATE=um-layer
       - CC_TEMPLATE_ENV=um
-      - CC_TEMPLATE_ENV_TARGET_HOST=umserver
-      - CC_TEMPLATE_ENV_TYPE=server
       - CC_SPM_HOST=umserver
       - CC_SPM_PORT=8092
-    volumes:
-      - ./:/src
     command: sagccant setup
     depends_on:
       - umserver
       - cce
-
-  umserver2:
-    image: ${REGISTRY}softwareag/umserver_managed:${TAG}
-    networks:
-      - sagdevops
-    environment:
-      - CC_SERVER=cce
-      - CC_AUTO_REGISTER=1
-    ports:
-      - "9000:9000"
