@@ -17,12 +17,20 @@ environments:
 
     um.host:             ${}
     um.instance.name:    umserver           # realm server instance name
+    um.instance.port.proto: nps             # commnunication protocol
     um.instance.port:    9000               # primary port
     um.jmx.port:         9988               # jmx port
     um.memory.init:      64                 # memory configuration
     um.memory.max:       128                # memory configuration
     um.memory.direct:    1g                 # memory configuration
     um.fixes:            [wMFix.NUMRealmServer]                # all fixes
+    um.jndi.cf:          umcf
+    um.jndi.cfxa:        umcfxa
+    um.jndi.qcf:         umqcf
+    um.jndi.tcf:         umtcf
+    um.jndi.dest.queue1:  umqueue
+    um.jndi.dest.topic1:  umtopic
+
 
   server:
 
@@ -59,9 +67,9 @@ templates:
           instance.port: ${um.instance.port}                       # instance port
           instance.ip:   ${node.host}                              # bind to node's host name
           license.file:  UniversalMessaging/server/templates/licence.xml
-          runtimeComponentId: Universal-Messaging-${instance.name} # hint for CC to skip instance creation if it exists
+          runtimeComponentId: Universal-Messaging-${um.instance.name} # hint for CC to skip instance creation if it exists
           configuration:
-            Universal-Messaging-${instance.name}:
+            Universal-Messaging-${um.instance.name}:
               COMMON-MEMORY:
                 COMMON-MEMORY:
                   InitSize: ${um.memory.init}
@@ -77,6 +85,37 @@ templates:
                    com.sun.management.jmxremote.port=${um.jmx.port}
                    com.sun.management.jmxremote.authenticate=false
                    com.sun.management.jmxremote.ssl=false
+                   CORE_SPIN=false
+              UM-JNDI-CF:                                                ## JNDI connection factories for JMS
+                UM-JNDI-CF-${um.jndi.cf}:
+                  name: ${um.jndi.cf}
+                  type: ConnectionFactory
+                  url: ${um.instance.port.proto}://${um.host}:${um.instance.port}
+                  durableType: Shared
+                UM-JNDI-CF-${um.jndi.cfxa}:
+                  name: ${um.jndi.cfxa}
+                  type: XAConnectionFactory
+                  url: ${um.instance.port.proto}://${um.host}:${um.instance.port}
+                UM-JNDI-CF-${um.jndi.qcf}:
+                  name: ${um.jndi.qcf}
+                  type: QueueConnectionFactory
+                  url: ${um.instance.port.proto}://${um.host}:${um.instance.port}
+                UM-JNDI-CF-${um.jndi.tcf}:
+                  name: ${um.jndi.tcf}
+                  type: TopicConnectionFactory
+                  url: ${um.instance.port.proto}://${um.host}:${um.instance.port}
+                  durableType: Shared
+              UM-JNDI-DEST:                                             ## JNDI destinations for JMS (queues or topics)
+                UM-JNDI-DEST-${um.jndi.dest.queue1}:
+                  name: ${um.jndi.dest.queue1}
+                  type: Queue
+                  storeName: ${um.jndi.dest.queue1}
+                  autoCreateDest: 'true'
+                UM-JNDI-DEST-${um.jndi.dest.topic1}:
+                  name: ${um.jndi.dest.topic1}
+                  type: Topic
+                  storeName: ${um.jndi.dest.topic1}
+                  autoCreateDest: 'true'
 
 provision:
   default:
