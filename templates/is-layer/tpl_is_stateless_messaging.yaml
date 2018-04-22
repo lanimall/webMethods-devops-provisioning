@@ -1,4 +1,4 @@
-alias: is_stateful_messaging
+alias: is_stateless_messaging
 description: Integration Server Stateful instance connected to DB, Terracotta, and UM
 
 environments:
@@ -14,7 +14,6 @@ environments:
     # Integration Server Instance Configuration
     os.platform:           lnxamd64
     is.license.key.alias:  "Integration_Server-${os.platform}"
-    tc.license.key.alias:  "terracotta-license-${os.platform}"
 
     is.host:            ${}
     is.instance.name:   default             # Instance name
@@ -25,35 +24,24 @@ environments:
     is.memory.init:     128                 # Initial memory size
     is.memory.max:      1024                # Maximum memory size
     is.install.service: true
-    is.configure:       [is-server]         # List of templates to apply
+    is.configure:       [is-server,um-client]         # List of templates to apply
     is.fixes:           [wMFix.integrationServer.Core]
 
     # IS clustering
-    is.cluster.enabled:   true
-    is.cluster.name:      "${is.instance.name}-cluster"
-    tsa.url:              "tcserver:9510"
+    is.cluster.enabled:   false
 
     # IS Messaging
+    um.fixes:          [wMFix.NUMClient]
     um.host:           "umserver"
     um.port:           "9000"
     um.url:            "nsp://${um.host}:${um.port}"
     um.jndi.cf:        umcf
 
-    # Database connection
-    db.type:             oracle             # REQUIRED: Database type: oracle,sqlserver,db2
-    db.host:             is_db            # REQUIRED: Database server hostname
-    db.port:             1521               # REQUIRED: Database server port
-    db.name:             webm
-    db.username:         is_dbuser        # Database username
-    db.password:         strong123!         # Database password
-    db.sid:              XE                 # Database name
-    db.url:              "jdbc:wm:oracle://${db.host}:${db.port};SID=${db.sid}"
-
   server:
 
   docker:
-    is.host:        localhost
-    spm.alias:      local
+    is.host:            localhost
+    spm.alias:          local
     is.install.service: false
 
 layers:
@@ -77,10 +65,14 @@ templates:
       SPM:
       ISspm:
 
+  um-client:
+    fixes: ${um.fixes}
+    products:
+      NUMClient:
+
   is-server:
     licenses:
       "IntegrationServer/config/licenseKey.xml": ${is.license.key.alias}
-      "common/conf/terracotta-license.key":      ${tc.license.key.alias}
     fixes: ${is.fixes}
     products:
       integrationServer:
@@ -90,11 +82,6 @@ templates:
           jmx.port:        ${is.jmx.port}
           license.file:    IntegrationServer/config/licenseKey.xml
           install.service: ${is.install.service}
-          db.type:         ${db.type}
-          db.url:          ${db.url}
-          db.username:     ${db.username}
-          db.password:     ${db.password}
-          db.alias:        Default
           configuration:
             OSGI-IS_${is.instance.name}:
               COMMON-MEMORY:
@@ -102,6 +89,49 @@ templates:
                   InitSize: ${is.memory.init}
                   MaxSize: ${is.memory.max}
             integrationServer-${is.instance.name}:
+              COMMON-LOCAL-USERS:
+                COMMON-LOCAL-USERS-Administrator:
+                  "@id": Administrator
+                  Enabled: true
+                  Password: ${is.password}
+                  ExtendedProperties:
+                    Property:
+                      -
+                       "@name": "AllowDigestAuthentication"
+                       $: false
+              COMMON-CLUSTER:
+                COMMON-CLUSTER:
+                  Name: ${is.cluster.name}
+                  Enabled: ${is.cluster.enabled}
+              COMMON-WMMESSAGING:
+                COMMON-WMMESSAGING-IS_UM_CONNECTION:
+                  Messaging:
+                    '@alias': IS_UM_CONNECTION
+                    Description: Default UM connection alias
+                    ClientPrefix: IS_UM_PREFIX
+                    ShareClientPrefix: 'true'
+                    Enabled: 'true'
+                    Provider:
+                      '@type': UM
+                      URL: ${um.url}
+                      MaxRetryAttempts: '5'
+                      RetryInterval: '30000'
+                      Auth:
+                        '@type': none
+                    ExtendedProperties:
+                      Property:
+                      - '@name': useCSQ
+                        $: 'true'
+                      - '@name': csqDrainInOrder
+                        $: 'false'
+                      - '@name': enableRequestReply
+                        $: 'true'
+                      - '@name': csqSize
+                        $: '-1'
+                      - '@name': um_followTheMasterForSubscribe
+                        $: 'true'
+                      - '@name': um_followTheMasterForPublish
+                        $: 'true'
               COMMON-JNDI:
                 COMMON-JNDI-DEFAULT_IS_JNDI_PROVIDER:
                   JNDI:
@@ -110,75 +140,42 @@ templates:
                     Provider:
                       URL: "${um.url}"
                       InitialContextFactory: com.pcbsys.nirvana.nSpace.NirvanaContextFactory
-              COMMON-WMMESSAGING:
-                COMMON-WMMESSAGING-IS_UM_CONNECTION:
-                  Messaging:
-                    "@alias": IS_UM_CONNECTION
-                    Description: Default UM connection alias
-                    ClientPrefix: IS_UM
-                    ShareClientPrefix: false
-                    Enabled: true
-                    Provider:
-                      "@type": UM
-                      URL: "${um.url}"
-                      MaxRetryAttempts: 5
-                      RetryInterval: 30000
               COMMON-JMS:
                 COMMON-JMS-DEFAULT_IS_JMS_CONNECTION:
                   JMS:
-                    "@alias": DEFAULT_IS_JMS_CONNECTION
+                    '@alias': DEFAULT_IS_JMS_CONNECTION
                     Description: Default JMS connection alias
-                    Enabled: true
+                    Enabled: 'false'
                     TransactionType: NO_TRANSACTION
                     ClientId: DEFAULT_IS_JMS_CLIENT
                     Provider:
-                      "@type": JNDI
+                      '@type': JNDI
                       JNDIAlias: DEFAULT_IS_JNDI_PROVIDER
                       JNDIConnectionFactoryName: ${um.jndi.cf}
-                    User: ""
-                    MaxRetryAttempts: 0
-                    RetryInterval: 0
+                    User: ''
+                    MaxRetryAttempts: '0'
+                    RetryInterval: '0'
                     Caching: DISABLED
                     ExtendedProperties:
                       Property:
-                        -
-                          "@name": "jndi_connectionFactoryUpdateType"
-                          $: "NONE"
-                        -
-                          "@name": "jndi_connectionFactoryPollingInterval"
-                          $: "0"
-                        -
-                          "@name": "classLoader"
-                          $: "INTEGRATION_SERVER"
-                        -
-                          "@name": "csqSize"
-                          $: "-1"
-                        -
-                          "@name": "csqDrainInOrder"
-                          $: "false"
-                        -
-                          "@name": "optTempQueueCreate"
-                          $: "false"
-                        -
-                          "@name": "manageDestinations"
-                          $: "false"
-                        -
-                          "@name": "allowNewConnectionPerTrigger"
-                          $: "true"
-              COMMON-DBFUNCTION:
-                COMMON-DBFUNCTION-CentralUsers:
-                  Function:
-                    "@alias": CentralUsers
-                    PoolAlias: Default
-                    Description: "Central User Management Configuration"
-              COMMON-CLUSTER:
-                COMMON-CLUSTER:
-                  Name: ${is.cluster.name}
-                  Enabled: ${is.cluster.enabled}
-                  Servers:
-                    Server:
-                      -
-                        URL: ${tsa.url}
+                      - '@name': jndi_connectionFactoryUpdateType
+                        $: NONE
+                      - '@name': jndi_connectionFactoryPollingInterval
+                        $: '0'
+                      - '@name': classLoader
+                        $: INTEGRATION_SERVER
+                      - '@name': csqSize
+                        $: '-1'
+                      - '@name': csqDrainInOrder
+                        $: 'false'
+                      - '@name': optTempQueueCreate
+                        $: 'false'
+                      - '@name': allowReplyToConsumer
+                        $: 'false'
+                      - '@name': manageDestinations
+                        $: 'false'
+                      - '@name': allowNewConnectionPerTrigger
+                        $: 'true'
 
 provision:
   default:

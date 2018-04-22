@@ -24,7 +24,7 @@ environments:
     is.password:        manage              # Administrator user password
     is.memory.init:     128                 # Initial memory size
     is.memory.max:      1024                # Maximum memory size
-    is.install.service: false
+    is.install.service: true
     is.configure:       [is-server]         # List of templates to apply
     is.fixes:           [wMFix.integrationServer.Core]
 
@@ -47,6 +47,7 @@ environments:
   docker:
     is.host:        localhost
     spm.alias:      local
+    is.install.service: false
 
 layers:
   default:

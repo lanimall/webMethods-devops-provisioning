@@ -14,7 +14,6 @@ environments:
     # Integration Server Instance Configuration
     os.platform:           lnxamd64
     is.license.key.alias:  "Integration_Server-${os.platform}"
-    tc.license.key.alias:  "terracotta-license-${os.platform}"
 
     is.host:            ${}
     is.instance.name:   default             # Instance name
@@ -24,7 +23,7 @@ environments:
     is.password:        manage              # Administrator user password
     is.memory.init:     128                 # Initial memory size
     is.memory.max:      1024                # Maximum memory size
-    is.install.service: false
+    is.install.service: true
     is.configure:       [is-server]         # List of templates to apply
     is.fixes:           [wMFix.integrationServer.Core]
 
@@ -35,6 +34,7 @@ environments:
   docker:
     is.host:        localhost
     spm.alias:      local
+    is.install.service: false
 
 layers:
   default:
@@ -60,7 +60,6 @@ templates:
   is-server:
     licenses:
       "IntegrationServer/config/licenseKey.xml": ${is.license.key.alias}
-      "common/conf/terracotta-license.key":      ${tc.license.key.alias}
     fixes: ${is.fixes}
     products:
       integrationServer:
@@ -87,6 +86,10 @@ templates:
                       -
                        "@name": "AllowDigestAuthentication"
                        $: false
+              COMMON-CLUSTER:
+                COMMON-CLUSTER:
+                  Name: ${is.cluster.name}
+                  Enabled: ${is.cluster.enabled}
 
 provision:
   default:
