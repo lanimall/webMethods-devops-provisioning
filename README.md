@@ -25,7 +25,17 @@ In this project, you can for example:
 
 1. Of course, Docker should be installed - Check official Docker doc https://docs.docker.com/install/ for details.
 
-2. Then, for the DB instances needed by some of the products, this project currently relies on the following solution explained at:
+2. Download the Command Central Images from Docker Store. 
+Note: The "10.1" tag should correspond to the latest fix in the 10.1 release (fix 8 at time of writing)
+
+```
+docker login
+docker pull store/softwareag/commandcentral:10.1-builder
+docker pull store/softwareag/commandcentral:10.1-server
+docker pull store/softwareag/commandcentral:10.1-node
+```
+
+3. Then, for the DB instances needed by some of the products, this project currently relies on the following solution explained at:
 https://github.com/lanimall/sagdevops-dbcreator-docker
 
   Follow the instructions in the [README.md](https://github.com/lanimall/sagdevops-dbcreator-docker/blob/master/README.md)
@@ -40,7 +50,7 @@ And if you commit these DB creation as Docker images, you should have:
 allowing to dynamically set product DBs on-the-fly using environment variables...
 Refer to "setup_is_db" service in [docker-compose-managed-runtimesetup.yml](./docker-compose-managed-runtimesetup.yml) for details.
 
-3. All the provisioning templates require:
+4. All the provisioning templates require:
     1. Connecting to a central product repository to download the binaries needed by the products and fixes to install.
   
        You'll need to update the file [environments/sag-repos.properties](environments/sag-repos.properties)
@@ -82,7 +92,7 @@ Refer to "setup_is_db" service in [docker-compose-managed-runtimesetup.yml](./do
      - Business Rules: "Business_Rules.xml"
      - Mashzone Next Gen: "MashZoneNextGen.xml"
 
-4. Finally, Build the "builder" image to be used by the other components
+5. Finally, Build the "builder" image to be used by the other components
  
 ```
   docker-compose -f docker-compose-build.yml build
@@ -90,7 +100,7 @@ Refer to "setup_is_db" service in [docker-compose-managed-runtimesetup.yml](./do
   
 This will create 2 images for internal use only. No need to push them to a registry etc...
  - softwareag/custombuilder:10.1
- - softwareag/setupnode:10.1
+ - softwareag/commandcentral:10.1-client
  
 ## Quick Start: Dynamic Provisioning of an IS Stateful environment using Docker  <a name="env_quickstart"></a>
 
@@ -146,7 +156,7 @@ ca05674da61b        registry.docker.tests:5000/softwareag/base-oracle-xe-11g    
 docker-compose -f docker-compose-runtimesetup-is_stateful.yml up setup_provisioning
 ```
 
-After 10s of miniutes, all products should have been installed on each node, 
+After 10s of minutes, all products should have been installed on each node,
 which you can verify by login to Command Central UI (see next section "Testing Results")
 
 ### Testing results
