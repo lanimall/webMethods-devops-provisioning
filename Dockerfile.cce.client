@@ -1,0 +1,25 @@
+ARG PARENT_BUILDER
+ARG PARENT_IMAGE
+
+FROM $PARENT_BUILDER as builder
+
+FROM $PARENT_IMAGE
+
+MAINTAINER fabien.sanglier@softwareaggov.com
+
+ENV SAG_HOME=/opt/softwareag
+ENV JAVA_HOME $SAG_HOME/jvm/jvm/
+ENV JRE_HOME $SAG_HOME/jvm/jvm/jre/
+ENV ANT_HOME $SAG_HOME/common/lib/ant
+ENV CC_CLI_HOME=$SAG_HOME/CommandCentral/client
+ENV PATH=$PATH:/bin:/usr/bin:$JAVA_HOME/bin:$ANT_HOME/bin:$CC_CLI_HOME/bin
+
+### ADD CLI files
+COPY --from=builder $SAG_HOME/CommandCentral/client/ $SAG_HOME/CommandCentral/client/
+COPY --from=builder /root/.sag/ /root/.sag/
+
+COPY --from=builder $SAG_HOME/jvm/jvm/ $SAG_HOME/jvm/jvm/
+COPY --from=builder $SAG_HOME/common/lib/ $SAG_HOME/common/lib/
+
+VOLUME /src
+WORKDIR /src

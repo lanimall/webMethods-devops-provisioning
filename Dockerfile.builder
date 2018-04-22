@@ -2,9 +2,6 @@ ARG PARENT_IMAGE
 
 FROM $PARENT_IMAGE
 
-#FROM store/softwareag/commandcentral:10.1.0.1-server
-#FROM registry.docker.tests:5000/softwareag/commandcentral/custom/empower:10.1-server as builder
-
 MAINTAINER fabien.sanglier@softwareaggov.com
 
 # build args
