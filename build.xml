@@ -23,17 +23,27 @@
     <target name="templateApply" description="Apply $CC_TEMPLATE" depends="waitcc,_localinit" >
         <echo message="Applying template with env.properties = ${env.properties}" />
 
-        <!-- call set properties to set soecific env variable in the env file -->
-        <antcall target="_setenvproperties">
-            <param name="env.properties" value="${env.properties}"/>
-        </antcall>
+        <trycatch>
+            <try>
+                <!-- call set properties to set soecific env variable in the env file -->
+                <antcall target="_setenvproperties">
+                    <param name="env.properties" value="${env.properties}"/>
+                </antcall>
 
-        <property name="template.path" value="templates/${env.CC_TEMPLATE}" />
+                <property name="template.path" value="templates/${env.CC_TEMPLATE}" />
 
-        <antcall target="sagenv.apply">
-            <param name="t" value="${template.path}"/>
-            <param name="env.properties" value="${env.properties}"/>
-        </antcall>
+                <antcall target="sagenv.apply">
+                    <param name="t" value="${template.path}"/>
+                    <param name="env.properties" value="${env.properties}"/>
+                </antcall>
+            </try>
+            <catch>
+                <fail/>
+            </catch>
+            <finally>
+                <antcall target="_localclean" />
+            </finally>
+        </trycatch>
     </target>
 
     <target name="waitForTargetNodeUp" description="Wait for target node up" depends="_localinit">
