@@ -196,7 +196,7 @@ But for the "Managed Command Central dynamic provisioning", it will re-do all th
 Speaking of docker push to a private registry, simply run:
 
 ```
-docker-compose -f docker-compose-fulldocker-is_stateful.yml push
+docker-compose -f docker-compose-fulldocker-is_stateful.yml push --ignore-push-failures
 ```
 
 NOTE: As defined in the [.env](.env) file, the docker-compose file will create the docker image by default with the following registry prefix:
@@ -239,7 +239,7 @@ And this time, it will take just a few seconds to create all instances and start
 
 ## Building Product-specific Docker Images  <a name="building_product_docker"></a>
 
-It ius also possible to build product-specific Docker Images by navigating into one of the templates folders.
+It is also possible to build product-specific Docker Images by navigating into one of the templates folders.
 
 ### Building Terracotta docker Image
 
@@ -254,7 +254,16 @@ At the end (10s of minutes to give a broad idea of duration), you should have 2 
  - ${REGISTRY}softwareag/tcserver:${TAG}
  - ${REGISTRY}softwareag/tcserver_managed:${TAG}
 
-### Building Universdal Messaginga docker Image
+
+If you have a private registry, you should push these new images to it so you don't have to spend another 10+ minutes to recreate them later.
+```
+docker-compose -f docker-compose-build.yml push --ignore-push-failures
+```
+
+NOTE: Because it's not necessary to push the "builder" image, I specified a "fake" registry for it.
+So the error "ERROR: Get https://donotpush:5000/v2/: Service Unavailable" is expected and not to be worried about.
+      
+### Building Universal Messaging docker Image
 
 Navigate to templates/um-layer and run:
 
@@ -267,6 +276,14 @@ At the end (10s of minutes to give a broad idea of duration), you should have 2 
  - ${REGISTRY}softwareag/umserver:${TAG}
  - ${REGISTRY}softwareag/umserver_managed:${TAG}
  
+If you have a private registry, you should push these new images to it so you don't have to spend another 10+ minutes to recreate them later.
+```
+docker-compose -f docker-compose-build.yml push --ignore-push-failures
+```
+
+NOTE: Because it's not necessary to push the "builder" image, I specified a "fake" registry for it.
+So the error "ERROR: Get https://donotpush:5000/v2/: Service Unavailable" is expected and not to be worried about.
+
 ### Building MWS docker Image
 
 Navigate to templates/mws-layer and run:
@@ -282,6 +299,14 @@ At the end (10s of minutes to give a broad idea of duration), you should have 2 
  - ${REGISTRY}softwareag/mws_bpms:${TAG}
  - ${REGISTRY}softwareag/mws_bpms_managed:${TAG}
  
+If you have a private registry, you should push these new images to it so you don't have to spend another 10+ minutes to recreate them later.
+```
+docker-compose -f docker-compose-build.yml push --ignore-push-failures
+```
+
+NOTE: Because it's not necessary to push the "builder" image, I specified a "fake" registry for it.
+So the error "ERROR: Get https://donotpush:5000/v2/: Service Unavailable" is expected and not to be worried about.
+ 
 ### Building Integration Server docker Image
 
 Navigate to templates/is-layer and run one of the following:
@@ -296,7 +321,14 @@ At the end (10s of minutes to give a broad idea of duration), you should have 2 
  - ${REGISTRY}softwareag/is_stateful:${TAG}
  - ${REGISTRY}softwareag/is_stateful_managed:${TAG}
  
- 
+If you have a private registry, you should push these new images to it so you don't have to spend another 10+ minutes to recreate them later.
+```
+docker-compose -f docker-compose-build-stateful.yml push --ignore-push-failures
+```
+
+NOTE: Because it's not necessary to push the "builder" image, I specified a "fake" registry for it.
+So the error "ERROR: Get https://donotpush:5000/v2/: Service Unavailable" is expected and not to be worried about.
+
 #### IS Stateless
 
 ```
@@ -307,6 +339,14 @@ At the end (10s of minutes to give a broad idea of duration), you should have 2 
 (where TAG and REGISTRY are defined in the .env file in the same folder)
  - ${REGISTRY}softwareag/is_stateless:${TAG}
  - ${REGISTRY}softwareag/is_stateless_managed:${TAG}
+ 
+If you have a private registry, you should push these new images to it so you don't have to spend another 10+ minutes to recreate them later.
+```
+docker-compose -f docker-compose-build-stateless.yml push --ignore-push-failures
+```
+
+NOTE: Because it's not necessary to push the "builder" image, I specified a "fake" registry for it.
+So the error "ERROR: Get https://donotpush:5000/v2/: Service Unavailable" is expected and not to be worried about.
 
 #### IS Stateful Messaging
 
@@ -318,6 +358,14 @@ At the end (10s of minutes to give a broad idea of duration), you should have 2 
 (where TAG and REGISTRY are defined in the .env file in the same folder)
  - ${REGISTRY}softwareag/is_stateful_messaging:${TAG}
  - ${REGISTRY}softwareag/is_stateful_messaging_managed:${TAG}
+
+If you have a private registry, you should push these new images to it so you don't have to spend another 10+ minutes to recreate them later.
+```
+docker-compose -f docker-compose-build-stateful-messaging.yml push --ignore-push-failures
+```
+
+NOTE: Because it's not necessary to push the "builder" image, I specified a "fake" registry for it.
+So the error "ERROR: Get https://donotpush:5000/v2/: Service Unavailable" is expected and not to be worried about.
  
 ### Building BPMS docker Image
 
@@ -331,3 +379,11 @@ At the end (10s of minutes to give a broad idea of duration), you should have 2 
 (where TAG and REGISTRY are defined in the .env file in the same folder)
  - ${REGISTRY}softwareag/bpms:${TAG}
  - ${REGISTRY}softwareag/bpms_managed:${TAG}
+
+If you have a private registry, you should push these new images to it so you don't have to spend another 10+ minutes to recreate them later.
+```
+docker-compose -f docker-compose-build.yml push --ignore-push-failures
+```
+
+NOTE: Because it's not necessary to push the "builder" image, I specified a "fake" registry for it.
+So the error "ERROR: Get https://donotpush:5000/v2/: Service Unavailable" is expected and not to be worried about.
