@@ -91,11 +91,11 @@
         <!-- name of the new runtime env file + add a bit of entropy in case the same script is called at the same time...which is possible with docker -->
         <randomint max="100000000" property="random_prop" />
         <property name="runtime.template.env" value="runtime-${template.env}-${random_prop}" />
+        <property name="runtime.template.env.properties" value="environments/${runtime.template.env}.properties" />
     </target>
 
     <target name="_setRuntimeTemplateEnv" depends="_getRuntimeTemplateEnv">
         <!-- copy the file tu runtime file -->
-        <property name="runtime.template.env.properties" value="environments/${runtime.template.env}.properties" />
         <copy file="${default.template.env.properties}" tofile="${runtime.template.env.properties}" overwrite="true" if:set="default.template.env.properties.exists"/>
 
         <!-- check if the copy really happened -->
@@ -103,7 +103,7 @@
             <available file="${runtime.template.env.properties}"/>
         </condition>
 
-        <!-- force env file to be "runtime" as it is the file that should be used by the template apply command -->
+        <!-- force env file to be "runtime" one as it is the file that should be used by the template apply command -->
         <property name="env" value="${runtime.template.env}" if:set="runtime.template.env.properties.exists"/>
         <echo message="New Environment Property Runtime: ${env}" if:set="env" />
     </target>
@@ -117,8 +117,8 @@
             <available file="${runtime.template.env.properties}"/>
         </condition>
 
-        <echo message="Error: Template Environment File was not cleaned" if:set="default.template.env.properties.exists" />
-        <echo message="Success: Template Environment File was cleaned" unless:set="default.template.env.properties.exists" />
+        <echo message="Error: Template Environment File was not cleaned" if:set="runtime.template.env.properties.exists" />
+        <echo message="Success: Template Environment File was cleaned" unless:set="runtime.template.env.properties.exists" />
     </target>
 
     <target name="_setenvproperties">
