@@ -3,8 +3,8 @@ description: Integration Server Stateful instance connected to DB, Terracotta, a
 
 environments:
   default:
-    repo.product:        products
-    repo.fix:            fixes
+    repo.product:   products
+    repo.fix:       fixes
 
     spm.port:       8092                    # SPM connection port
     spm.secure:     false                   # Use HTTPS connection to SPM: true,false
@@ -25,7 +25,7 @@ environments:
     is.memory.init:     128                 # Initial memory size
     is.memory.max:      1024                # Maximum memory size
     is.install.service: true
-    is.configure:       [is-server]         # List of templates to apply
+    is.configure:       [is-server,um-client]         # List of templates to apply
     is.fixes:           [wMFix.integrationServer.Core]
 
     # IS clustering
@@ -34,9 +34,8 @@ environments:
     tsa.url:              "tcserver:9510"
 
     # IS Messaging
-    um.host:           "umserver"
-    um.port:           "9000"
-    um.url:            "nsp://${um.host}:${um.port}"
+    um.fixes:          [wMFix.NUMClient]
+    um.url:            "nsp://umserver:9000"
     um.jndi.cf:        umcf
 
     # Database connection
@@ -52,8 +51,8 @@ environments:
   server:
 
   docker:
-    is.host:        localhost
-    spm.alias:      local
+    is.host:            localhost
+    spm.alias:          local
     is.install.service: false
 
 layers:
@@ -76,6 +75,11 @@ templates:
     products:
       SPM:
       ISspm:
+
+  um-client:
+    fixes: ${um.fixes}
+    products:
+      NUMClient:
 
   is-server:
     licenses:
@@ -102,6 +106,16 @@ templates:
                   InitSize: ${is.memory.init}
                   MaxSize: ${is.memory.max}
             integrationServer-${is.instance.name}:
+              COMMON-LOCAL-USERS:
+                COMMON-LOCAL-USERS-Administrator:
+                  "@id": Administrator
+                  Enabled: true
+                  Password: ${is.password}
+                  ExtendedProperties:
+                    Property:
+                      -
+                       "@name": "AllowDigestAuthentication"
+                       $: false
               COMMON-JNDI:
                 COMMON-JNDI-DEFAULT_IS_JNDI_PROVIDER:
                   JNDI:
@@ -113,64 +127,68 @@ templates:
               COMMON-WMMESSAGING:
                 COMMON-WMMESSAGING-IS_UM_CONNECTION:
                   Messaging:
-                    "@alias": IS_UM_CONNECTION
+                    '@alias': IS_UM_CONNECTION
                     Description: Default UM connection alias
-                    ClientPrefix: IS_UM
-                    ShareClientPrefix: false
-                    Enabled: true
+                    ClientPrefix: IS_UM_PREFIX
+                    ShareClientPrefix: 'true'
+                    Enabled: 'true'
                     Provider:
-                      "@type": UM
-                      URL: "${um.url}"
-                      MaxRetryAttempts: 5
-                      RetryInterval: 30000
+                      '@type': UM
+                      URL: ${um.url}
+                      MaxRetryAttempts: '5'
+                      RetryInterval: '30000'
+                      Auth:
+                        '@type': none
+                    ExtendedProperties:
+                      Property:
+                      - '@name': useCSQ
+                        $: 'true'
+                      - '@name': csqDrainInOrder
+                        $: 'false'
+                      - '@name': enableRequestReply
+                        $: 'true'
+                      - '@name': csqSize
+                        $: '-1'
+                      - '@name': um_followTheMasterForSubscribe
+                        $: 'true'
+                      - '@name': um_followTheMasterForPublish
+                        $: 'true'
               COMMON-JMS:
                 COMMON-JMS-DEFAULT_IS_JMS_CONNECTION:
                   JMS:
-                    "@alias": DEFAULT_IS_JMS_CONNECTION
+                    '@alias': DEFAULT_IS_JMS_CONNECTION
                     Description: Default JMS connection alias
-                    Enabled: true
+                    Enabled: 'true'
                     TransactionType: NO_TRANSACTION
                     ClientId: DEFAULT_IS_JMS_CLIENT
                     Provider:
-                      "@type": JNDI
+                      '@type': JNDI
                       JNDIAlias: DEFAULT_IS_JNDI_PROVIDER
                       JNDIConnectionFactoryName: ${um.jndi.cf}
-                    User: ""
-                    MaxRetryAttempts: 0
-                    RetryInterval: 0
+                    User: ''
+                    MaxRetryAttempts: '0'
+                    RetryInterval: '0'
                     Caching: DISABLED
                     ExtendedProperties:
                       Property:
-                        -
-                          "@name": "jndi_connectionFactoryUpdateType"
-                          $: "NONE"
-                        -
-                          "@name": "jndi_connectionFactoryPollingInterval"
-                          $: "0"
-                        -
-                          "@name": "classLoader"
-                          $: "INTEGRATION_SERVER"
-                        -
-                          "@name": "csqSize"
-                          $: "-1"
-                        -
-                          "@name": "csqDrainInOrder"
-                          $: "false"
-                        -
-                          "@name": "optTempQueueCreate"
-                          $: "false"
-                        -
-                          "@name": "manageDestinations"
-                          $: "false"
-                        -
-                          "@name": "allowNewConnectionPerTrigger"
-                          $: "true"
-              COMMON-DBFUNCTION:
-                COMMON-DBFUNCTION-CentralUsers:
-                  Function:
-                    "@alias": CentralUsers
-                    PoolAlias: Default
-                    Description: "Central User Management Configuration"
+                      - '@name': jndi_connectionFactoryUpdateType
+                        $: NONE
+                      - '@name': jndi_connectionFactoryPollingInterval
+                        $: '0'
+                      - '@name': classLoader
+                        $: INTEGRATION_SERVER
+                      - '@name': csqSize
+                        $: '-1'
+                      - '@name': csqDrainInOrder
+                        $: 'false'
+                      - '@name': optTempQueueCreate
+                        $: 'false'
+                      - '@name': allowReplyToConsumer
+                        $: 'false'
+                      - '@name': manageDestinations
+                        $: 'false'
+                      - '@name': allowNewConnectionPerTrigger
+                        $: 'true'
               COMMON-CLUSTER:
                 COMMON-CLUSTER:
                   Name: ${is.cluster.name}

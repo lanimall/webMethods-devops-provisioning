@@ -3,8 +3,8 @@ description: Integration Server Stateful instance connected to DB, Terracotta, a
 
 environments:
   default:
-    repo.product:        products
-    repo.fix:            fixes
+    repo.product:   products
+    repo.fix:       fixes
 
     spm.port:       8092                    # SPM connection port
     spm.secure:     false                   # Use HTTPS connection to SPM: true,false
@@ -28,13 +28,11 @@ environments:
     is.fixes:           [wMFix.integrationServer.Core]
 
     # IS clustering
-    is.cluster.enabled:   false
+    is.cluster.enabled:  false
 
     # IS Messaging
     um.fixes:          [wMFix.NUMClient]
-    um.host:           "umserver"
-    um.port:           "9000"
-    um.url:            "nsp://${um.host}:${um.port}"
+    um.url:            "nsp://umserver:9000"
     um.jndi.cf:        umcf
 
   server:
@@ -99,10 +97,14 @@ templates:
                       -
                        "@name": "AllowDigestAuthentication"
                        $: false
-              COMMON-CLUSTER:
-                COMMON-CLUSTER:
-                  Name: ${is.cluster.name}
-                  Enabled: ${is.cluster.enabled}
+              COMMON-JNDI:
+                COMMON-JNDI-DEFAULT_IS_JNDI_PROVIDER:
+                  JNDI:
+                    "@alias": DEFAULT_IS_JNDI_PROVIDER
+                    Description: Default JNDI provider alias
+                    Provider:
+                      URL: "${um.url}"
+                      InitialContextFactory: com.pcbsys.nirvana.nSpace.NirvanaContextFactory
               COMMON-WMMESSAGING:
                 COMMON-WMMESSAGING-IS_UM_CONNECTION:
                   Messaging:
@@ -132,20 +134,12 @@ templates:
                         $: 'true'
                       - '@name': um_followTheMasterForPublish
                         $: 'true'
-              COMMON-JNDI:
-                COMMON-JNDI-DEFAULT_IS_JNDI_PROVIDER:
-                  JNDI:
-                    "@alias": DEFAULT_IS_JNDI_PROVIDER
-                    Description: Default JNDI provider alias
-                    Provider:
-                      URL: "${um.url}"
-                      InitialContextFactory: com.pcbsys.nirvana.nSpace.NirvanaContextFactory
               COMMON-JMS:
                 COMMON-JMS-DEFAULT_IS_JMS_CONNECTION:
                   JMS:
                     '@alias': DEFAULT_IS_JMS_CONNECTION
                     Description: Default JMS connection alias
-                    Enabled: 'false'
+                    Enabled: 'true'
                     TransactionType: NO_TRANSACTION
                     ClientId: DEFAULT_IS_JMS_CLIENT
                     Provider:
@@ -176,6 +170,10 @@ templates:
                         $: 'false'
                       - '@name': allowNewConnectionPerTrigger
                         $: 'true'
+              COMMON-CLUSTER:
+                COMMON-CLUSTER:
+                  Name: ${is.cluster.name}
+                  Enabled: ${is.cluster.enabled}
 
 provision:
   default:
