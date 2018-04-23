@@ -128,7 +128,7 @@ services:
   umserver:
     image: ${REGISTRY}softwareag/umserver:${TAG}
     build:
-      context: .
+      context: templates/um-layer
       dockerfile: Dockerfile.unmanaged
       args:
         PARENT_BUILDER: ${BUILDER_REGISTRY}softwareag/umserver_builder:${TAG}
