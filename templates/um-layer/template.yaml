@@ -15,15 +15,18 @@ environments:
     os.platform:          lnxamd64
     um.license.key.alias: UniversalMessaging-${os.platform}
 
-    um.host:             ${}
+    um.provisioning.host: ${}                       # This is the provisoning host name (where the UM instance / product should be installed)
+    um.access.host:       ${um.provisioning.host}   # This is the access host name (general access - generally should be equal to um.provisioning.host, but not in case of docker creation)
     um.instance.name:    umserver           # realm server instance name
-    um.instance.port.proto: nps             # commnunication protocol
     um.instance.port:    9000               # primary port
+    um.instance.ip:      ${node.host}       # this is the IP that the UM process will bind to
     um.jmx.port:         9988               # jmx port
     um.memory.init:      64                 # memory configuration
     um.memory.max:       128                # memory configuration
     um.memory.direct:    1g                 # memory configuration
     um.fixes:            [wMFix.NUMRealmServer]                # all fixes
+
+    um.jndi.factory.url: "nsp://${um.access.host}:${um.instance.port}"
     um.jndi.cf:          umcf
     um.jndi.cfxa:        umcfxa
     um.jndi.qcf:         umqcf
@@ -31,12 +34,13 @@ environments:
     um.jndi.dest.queue1:  umqueue
     um.jndi.dest.topic1:  umtopic
 
-
   server:
 
   docker:
-    um.host:        localhost
-    spm.alias:      local
+    um.provisioning.host:   localhost
+    spm.alias:              local
+    um.access.host:         "umserver"        # important: this is the external URL that the UM instance can be accessed at via JNDI CF URLs
+    um.instance.ip:         "0.0.0.0"         # important to set that here so the UM docker image is set to listen on all interfaces (vs. just localhost)
 
 layers:
   default:
@@ -65,7 +69,7 @@ templates:
       NUMRealmServer:
         ${um.instance.name}:                                       # instance name is different from realm
           instance.port: ${um.instance.port}                       # instance port
-          instance.ip:   ${node.host}                              # bind to node's host name
+          instance.ip:   ${um.instance.ip}                         # bind to node's host name
           license.file:  UniversalMessaging/server/templates/licence.xml
           runtimeComponentId: Universal-Messaging-${um.instance.name} # hint for CC to skip instance creation if it exists
           configuration:
@@ -90,20 +94,20 @@ templates:
                 UM-JNDI-CF-${um.jndi.cf}:
                   name: ${um.jndi.cf}
                   type: ConnectionFactory
-                  url: ${um.instance.port.proto}://${um.host}:${um.instance.port}
+                  url: ${um.jndi.factory.url}
                   durableType: Shared
                 UM-JNDI-CF-${um.jndi.cfxa}:
                   name: ${um.jndi.cfxa}
                   type: XAConnectionFactory
-                  url: ${um.instance.port.proto}://${um.host}:${um.instance.port}
+                  url: ${um.jndi.factory.url}
                 UM-JNDI-CF-${um.jndi.qcf}:
                   name: ${um.jndi.qcf}
                   type: QueueConnectionFactory
-                  url: ${um.instance.port.proto}://${um.host}:${um.instance.port}
+                  url: ${um.jndi.factory.url}
                 UM-JNDI-CF-${um.jndi.tcf}:
                   name: ${um.jndi.tcf}
                   type: TopicConnectionFactory
-                  url: ${um.instance.port.proto}://${um.host}:${um.instance.port}
+                  url: ${um.jndi.factory.url}
                   durableType: Shared
               UM-JNDI-DEST:                                             ## JNDI destinations for JMS (queues or topics)
                 UM-JNDI-DEST-${um.jndi.dest.queue1}:
@@ -119,11 +123,11 @@ templates:
 
 provision:
   default:
-    spm: ["${um.host}"]
-    um:  ["${um.host}"]
+    spm: ["${um.provisioning.host}"]
+    um:  ["${um.provisioning.host}"]
   server:
-    spm: ["${um.host}"]
-    um:  ["${um.host}"]
+    spm: ["${um.provisioning.host}"]
+    um:  ["${um.provisioning.host}"]
   docker:
     spm:  ["${spm.alias}"]
     um:   ["${spm.alias}"]
@@ -135,4 +139,4 @@ nodes:
       secure: ${spm.secure}
   docker:
     ${spm.alias}:
-      host: ${um.host}
+      host: ${um.provisioning.host}
