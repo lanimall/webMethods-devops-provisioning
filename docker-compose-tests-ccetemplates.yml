@@ -59,6 +59,7 @@ services:
     command: sagccant setup
     depends_on:
       - is1
+      - cce
 
   umserver:
     image: store/softwareag/commandcentral:${TAG}-node
