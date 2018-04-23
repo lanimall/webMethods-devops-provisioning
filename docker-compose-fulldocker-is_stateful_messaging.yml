@@ -6,7 +6,7 @@ networks:
 services:
 ########################## IS setup ################################
   is_stateful_messaging_builder:
-    image: ${BUILDER_REGISTRY}softwareag/is_stateful_builder:${TAG}
+    image: ${BUILDER_REGISTRY}softwareag/is_stateful_messaging_builder:${TAG}
     build:
       context: templates/is-layer
       dockerfile: Dockerfile.builder
@@ -28,7 +28,7 @@ services:
       context: templates/is-layer
       dockerfile: Dockerfile.unmanaged
       args:
-        PARENT_BUILDER: ${BUILDER_REGISTRY}softwareag/is_stateful_builder:${TAG}
+        PARENT_BUILDER: ${BUILDER_REGISTRY}softwareag/is_stateful_messaging_builder:${TAG}
         PARENT_IMAGE: centos:7
     hostname: is1
     networks:
@@ -47,7 +47,7 @@ services:
       context: templates/is-layer
       dockerfile: Dockerfile.unmanaged
       args:
-        PARENT_BUILDER: ${BUILDER_REGISTRY}softwareag/is_stateful_builder:${TAG}
+        PARENT_BUILDER: ${BUILDER_REGISTRY}softwareag/is_stateful_messaging_builder:${TAG}
         PARENT_IMAGE: centos:7
     hostname: is2
     networks:
