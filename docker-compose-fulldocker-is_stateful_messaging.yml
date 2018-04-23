@@ -102,6 +102,8 @@ services:
       - "9510"
       - "9530"
       - "9540"
+    ports:
+      - "9510:9510"
     environment:
       - TC_HOST=tcserver
       - TC_STORAGE=1g
@@ -137,5 +139,7 @@ services:
       - sagdevops
     expose:
       - "9000"
+    ports:
+      - "9000:9000"
     depends_on:
       - umserver_builder
