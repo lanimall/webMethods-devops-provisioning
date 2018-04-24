@@ -27,6 +27,9 @@ environments:
     is.install.service: true
     is.configure:       [is-server,um-client]         # List of templates to apply
     is.fixes:           [wMFix.integrationServer.Core]
+    is.jms.jndi.alias:        "CUSTOM_IS_JNDI_PROVIDER"
+    is.jms.connection.alias:  "CUSTOM_IS_JMS_CONNECTION"
+    is.wm.messaging.alias:    "CUSTOM_IS_UM_CONNECTION"
 
     # IS clustering
     is.cluster.enabled:   true
@@ -117,19 +120,19 @@ templates:
                        "@name": "AllowDigestAuthentication"
                        $: false
               COMMON-JNDI:
-                COMMON-JNDI-DEFAULT_IS_JNDI_PROVIDER:
+                COMMON-JNDI-${is.jndi.alias}:
                   JNDI:
-                    "@alias": DEFAULT_IS_JNDI_PROVIDER
-                    Description: Default JNDI provider alias
+                    "@alias": ${is.jndi.alias}
+                    Description: JNDI provider alias
                     Provider:
                       URL: "${um.url}"
                       InitialContextFactory: com.pcbsys.nirvana.nSpace.NirvanaContextFactory
               COMMON-WMMESSAGING:
-                COMMON-WMMESSAGING-IS_UM_CONNECTION:
+                COMMON-WMMESSAGING-${is.wm.messaging.alias}:
                   Messaging:
-                    '@alias': IS_UM_CONNECTION
-                    Description: Default UM connection alias
-                    ClientPrefix: IS_UM_PREFIX
+                    '@alias': ${is.wm.messaging.alias}
+                    Description: UM connection alias
+                    ClientPrefix: ${is.wm.messaging.alias}_CLIENT_PREFIX
                     ShareClientPrefix: 'true'
                     Enabled: 'true'
                     Provider:
@@ -154,16 +157,16 @@ templates:
                       - '@name': um_followTheMasterForPublish
                         $: 'true'
               COMMON-JMS:
-                COMMON-JMS-DEFAULT_IS_JMS_CONNECTION:
+                COMMON-JMS-${is.jms.connection.alias}:
                   JMS:
-                    '@alias': DEFAULT_IS_JMS_CONNECTION
-                    Description: Default JMS connection alias
+                    '@alias': ${is.jms.connection.alias}
+                    Description: JMS connection alias
                     Enabled: 'true'
                     TransactionType: NO_TRANSACTION
-                    ClientId: DEFAULT_IS_JMS_CLIENT
+                    ClientId: ${is.jms.connection.alias}_CLIENT
                     Provider:
                       '@type': JNDI
-                      JNDIAlias: DEFAULT_IS_JNDI_PROVIDER
+                      JNDIAlias: ${is.jndi.alias}
                       JNDIConnectionFactoryName: ${um.jndi.cf}
                     User: ''
                     MaxRetryAttempts: '0'
