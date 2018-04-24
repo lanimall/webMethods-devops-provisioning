@@ -5,56 +5,26 @@ networks:
 
 services:
 ########################## IS setup ################################
-  is_stateful_builder:
-    image: ${BUILDER_REGISTRY}softwareag/is_stateful_builder:${TAG}
-    build:
-      context: templates/is-layer
-      dockerfile: Dockerfile.builder
-      args:
-        CC_TEMPLATE: is-layer/tpl_is_stateful.yaml
-        CC_TEMPLATE_ENV: is
-        CC_TEMPLATE_ENV_TYPE: docker
-        CC_SPM_HOST: localhost
-        CC_SPM_PORT: 8092
-        CC_SAG_REPO_USR: $CC_SAG_REPO_USR
-        CC_SAG_REPO_PWD: $CC_SAG_REPO_PWD
-    expose:
-      - "5555"
-      - "9999"
 
   is1:
     image: ${REGISTRY}softwareag/is_stateful:${TAG}
-    build:
-      context: templates/is-layer
-      dockerfile: Dockerfile.unmanaged
-      args:
-        PARENT_BUILDER: ${REGISTRY}softwareag/is_stateful_builder:${TAG}
-        PARENT_IMAGE: centos:7
     hostname: is1
     networks:
       - sagdevops
     ports:
       - "5555:5555"
     depends_on:
-      - is_stateful_builder
       - is_db
       - tcserver
 
   is2:
     image: ${REGISTRY}softwareag/is_stateful:${TAG}
-    build:
-      context: templates/is-layer
-      dockerfile: Dockerfile.unmanaged
-      args:
-        PARENT_BUILDER: ${REGISTRY}softwareag/is_stateful_builder:${TAG}
-        PARENT_IMAGE: centos:7
     hostname: is2
     networks:
       - sagdevops
     ports:
       - "5556:5555"
     depends_on:
-      - is_stateful_builder
       - is_db
       - tcserver
 
@@ -72,28 +42,8 @@ services:
 
 ########################## TC setup ################################
 
-  tcserver_builder:
-    image: ${BUILDER_REGISTRY}softwareag/tcserver_builder:${TAG}
-    build:
-      context: templates/tc-layer
-      dockerfile: Dockerfile.builder
-      args:
-        CC_TEMPLATE: tc-layer
-        CC_TEMPLATE_ENV: tc
-        CC_TEMPLATE_ENV_TYPE: docker
-        CC_SPM_HOST: localhost
-        CC_SPM_PORT: 8092
-        CC_SAG_REPO_USR: $CC_SAG_REPO_USR
-        CC_SAG_REPO_PWD: $CC_SAG_REPO_PWD
-
   tcserver:
     image: ${REGISTRY}softwareag/tcserver:${TAG}
-    build:
-      context: templates/tc-layer
-      dockerfile: Dockerfile.unmanaged
-      args:
-        PARENT_BUILDER: ${REGISTRY}softwareag/tcserver_builder:${TAG}
-        PARENT_IMAGE: centos:7
     networks:
       - sagdevops
     expose:
@@ -106,5 +56,3 @@ services:
       - TC_HOST=tcserver
       - TC_STORAGE=1g
       - TC_OFFHEAP=1g
-    depends_on:
-      - tcserver_builder

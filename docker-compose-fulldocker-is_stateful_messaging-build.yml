@@ -1,0 +1,145 @@
+version: "3"
+
+networks:
+  sagdevops:
+
+services:
+########################## IS setup ################################
+  is_stateful_messaging_builder:
+    image: ${BUILDER_REGISTRY}softwareag/is_stateful_messaging_builder:${TAG}
+    build:
+      context: templates/is-layer
+      dockerfile: Dockerfile.builder
+      args:
+        CC_TEMPLATE: is-layer/tpl_is_stateful_messaging.yaml
+        CC_TEMPLATE_ENV: is
+        CC_TEMPLATE_ENV_TYPE: docker
+        CC_SPM_HOST: localhost
+        CC_SPM_PORT: 8092
+        CC_SAG_REPO_USR: $CC_SAG_REPO_USR
+        CC_SAG_REPO_PWD: $CC_SAG_REPO_PWD
+    expose:
+      - "5555"
+      - "9999"
+
+  is1:
+    image: ${REGISTRY}softwareag/is_stateful_messaging:${TAG}
+    build:
+      context: templates/is-layer
+      dockerfile: Dockerfile.unmanaged
+      args:
+        PARENT_BUILDER: ${BUILDER_REGISTRY}softwareag/is_stateful_messaging_builder:${TAG}
+        PARENT_IMAGE: centos:7
+    hostname: is1
+    networks:
+      - sagdevops
+    ports:
+      - "5555:5555"
+    depends_on:
+      - is_stateful_messaging_builder
+      - is_db
+      - tcserver
+      - umserver
+
+  is2:
+    image: ${REGISTRY}softwareag/is_stateful_messaging:${TAG}
+    build:
+      context: templates/is-layer
+      dockerfile: Dockerfile.unmanaged
+      args:
+        PARENT_BUILDER: ${BUILDER_REGISTRY}softwareag/is_stateful_messaging_builder:${TAG}
+        PARENT_IMAGE: centos:7
+    hostname: is2
+    networks:
+      - sagdevops
+    ports:
+      - "5556:5555"
+    depends_on:
+      - is_stateful_messaging_builder
+      - is_db
+      - tcserver
+      - umserver
+
+  is_db:
+    image: ${REGISTRY}softwareag_dbs/is-oracle:${TAG}
+    networks:
+      - sagdevops
+    expose:
+      - "22"
+      - "1521"
+    environment:
+      - ORACLE_ALLOW_REMOTE=true
+      - ORACLE_DISABLE_ASYNCH_IO=true
+      - ORACLE_ENABLE_XDB=false
+
+########################## TC setup ################################
+
+  tcserver_builder:
+    image: ${BUILDER_REGISTRY}softwareag/tcserver_builder:${TAG}
+    build:
+      context: templates/tc-layer
+      dockerfile: Dockerfile.builder
+      args:
+        CC_TEMPLATE: tc-layer
+        CC_TEMPLATE_ENV: tc
+        CC_TEMPLATE_ENV_TYPE: docker
+        CC_SPM_HOST: localhost
+        CC_SPM_PORT: 8092
+        CC_SAG_REPO_USR: $CC_SAG_REPO_USR
+        CC_SAG_REPO_PWD: $CC_SAG_REPO_PWD
+
+  tcserver:
+    image: ${REGISTRY}softwareag/tcserver:${TAG}
+    build:
+      context: templates/tc-layer
+      dockerfile: Dockerfile.unmanaged
+      args:
+        PARENT_BUILDER: ${BUILDER_REGISTRY}softwareag/tcserver_builder:${TAG}
+        PARENT_IMAGE: centos:7
+    networks:
+      - sagdevops
+    expose:
+      - "9510"
+      - "9530"
+      - "9540"
+    ports:
+      - "9510:9510"
+    environment:
+      - TC_HOST=tcserver
+      - TC_STORAGE=1g
+      - TC_OFFHEAP=1g
+    depends_on:
+      - tcserver_builder
+
+########################## UM setup ################################
+
+  umserver_builder:
+    image: ${BUILDER_REGISTRY}softwareag/umserver_builder:${TAG}
+    build:
+      context: templates/um-layer
+      dockerfile: Dockerfile.builder
+      args:
+        CC_TEMPLATE: um-layer
+        CC_TEMPLATE_ENV: um
+        CC_TEMPLATE_ENV_TYPE: docker
+        CC_SPM_HOST: localhost
+        CC_SPM_PORT: 8092
+        CC_SAG_REPO_USR: $CC_SAG_REPO_USR
+        CC_SAG_REPO_PWD: $CC_SAG_REPO_PWD
+
+  umserver:
+    image: ${REGISTRY}softwareag/umserver:${TAG}
+    build:
+      context: templates/um-layer
+      dockerfile: Dockerfile.unmanaged
+      args:
+        PARENT_BUILDER: ${BUILDER_REGISTRY}softwareag/umserver_builder:${TAG}
+        PARENT_IMAGE: centos:7
+    networks:
+      - sagdevops
+    expose:
+      - "9000"
+    ports:
+      - "9000:9000"
+    depends_on:
+      - umserver_builder
