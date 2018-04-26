@@ -19,7 +19,7 @@ environments:
     um.access.host:       ${um.provisioning.host}   # This is the access host name (general access - generally should be equal to um.provisioning.host, but not in case of docker creation)
     um.instance.name:    umserver           # realm server instance name
     um.instance.port:    9000               # primary port
-    um.instance.ip:      ${node.host}       # this is the IP that the UM process will bind to
+    um.instance.ip:      ${}                # this is the IP that the UM process will bind to
     um.jmx.port:         9988               # jmx port
     um.memory.init:      64                 # memory configuration
     um.memory.max:       128                # memory configuration
