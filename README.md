@@ -25,7 +25,17 @@ In this project, you can for example:
 
 1. Of course, Docker should be installed - Check official Docker doc https://docs.docker.com/install/ for details.
 
-2. Download the Command Central Images from Docker Store. 
+2. Clone or Download this project
+
+For git clone:
+```
+git clone --recurse https://github.com/lanimall/sagdevops-infra-docker.git
+```
+
+If you download instead of "git clone", it will not download the "antcc" submodule. 
+So in this case, make sure to download that submodule separately and add it to the antcc subfolder.
+
+2. Get the Command Central Docker Images from Docker Store. 
 Note: The "10.1" tag should correspond to the latest fix in the 10.1 release (fix 8 at time of writing)
 
 ```
@@ -35,18 +45,22 @@ docker pull store/softwareag/commandcentral:10.1-server
 docker pull store/softwareag/commandcentral:10.1-node
 ```
 
-3. Then, for the DB instances needed by some of the products, this project currently relies on the following solution explained at:
+3. (OPTIONAL but good idea)
+Then, if you want to NOT have to provison the DB instances (needed by some products) at runtime,
+you'll need to have some base Oracle images with the right schemas pre-installed already.
+To create some base ORacle images for IS, BPMS, or just MWS, a simple docker-based solution is explained at:
 https://github.com/lanimall/sagdevops-dbcreator-docker
 
   Follow the instructions in the [README.md](https://github.com/lanimall/sagdevops-dbcreator-docker/blob/master/README.md)
-to create bare Docker images Oracle DBs for IS, BPM, MWS.
+to create base Docker images Oracle DBs for IS, BPM, MWS.
 
-And if you commit these DB creation as Docker images, you should have:
+  At the end of this "sagdevops-dbcreator-docker" process, you should have the following images created:
+ - YOUR_REGISTRY/softwareag/dbcreator:latest
  - YOUR_REGISTRY/softwareag_dbs/is-oracle:10.1
  - YOUR_REGISTRY/softwareag_dbs/mws-oracle:10.1
  - YOUR_REGISTRY/softwareag_dbs/bpms-oracle:10.1
 
-  And the docker image "softwareag/dbcreator" created by this project will also be useful with the runtime setup...
+  The docker image "softwareag/dbcreator" created by this project will also be useful with the runtime setup...
 allowing to dynamically set product DBs on-the-fly using environment variables...
 Refer to "setup_is_db" service in [docker-compose-managed-runtimesetup.yml](./docker-compose-managed-runtimesetup.yml) for details.
 
