@@ -1,0 +1,277 @@
+version: "3"
+
+networks:
+  sagdevops:
+
+services:
+
+  setup_landscape:
+    image: softwareag/commandcentral:$TAG-client
+    networks:
+      - sagdevops
+    command: echo "nothing to do yet...just starting the servers and setting up the Command Central Server"
+    depends_on:
+      - setup_cce
+      - setup_is_db
+      - reg_is1
+      - reg_is2
+      - reg_tcserver
+
+  reg_is1:
+    image: softwareag/commandcentral:$TAG-client
+    networks:
+      - sagdevops
+    environment:
+      - CC_CLIENT=docker
+      - CC_SERVER=cce
+    volumes:
+      - ./:/src
+    command: bash -c "sagccant waitcc && sagcc add landscape nodes alias=is1 url=https://is1:8093 -e 200"
+    depends_on:
+      - is1
+      - cce
+
+  reg_is2:
+    image: softwareag/commandcentral:$TAG-client
+    networks:
+      - sagdevops
+    environment:
+      - CC_CLIENT=docker
+      - CC_SERVER=cce
+    volumes:
+      - ./:/src
+    command: bash -c "sagccant waitcc && sagcc add landscape nodes alias=is2 url=https://is2:8093 -e 200"
+    depends_on:
+      - is2
+      - cce
+
+  reg_tcserver:
+    image: softwareag/commandcentral:$TAG-client
+    networks:
+      - sagdevops
+    environment:
+      - CC_CLIENT=docker
+      - CC_SERVER=cce
+    volumes:
+      - ./:/src
+    command: bash -c "sagccant waitcc && sagcc add landscape nodes alias=tcserver url=https://tcserver:8093 -e 200"
+    depends_on:
+      - tcserver
+      - cce
+
+  reg_umserver:
+    image: softwareag/commandcentral:$TAG-client
+    networks:
+      - sagdevops
+    environment:
+      - CC_CLIENT=docker
+      - CC_SERVER=cce
+    volumes:
+      - ./:/src
+    command: bash -c "sagccant waitcc && sagcc add landscape nodes alias=umserver url=https://umserver:8093 -e 200"
+    depends_on:
+      - umserver
+      - cce
+
+  setup_provisioning:
+    image: softwareag/commandcentral:$TAG-client
+    networks:
+      - sagdevops
+    command: echo "Setting up the provisoning with Command Central. Please check the progress of each setup on each of the runing setup instances"
+    depends_on:
+      - setup_is1
+      - setup_is2
+      - setup_tc
+
+########################## CCE setup ################################
+  cce:
+    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-server
+    hostname: cce
+    networks:
+      - sagdevops
+    ports:
+      - "8090:8090"
+      - "8091:8091"
+
+  setup_cce:
+    image: softwareag/commandcentral:$TAG-client
+    environment:
+      - CC_CLIENT=docker
+      - CC_TEMPLATE=sag-repos
+      - CC_TEMPLATE_ENV=sag-repos
+      - ENV_TYPE=server
+      - CC_SAG_REPO_USR
+      - CC_SAG_REPO_PWD
+    networks:
+      - sagdevops
+    volumes:
+      - ./:/src
+    command: bash -c "sagccant apply_licenses && sagccant setup"
+    depends_on:
+      - cce
+
+########################## IS setup ################################
+
+  is1:
+    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-node
+    hostname: is1
+    networks:
+      - sagdevops
+    environment:
+      - CC_AUTO_REGISTER=0
+    ports:
+      - "5555:5555"
+    depends_on:
+      - is_db
+      - tcserver
+
+  is2:
+    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-node
+    hostname: is2
+    networks:
+      - sagdevops
+    environment:
+      - CC_AUTO_REGISTER=0
+    ports:
+      - "5556:5555"
+    depends_on:
+      - is_db
+      - tcserver
+
+  setup_is1:
+    image: softwareag/commandcentral:$TAG-client
+    networks:
+      - sagdevops
+    environment:
+      - CC_CLIENT=docker
+      - CC_TEMPLATE=is-layer/tpl_is_stateful.yaml
+      - CC_TEMPLATE_ENV=is
+      - CC_TEMPLATE_ENV_TARGET_HOST=is1
+      - CC_TEMPLATE_ENV_TYPE=server
+      - CC_SPM_HOST=is1
+      - CC_SPM_PORT=8092
+    volumes:
+      - ./:/src
+    command: sagccant setup
+    depends_on:
+      - is1
+      - cce
+
+  setup_is2:
+    image: softwareag/commandcentral:$TAG-client
+    networks:
+      - sagdevops
+    environment:
+      - CC_CLIENT=docker
+      - CC_TEMPLATE=is-layer/tpl_is_stateful.yaml
+      - CC_TEMPLATE_ENV=is
+      - CC_TEMPLATE_ENV_TARGET_HOST=is2
+      - CC_TEMPLATE_ENV_TYPE=server
+      - CC_SPM_HOST=is2
+      - CC_SPM_PORT=8092
+    volumes:
+      - ./:/src
+    command: sagccant setup
+    depends_on:
+      - is2
+      - cce
+
+  is_db:
+    build:
+      context: templates/baseoracle
+      dockerfile: Dockerfile.baseoracle
+    image: ${REGISTRY}softwareag/base-oracle-xe-11g
+    networks:
+      - sagdevops
+    expose:
+      - "22"
+      - "1521"
+    environment:
+      - ORACLE_ALLOW_REMOTE=true
+      - ORACLE_DISABLE_ASYNCH_IO=true
+      - ORACLE_ENABLE_XDB=false
+
+  setup_is_db:
+    image: ${REGISTRY}softwareag/dbcreator
+    networks:
+      - sagdevops
+    environment:
+      - db.name=webm
+      - db.type=oracle
+      - db.host=is_db
+      - db.port=1521
+      - db.tablespace.dir=/u01/app/oracle/oradata/XE
+      - db.admin.username=system
+      - db.admin.password=oracle
+      - db.username=is_dbuser
+      - db.password=strong123!
+      - db.product.version=latest
+      - db.component.version=latest
+      - db.components=[STR]
+      - db.products=[IS]
+    depends_on:
+      - is_db
+
+########################## TC setup ################################
+
+  tcserver:
+    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-node
+    hostname: tcserver
+    networks:
+      - sagdevops
+    environment:
+      - CC_AUTO_REGISTER=0
+    expose:
+      - "9510"
+      - "9520"
+      - "9530"
+      - "9540"
+
+  setup_tc:
+    image: softwareag/commandcentral:$TAG-client
+    networks:
+      - sagdevops
+    environment:
+      - CC_CLIENT=docker
+      - CC_TEMPLATE=tc-layer
+      - CC_TEMPLATE_ENV=tc
+      - CC_TEMPLATE_ENV_TARGET_HOST=tcserver
+      - CC_TEMPLATE_ENV_TYPE=server
+      - CC_SPM_HOST=tcserver
+      - CC_SPM_PORT=8092
+    volumes:
+      - ./:/src
+    command: sagccant setup
+    depends_on:
+      - tcserver
+      - cce
+
+########################## UM setup ################################
+
+  umserver:
+    image: store/softwareag/commandcentral:${TAG}-node
+    networks:
+      - sagdevops
+    environment:
+      - CC_AUTO_REGISTER=0
+    ports:
+      - "9000:9000"
+
+  setup_um:
+    image: softwareag/commandcentral:$TAG-client
+    networks:
+      - sagdevops
+    environment:
+      - CC_CLIENT=docker
+      - CC_TEMPLATE=um-layer
+      - CC_TEMPLATE_ENV=um
+      - CC_TEMPLATE_ENV_TARGET_HOST=umserver
+      - CC_TEMPLATE_ENV_TYPE=server
+      - CC_SPM_HOST=umserver
+      - CC_SPM_PORT=8092
+    volumes:
+      - ./:/src
+    command: sagccant setup
+    depends_on:
+      - umserver
+      - cce
