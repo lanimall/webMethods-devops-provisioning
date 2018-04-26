@@ -1,3 +1,4 @@
+#This is essentially store/softwareag/commandcentral:${TAG}-builder with extra customizations
 FROM softwareag/custombuilder:10.1
 
 # this is just to store the work done by the builder...
