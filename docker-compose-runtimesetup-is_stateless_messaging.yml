@@ -12,8 +12,38 @@ services:
     command: echo "nothing to do yet...just starting the servers and setting up the Command Central Server"
     depends_on:
       - setup_cce
+      - setup_is_db
+      - reg_is1
+      - reg_is2
+      - reg_umserver
+
+  reg_is1:
+    image: softwareag/commandcentral:$TAG-client
+    networks:
+      - sagdevops
+    environment:
+      - CC_CLIENT=docker
+      - CC_SERVER=cce
+    volumes:
+      - ./:/src
+    command: bash -c "sagccant waitcc && sagcc add landscape nodes alias=is1 url=https://is1:8093 -e 200"
+    depends_on:
       - is1
       - umserver
+
+  reg_umserver:
+    image: softwareag/commandcentral:$TAG-client
+    networks:
+      - sagdevops
+    environment:
+      - CC_CLIENT=docker
+      - CC_SERVER=cce
+    volumes:
+      - ./:/src
+    command: bash -c "sagccant waitcc && sagcc add landscape nodes alias=umserver url=https://umserver:8093 -e 200"
+    depends_on:
+      - umserver
+      - cce
 
   setup_provisioning:
     image: softwareag/commandcentral:$TAG-client
