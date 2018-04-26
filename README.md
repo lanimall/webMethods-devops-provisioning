@@ -117,10 +117,8 @@ To compare the difference between a full "native docker build" versus a dynamic 
 Simply run:
 
 ```
-docker-compose -f docker-compose-fulldocker-is_stateful.yml up
+docker-compose -f docker-compose-fulldocker-is_stateful.yml up -d
 ```
-
-(add "-d" if you want to run this in the background)
 
 NOTE before running: If you intent to use a docker private registry, malke sure to update the [.env](.env) file 
 with the right REGISTRY and version TAG
@@ -139,7 +137,7 @@ docker-compose -f docker-compose-runtimesetup-is_stateful.yml up setup_landscape
 
 Wait until the instance "setup_cce" and "setup_is_db" are done and exited.
 
-Running a docker ps shoudl show 5 instances running:
+Running a "docker ps" should show 5 instances running:
 
 ```
 CONTAINER ID        IMAGE                                                            COMMAND                  CREATED             STATUS              PORTS                                                   NAMES
@@ -150,7 +148,10 @@ d9368f90c115        registry.docker.tests:5000/ccdevops/commandcentral:10.1-serv
 ca05674da61b        registry.docker.tests:5000/softwareag/base-oracle-xe-11g         "/bin/sh -c '/usr/sb…"   2 minutes ago       Up 2 minutes        22/tcp, 1521/tcp, 8080/tcp                              sagdevopsinfradocker_is_db_1
 ```
 
-2. then, provison the products:
+You should also be able to login to Command Central UI and see the empty nodes registered:
+https://localhost:8091/cce
+
+2. Then, provison the products:
 
 ```
 docker-compose -f docker-compose-runtimesetup-is_stateful.yml up setup_provisioning
