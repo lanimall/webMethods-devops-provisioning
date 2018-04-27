@@ -116,32 +116,72 @@ This will create 2 images for internal use only. No need to push them to a regis
  - softwareag/custombuilder:10.1
  - softwareag/commandcentral:10.1-client
  
-## Quick Start: Dynamic Provisioning of an IS Stateful environment using Docker  <a name="env_quickstart"></a>
+## Quick Start: Provisioning of an Integration Server environment using Docker  <a name="env_quickstart"></a>
 
-Once the requirements are done, we're ready to build some docker images and full environments.
-In the following quick start, we will be provisoning an IS "stateful" cluster environment comprised of:
- - 2 Integration Servers set in cluster
- - 1 Oracle Database for IS schemas (shared accross both IS)
- - 1 Terracotta Server to managed IS cluster state
+Once the prerequisites are done, we're ready to build some docker images and full environments.
 
-To compare the difference between a full "native docker build" versus a dynamic provisoning, I've created 2 similar compose files.
+There are few different configurations available with different docker-compose files:
+ - Integration Server "Stateful"
+   - 2 Integration Servers set in cluster
+   - 1 Oracle Database for IS schemas (shared accross both IS)
+   - 1 Terracotta Server to managed IS cluster state
+ - Integration Server "Stateful Messaging" ([docker-compose-runtimesetup-is_stateful_messaging.yml](./docker-compose-runtimesetup-is_stateful_messaging.yml))
+   - 2 Integration Servers set in cluster
+   - 1 Oracle Database for IS schemas (shared accross both IS)
+   - 1 Terracotta Server to managed IS cluster state
+   - 1 Universal Messaging server
+ - Integration Server "Stateless Messaging" ([docker-compose-runtimesetup-is_stateless_messaging.yml](./docker-compose-runtimesetup-is_stateless_messaging.yml))
+   - 2 Integration Servers (no cluster)
+   - 1 Universal Messaging server
 
-### Full Native Docker Build
+And you can certainly create your own...
 
-Simply run:
+And for each configurations, I've created 2 docker-compose files: 
+ 1. 1 docker file that creates some "bare" Linux nodes onto which the various products will get installed at runtime
+ (docker here is only useful for easy provisoning of "server nodes"...and as such, this setup is really similar to provisoning products on VMs or bare-metal servers...)
+ 2. 1 docker file that uses pre-built docker images...and/or if the image is not yet built or available, will build it the first time
+
+And that way, it will be easy to compare the differences between provisoning an environment from "pre-built / pre-configured docker images" versus "Runtime Command Central provisoning".
+
+### Using pre-built / pre-configured docker images
+
+NOTE before running: If you intent to use a docker private registry and possibly will want to push your images to it, 
+make sure to update the [.env](.env) file with the right REGISTRY and version TAG you want to use.
+
+NOTE 2: If it's the first time you run these command, it will take a while to create all the docker images...be patient!
+
+#### Integration Server "Stateful" 
+
+Docker-compose file: [docker-compose-fulldocker-is_stateful.yml](./docker-compose-fulldocker-is_stateful.yml)
 
 ```
 docker-compose -f docker-compose-fulldocker-is_stateful.yml up -d
 ```
 
-NOTE before running: If you intent to use a docker private registry, malke sure to update the [.env](.env) file 
-with the right REGISTRY and version TAG
+#### Integration Server "Stateful Messaging"
 
+Docker-compose file: [docker-compose-fulldocker-is_stateful_messaging.yml](./docker-compose-fulldocker-is_stateful_messaging.yml)
 
-### Managed Command Central managed provisioning
+```
+docker-compose -f docker-compose-fulldocker-is_stateful_messaging.yml up -d
+```
 
-Because of timing issues where CCE is not yet initialized when the other setup operation are started, we need (at this time)
-to build the env in 2 stages:
+#### Integration Server "Stateless Messaging"
+
+Docker-compose file: [docker-compose-fulldocker-is_stateless_messaging.yml](./docker-compose-fulldocker-is_stateless_messaging.yml)
+
+```
+docker-compose -f docker-compose-fulldocker-is_stateless_messaging.yml up -d
+```
+
+### Using Command Central for Runtime provisioning
+
+Because of timing issues where CCE is not quite initialized when the other setup operation get started, we need
+to build the env in 2 stages (at this time, until I fix this)
+
+#### Integration Server "Stateful" 
+
+Docker-compose file: [docker-compose-runtimesetup-is_stateful.yml](./docker-compose-runtimesetup-is_stateful.yml)
 
 1. Create the nodes landscape + configure command Central and Databases
 
@@ -151,16 +191,7 @@ docker-compose -f docker-compose-runtimesetup-is_stateful.yml up setup_landscape
 
 Wait until the instance "setup_cce" and "setup_is_db" are done and exited.
 
-Running a "docker ps" should show 5 instances running:
-
-```
-CONTAINER ID        IMAGE                                                            COMMAND                  CREATED             STATUS              PORTS                                                   NAMES
-3ee0d68a6193        store/softwareag/commandcentral:10.1-node     "/bin/sh -c $SAG_HOM…"   2 minutes ago       Up 2 minutes        0.0.0.0:5555->5555/tcp, 8092-8093/tcp                   sagdevopsinfradocker_is1_1
-2d66eff58df0        store/softwareag/commandcentral:10.1-node     "/bin/sh -c $SAG_HOM…"   2 minutes ago       Up 2 minutes        8092-8093/tcp, 0.0.0.0:5556->5555/tcp                   sagdevopsinfradocker_is2_1
-d9368f90c115        store/softwareag/commandcentral:10.1-server   "/bin/sh -c $SAG_HOM…"   2 minutes ago       Up 2 minutes        0.0.0.0:8090-8091->8090-8091/tcp, 8092-8093/tcp         sagdevopsinfradocker_cce_1
-214bbd02144f        store/softwareag/commandcentral:10.1-node     "/bin/sh -c $SAG_HOM…"   2 minutes ago       Up 2 minutes        8092-8093/tcp, 9510/tcp, 9520/tcp, 9530/tcp, 9540/tcp   sagdevopsinfradocker_tcserver_1
-ca05674da61b        registry.docker.tests:5000/softwareag/base-oracle-xe-11g         "/bin/sh -c '/usr/sb…"   2 minutes ago       Up 2 minutes        22/tcp, 1521/tcp, 8080/tcp                              sagdevopsinfradocker_is_db_1
-```
+Running a "docker ps" should show 5 instances running when it's ready for next step (1 command central server, 3 nodes, 1 database)
 
 You should also be able to login to Command Central UI and see the empty nodes registered:
 https://localhost:8091/cce
@@ -174,19 +205,94 @@ docker-compose -f docker-compose-runtimesetup-is_stateful.yml up setup_provision
 After 10s of minutes, all products should have been installed on each node,
 which you can verify by login to Command Central UI (see next section "Testing Results")
 
-### Testing results
+3. Testing results
 
 When both docker-compose are done, you should have 2 IS running and accessible at following urls:
- 
+
  - http://localhost:5555 (IS1)
  - http://localhost:5556 (IS2)
  - https://localhost:8091/cce (Command Central -- only applicable in the case of Command Central managed provisioning)
- 
-If you login into each of these IS instances, you'll notice that 
+
+If you login into each of these IS instances, you'll notice that
  - They are both clustered with Terracotta (go to Settings > Clustering)
  - They are both connected to the Oracle DB (go to Settings > JDBC Pools and click the "Tests" icons...)
+ 
+#### Integration Server "Stateful Messaging"
 
+Docker-compose file: [docker-compose-runtimesetup-is_stateful_messaging.yml](./docker-compose-runtimesetup-is_stateful_messaging.yml)
 
+1. Create the nodes landscape + configure command Central and Databases
+
+```
+docker-compose -f docker-compose-runtimesetup-is_stateful_messaging.yml up setup_landscape
+```
+
+Wait until the instance "setup_cce" and "setup_is_db" are done and exited.
+
+Running a "docker ps" should show 6 instances running when it's ready for next step (1 command central server, 4 nodes, 1 databasde)
+
+You should also be able to login to Command Central UI and see the empty nodes registered:
+https://localhost:8091/cce
+
+2. Then, provison the products:
+
+```
+docker-compose -f docker-compose-runtimesetup-is_stateful_messaging.yml up setup_provisioning
+```
+
+After 10s of minutes, all products should have been installed on each node,
+which you can verify by login to Command Central UI (see next section "Testing Results")
+
+3. Testing results
+
+When both docker-compose are done, you should have 2 IS running and accessible at following urls:
+
+ - http://localhost:5555 (IS1)
+ - http://localhost:5556 (IS2)
+ - https://localhost:8091/cce (Command Central -- only applicable in the case of Command Central managed provisioning)
+
+If you login into each of these IS instances, you'll notice that
+ - They are both clustered with Terracotta (go to Settings > Clustering)
+ - They are both connected to the Oracle DB (go to Settings > JDBC Pools and click the "Tests" icons...)
+ - They are both connected to UM server via JMS (1 JNDI + 1 JMS connection alias should be enabled) AND via wM MEssaging (1 native connection alias should be enabled)
+
+#### Integration Server "Stateless Messaging"
+
+Docker-compose file: [docker-compose-runtimesetup-is_stateless_messaging.yml](./docker-compose-runtimesetup-is_stateless_messaging.yml)
+
+1. Create the nodes landscape + configure command Central and Databases
+
+```
+docker-compose -f docker-compose-runtimesetup-is_stateless_messaging.yml up setup_landscape
+```
+
+Running a "docker ps" should show 4 instances running when it's ready for next step (1 command central server, 3 nodes)
+
+You should also be able to login to Command Central UI and see the empty nodes registered:
+https://localhost:8091/cce
+
+2. Then, provison the products:
+
+```
+docker-compose -f docker-compose-runtimesetup-is_stateless_messaging.yml up setup_provisioning
+```
+
+After 10s of minutes, all products should have been installed on each node,
+which you can verify by login to Command Central UI (see next section "Testing Results")
+
+3. Testing results
+
+When both docker-compose are done, you should have 2 IS running and accessible at following urls:
+
+ - http://localhost:5555 (IS1)
+ - http://localhost:5556 (IS2)
+ - https://localhost:8091/cce (Command Central -- only applicable in the case of Command Central managed provisioning)
+
+If you login into each of these IS instances, you'll notice that
+ - They are both connected to UM server via JMS (1 JNDI + 1 JMS connection alias should be enabled) AND via wM MEssaging (1 native connection alias should be enabled)
+ - they are NOT connected to a database
+ - they are NOT clustered
+ 
 ### Differences / Advantages between full "native docker build" versus a "managed provisoning"
 
 You'll notice that the first time these scripts run, it will take *quite a long time* (in the 10s of minites) 
@@ -231,26 +337,56 @@ docker tag registry.docker.tests:5000/softwareag/tcserver:10.1 MY.NEW.REGISTRY:5
 
 To clean up the created instances, simply run "docker-compose down"...
 
-For full "native docker build", Simply run:
+#### For full "native docker build"
+
+Simply run:
 
 ```
 docker-compose -f docker-compose-fulldocker-is_stateful.yml down
 ```
 
-For Managed Command Central dynamic provisioning:
+or
 
 ```
-docker-compose -f docker-compose-runtimesetup-is_stateful.yml down
+docker-compose -f docker-compose-fulldocker-is_stateful_messaging.yml down
 ```
 
-NOTE: when you clean up, the docker images created by "docker-compose-fulldocker-is_stateful.yml" will still be loaded...
-meaning that you can easily recreate the environment by re-runing:
+or
+
+```
+docker-compose -f docker-compose-fulldocker-is_stateless_messaging.yml down
+```
+
+NOTE: when you clean up, only the docker "instances" get deleted (and their associated networks).
+BUT the docker images will still remain...which means that you can easily recreate the environments many time...
+
+Eg. re-run:
 
 ```
 docker-compose -f docker-compose-fulldocker-is_stateful.yml up -d
 ```
 
-And this time, it will take just a few seconds to create all instances and start.
+And this time, it will take just a few seconds to start up!
+
+#### For Command Central for Runtime provisioning
+
+Simply run:
+
+```
+docker-compose -f docker-compose-runtimesetup-is_stateful.yml down
+```
+
+or
+
+```
+docker-compose -f docker-compose-runtimesetup-is_stateful_messaging.yml down
+```
+
+or
+
+```
+docker-compose -f docker-compose-runtimesetup-is_stateless_messaging.yml down
+```
 
 ## Building Product-specific Docker Images  <a name="building_product_docker"></a>
 
@@ -275,7 +411,7 @@ If you have a private registry, you should push these new images to it so you do
 docker-compose -f docker-compose-build.yml push --ignore-push-failures
 ```
 
-NOTE: Because it's not necessary to push the "builder" image, I specified a "fake" registry for it.
+NOTE: Because it's not necessary to push the "builder" image, I specified a "fake" registry for it, identified by "donotpush:5000"
 So the error "ERROR: Get https://donotpush:5000/v2/: Service Unavailable" is expected and not to be worried about.
       
 ### Building Universal Messaging docker Image
@@ -296,7 +432,7 @@ If you have a private registry, you should push these new images to it so you do
 docker-compose -f docker-compose-build.yml push --ignore-push-failures
 ```
 
-NOTE: Because it's not necessary to push the "builder" image, I specified a "fake" registry for it.
+NOTE: Because it's not necessary to push the "builder" image, I specified a "fake" registry for it, identified by "donotpush:5000"
 So the error "ERROR: Get https://donotpush:5000/v2/: Service Unavailable" is expected and not to be worried about.
 
 ### Building MWS docker Image
@@ -319,7 +455,7 @@ If you have a private registry, you should push these new images to it so you do
 docker-compose -f docker-compose-build.yml push --ignore-push-failures
 ```
 
-NOTE: Because it's not necessary to push the "builder" image, I specified a "fake" registry for it.
+NOTE: Because it's not necessary to push the "builder" image, I specified a "fake" registry for it, identified by "donotpush:5000"
 So the error "ERROR: Get https://donotpush:5000/v2/: Service Unavailable" is expected and not to be worried about.
  
 ### Building Integration Server docker Image
@@ -341,7 +477,7 @@ If you have a private registry, you should push these new images to it so you do
 docker-compose -f docker-compose-build-stateful.yml push --ignore-push-failures
 ```
 
-NOTE: Because it's not necessary to push the "builder" image, I specified a "fake" registry for it.
+NOTE: Because it's not necessary to push the "builder" image, I specified a "fake" registry for it, identified by "donotpush:5000"
 So the error "ERROR: Get https://donotpush:5000/v2/: Service Unavailable" is expected and not to be worried about.
 
 #### IS Stateless
@@ -360,7 +496,7 @@ If you have a private registry, you should push these new images to it so you do
 docker-compose -f docker-compose-build-stateless.yml push --ignore-push-failures
 ```
 
-NOTE: Because it's not necessary to push the "builder" image, I specified a "fake" registry for it.
+NOTE: Because it's not necessary to push the "builder" image, I specified a "fake" registry for it, identified by "donotpush:5000"
 So the error "ERROR: Get https://donotpush:5000/v2/: Service Unavailable" is expected and not to be worried about.
 
 #### IS Stateful Messaging
@@ -379,7 +515,7 @@ If you have a private registry, you should push these new images to it so you do
 docker-compose -f docker-compose-build-stateful-messaging.yml push --ignore-push-failures
 ```
 
-NOTE: Because it's not necessary to push the "builder" image, I specified a "fake" registry for it.
+NOTE: Because it's not necessary to push the "builder" image, I specified a "fake" registry for it, identified by "donotpush:5000"
 So the error "ERROR: Get https://donotpush:5000/v2/: Service Unavailable" is expected and not to be worried about.
  
 ### Building BPMS docker Image
@@ -400,5 +536,5 @@ If you have a private registry, you should push these new images to it so you do
 docker-compose -f docker-compose-build.yml push --ignore-push-failures
 ```
 
-NOTE: Because it's not necessary to push the "builder" image, I specified a "fake" registry for it.
+NOTE: Because it's not necessary to push the "builder" image, I specified a "fake" registry for it, identified by "donotpush:5000"
 So the error "ERROR: Get https://donotpush:5000/v2/: Service Unavailable" is expected and not to be worried about.
