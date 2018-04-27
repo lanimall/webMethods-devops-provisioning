@@ -7,7 +7,7 @@ Author: Fabien Sanglier
 ## Table of content
 1. [Introduction](#introduction)
 2. [Prerequisites](#prerequisites)
-3. [Quick Start: Dynamic Provisioning of an IS Stateful environment using Docker](#env_quickstart)
+3. [Quick Start: Provisioning Different Integration Server environments using Docker](#env_quickstart)
 4. [Building Product-specific Docker Images](#building_product_docker)
 
 ## Introduction <a name="introduction"></a>
@@ -116,7 +116,7 @@ This will create 2 images for internal use only. No need to push them to a regis
  - softwareag/custombuilder:10.1
  - softwareag/commandcentral:10.1-client
  
-## Quick Start: Provisioning of an Integration Server environment using Docker  <a name="env_quickstart"></a>
+## Quick Start: Provisioning Different Integration Server environments using Docker  <a name="env_quickstart"></a>
 
 Once the prerequisites are done, we're ready to build some docker images and full environments.
 
