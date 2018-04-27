@@ -12,10 +12,19 @@ services:
     command: echo "nothing to do yet...just starting the servers and setting up the Command Central Server"
     depends_on:
       - setup_cce
-      - setup_is_db
       - reg_is1
       - reg_is2
       - reg_umserver
+
+  setup_provisioning:
+    image: softwareag/commandcentral:$TAG-client
+    networks:
+      - sagdevops
+    command: echo "Setting up the provisoning with Command Central. Please check the progress of each setup on each of the runing setup instances"
+    depends_on:
+      - setup_is1
+      - setup_is2
+      - setup_um
 
   reg_is1:
     image: softwareag/commandcentral:$TAG-client
@@ -29,7 +38,21 @@ services:
     command: bash -c "sagccant waitcc && sagcc add landscape nodes alias=is1 url=https://is1:8093 -e 200"
     depends_on:
       - is1
-      - umserver
+      - cce
+
+  reg_is2:
+    image: softwareag/commandcentral:$TAG-client
+    networks:
+      - sagdevops
+    environment:
+      - CC_CLIENT=docker
+      - CC_SERVER=cce
+    volumes:
+      - ./:/src
+    command: bash -c "sagccant waitcc && sagcc add landscape nodes alias=is2 url=https://is2:8093 -e 200"
+    depends_on:
+      - is2
+      - cce
 
   reg_umserver:
     image: softwareag/commandcentral:$TAG-client
@@ -44,15 +67,6 @@ services:
     depends_on:
       - umserver
       - cce
-
-  setup_provisioning:
-    image: softwareag/commandcentral:$TAG-client
-    networks:
-      - sagdevops
-    command: echo "Setting up the provisoning with Command Central. Please check the progress of each setup on each of the runing setup instances"
-    depends_on:
-      - setup_um
-      - setup_is1
 
 ########################## CCE setup ################################
   cce:
@@ -95,6 +109,19 @@ services:
     depends_on:
       - umserver
 
+  is2:
+    image: store/softwareag/commandcentral:${TAG}-node
+    hostname: is2
+    networks:
+      - sagdevops
+    environment:
+      - CC_AUTO_REGISTER=0
+    ports:
+      - "5556:5555"
+    depends_on:
+      - is_db
+      - tcserver
+
   setup_is1:
     image: softwareag/commandcentral:$TAG-client
     networks:
@@ -112,6 +139,25 @@ services:
     command: sagccant setup
     depends_on:
       - is1
+      - cce
+
+  setup_is2:
+    image: softwareag/commandcentral:$TAG-client
+    networks:
+      - sagdevops
+    environment:
+      - CC_CLIENT=docker
+      - CC_TEMPLATE=is-layer/tpl_is_stateless_messaging.yaml
+      - CC_TEMPLATE_ENV=is
+      - CC_TEMPLATE_ENV_TARGET_HOST=is2
+      - CC_TEMPLATE_ENV_TYPE=server
+      - CC_SPM_HOST=is2
+      - CC_SPM_PORT=8092
+    volumes:
+      - ./:/src
+    command: sagccant setup
+    depends_on:
+      - is2
       - cce
 
 ########################## UM setup ################################

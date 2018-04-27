@@ -155,10 +155,10 @@ Running a "docker ps" should show 5 instances running:
 
 ```
 CONTAINER ID        IMAGE                                                            COMMAND                  CREATED             STATUS              PORTS                                                   NAMES
-3ee0d68a6193        registry.docker.tests:5000/ccdevops/commandcentral:10.1-node     "/bin/sh -c $SAG_HOM…"   2 minutes ago       Up 2 minutes        0.0.0.0:5555->5555/tcp, 8092-8093/tcp                   sagdevopsinfradocker_is1_1
-2d66eff58df0        registry.docker.tests:5000/ccdevops/commandcentral:10.1-node     "/bin/sh -c $SAG_HOM…"   2 minutes ago       Up 2 minutes        8092-8093/tcp, 0.0.0.0:5556->5555/tcp                   sagdevopsinfradocker_is2_1
-d9368f90c115        registry.docker.tests:5000/ccdevops/commandcentral:10.1-server   "/bin/sh -c $SAG_HOM…"   2 minutes ago       Up 2 minutes        0.0.0.0:8090-8091->8090-8091/tcp, 8092-8093/tcp         sagdevopsinfradocker_cce_1
-214bbd02144f        registry.docker.tests:5000/ccdevops/commandcentral:10.1-node     "/bin/sh -c $SAG_HOM…"   2 minutes ago       Up 2 minutes        8092-8093/tcp, 9510/tcp, 9520/tcp, 9530/tcp, 9540/tcp   sagdevopsinfradocker_tcserver_1
+3ee0d68a6193        store/softwareag/commandcentral:10.1-node     "/bin/sh -c $SAG_HOM…"   2 minutes ago       Up 2 minutes        0.0.0.0:5555->5555/tcp, 8092-8093/tcp                   sagdevopsinfradocker_is1_1
+2d66eff58df0        store/softwareag/commandcentral:10.1-node     "/bin/sh -c $SAG_HOM…"   2 minutes ago       Up 2 minutes        8092-8093/tcp, 0.0.0.0:5556->5555/tcp                   sagdevopsinfradocker_is2_1
+d9368f90c115        store/softwareag/commandcentral:10.1-server   "/bin/sh -c $SAG_HOM…"   2 minutes ago       Up 2 minutes        0.0.0.0:8090-8091->8090-8091/tcp, 8092-8093/tcp         sagdevopsinfradocker_cce_1
+214bbd02144f        store/softwareag/commandcentral:10.1-node     "/bin/sh -c $SAG_HOM…"   2 minutes ago       Up 2 minutes        8092-8093/tcp, 9510/tcp, 9520/tcp, 9530/tcp, 9540/tcp   sagdevopsinfradocker_tcserver_1
 ca05674da61b        registry.docker.tests:5000/softwareag/base-oracle-xe-11g         "/bin/sh -c '/usr/sb…"   2 minutes ago       Up 2 minutes        22/tcp, 1521/tcp, 8080/tcp                              sagdevopsinfradocker_is_db_1
 ```
 

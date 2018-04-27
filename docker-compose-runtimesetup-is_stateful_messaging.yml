@@ -16,6 +16,7 @@ services:
       - reg_is1
       - reg_is2
       - reg_tcserver
+      - reg_umserver
 
   reg_is1:
     image: softwareag/commandcentral:$TAG-client
@@ -82,10 +83,11 @@ services:
       - setup_is1
       - setup_is2
       - setup_tc
+      - setup_um
 
 ########################## CCE setup ################################
   cce:
-    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-server
+    image: store/softwareag/commandcentral:${TAG}-server
     hostname: cce
     networks:
       - sagdevops
@@ -113,8 +115,7 @@ services:
 ########################## IS setup ################################
 
   is1:
-    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-node
-    hostname: is1
+    image: store/softwareag/commandcentral:${TAG}-node    hostname: is1
     networks:
       - sagdevops
     environment:
@@ -126,8 +127,7 @@ services:
       - tcserver
 
   is2:
-    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-node
-    hostname: is2
+    image: store/softwareag/commandcentral:${TAG}-node    hostname: is2
     networks:
       - sagdevops
     environment:
@@ -215,8 +215,7 @@ services:
 ########################## TC setup ################################
 
   tcserver:
-    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-node
-    hostname: tcserver
+    image: store/softwareag/commandcentral:${TAG}-node    hostname: tcserver
     networks:
       - sagdevops
     environment:

@@ -8,7 +8,7 @@ services:
 
 ########################## CCE setup ################################
   cce:
-    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-server
+    image: store/softwareag/commandcentral:${TAG}-server
     hostname: cce
     networks:
       - sagdevops_bpms
@@ -29,8 +29,7 @@ services:
 ########################## IS setup ################################
 
   is:
-    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-node
-    hostname: is
+    image: store/softwareag/commandcentral:${TAG}-node    hostname: is
     networks:
       - sagdevops_bpms
     environment:
@@ -78,8 +77,7 @@ services:
 ########################## MWS setup ################################
 
   mws:
-    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-node
-    hostname: mws
+    image: store/softwareag/commandcentral:${TAG}-node    hostname: mws
     networks:
       - sagdevops_bpms
     environment:
@@ -124,8 +122,7 @@ services:
 ########################## BPMS setup ################################
 
   bpms:
-    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-node
-    hostname: bpms
+    image: store/softwareag/commandcentral:${TAG}-node    hostname: bpms
     networks:
       - sagdevops_bpms
     environment:

@@ -17,7 +17,7 @@ services:
 
 ########################## CCE setup ################################
   cce:
-    image: ${REGISTRY}ccdevops/commandcentral:${TAG}-server
+    image: store/softwareag/commandcentral:${TAG}-server
     hostname: cce
     networks:
       - sagdevops
