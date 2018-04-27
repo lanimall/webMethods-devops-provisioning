@@ -29,7 +29,8 @@ services:
 ########################## IS setup ################################
 
   is:
-    image: store/softwareag/commandcentral:${TAG}-node    hostname: is
+    image: store/softwareag/commandcentral:${TAG}-node
+    hostname: is
     networks:
       - sagdevops_bpms
     environment:
@@ -77,7 +78,8 @@ services:
 ########################## MWS setup ################################
 
   mws:
-    image: store/softwareag/commandcentral:${TAG}-node    hostname: mws
+    image: store/softwareag/commandcentral:${TAG}-node
+    hostname: mws
     networks:
       - sagdevops_bpms
     environment:
@@ -122,7 +124,8 @@ services:
 ########################## BPMS setup ################################
 
   bpms:
-    image: store/softwareag/commandcentral:${TAG}-node    hostname: bpms
+    image: store/softwareag/commandcentral:${TAG}-node
+    hostname: bpms
     networks:
       - sagdevops_bpms
     environment:

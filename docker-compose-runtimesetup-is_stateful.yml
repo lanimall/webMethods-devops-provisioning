@@ -99,7 +99,8 @@ services:
 ########################## IS setup ################################
 
   is1:
-    image: store/softwareag/commandcentral:${TAG}-node    hostname: is1
+    image: store/softwareag/commandcentral:${TAG}-node
+    hostname: is1
     networks:
       - sagdevops
     environment:
@@ -111,7 +112,8 @@ services:
       - tcserver
 
   is2:
-    image: store/softwareag/commandcentral:${TAG}-node    hostname: is2
+    image: store/softwareag/commandcentral:${TAG}-node
+    hostname: is2
     networks:
       - sagdevops
     environment:
@@ -199,7 +201,8 @@ services:
 ########################## TC setup ################################
 
   tcserver:
-    image: store/softwareag/commandcentral:${TAG}-node    hostname: tcserver
+    image: store/softwareag/commandcentral:${TAG}-node
+    hostname: tcserver
     networks:
       - sagdevops
     environment:
