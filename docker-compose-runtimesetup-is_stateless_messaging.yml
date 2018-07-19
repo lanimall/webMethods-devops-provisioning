@@ -119,8 +119,7 @@ services:
     ports:
       - "5556:5555"
     depends_on:
-      - is_db
-      - tcserver
+      - umserver
 
   setup_is1:
     image: softwareag/commandcentral:$TAG-client
