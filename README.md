@@ -1,6 +1,7 @@
-# sagdevops-infra-docker
+# sag-devops-infra-provisioning
 
-A sample project created to demomnstrate how to auto-provision complete SoftwareAG environments with Docker.
+A sample project created to demomnstrate how to auto-provision complete SoftwareAG environments 
+using devops "infrastructure-as-code" principles provided by SAG Command Central templates and scripts.
 
 Author: Fabien Sanglier
 
