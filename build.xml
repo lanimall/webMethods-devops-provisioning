@@ -16,7 +16,8 @@
     </target>
 
     <!-- _setRuntimeTemplateEnv must be called first so the copy process happens right,  -->
-    <target name="setup" depends="_setRuntimeTemplateEnv,waitForTargetNodeUp,templateApply,_localclean" />
+    <target name="setup" depends="setup_noclean,_localclean" />
+    <target name="setup_noclean" depends="_setRuntimeTemplateEnv,waitForTargetNodeUp,templateApply" />
 
     <target name="setup_withccestart" depends="startcc,setup" />
 
@@ -47,13 +48,13 @@
     </target>
 
     <target name="waitForTargetNodeUp" description="Wait for target node up" depends="_localinit">
-        <set-property-if-nonempty name="cc.spm.host" if-property-isset="env.CC_SPM_HOST" />
-        <set-property-if-nonempty name="cc.spm.port" if-property-isset="env.CC_SPM_PORT" />
+        <set-property-if-nonempty name="socketcheck.target.host" if-property-isset="env.SOCKET_CHECK_TARGET_HOST" />
+        <set-property-if-nonempty name="socketcheck.target.port" if-property-isset="env.SOCKET_CHECK_TARGET_PORT" />
 
-        <!-- check SPM -->
+        <!-- check target host connectivity -->
         <antcall target="_waitForSocketConnect">
-            <param name="wait.host" value="${cc.spm.host}" if:set="cc.spm.host" />
-            <param name="wait.port" value="${cc.spm.port}" if:set="cc.spm.port"/>
+            <param name="wait.host" value="${socketcheck.target.host}" if:set="socketcheck.target.host" />
+            <param name="wait.port" value="${socketcheck.target.port}" if:set="socketcheck.target.port"/>
         </antcall>
     </target>
 
@@ -64,10 +65,11 @@
                 <isset property="wait.port" />
             </and>
         </condition>
+        <property name="wait.enabled" value="false"/>
 
-        <echo message="Checking connectivity to ${wait.host}:${wait.port}" if:true="wait.enabled"/>
-        <echo message="Ignoring... host not set!!" unless:true="wait.enabled" />
-        <waitfor maxwait="600" maxwaitunit="second" checkevery="5" checkeveryunit="second" if:true="wait.enabled">
+        <echo message="Checking connectivity to ${wait.host}:${wait.port}" if:true="${wait.enabled}"/>
+        <echo message="Ignoring... host/port not set!!" unless:true="${wait.enabled}" />
+        <waitfor maxwait="600" maxwaitunit="second" checkevery="5" checkeveryunit="second" if:true="${wait.enabled}">
             <socket server="${wait.host}" port="${wait.port}"/>
         </waitfor>
     </target>
@@ -116,9 +118,10 @@
         <condition property="runtime.template.env.properties.exists" >
             <available file="${runtime.template.env.properties}"/>
         </condition>
+        <property name="runtime.template.env.properties.exists" value="false" />
 
-        <echo message="Error: Template Environment File was not cleaned" if:set="runtime.template.env.properties.exists" />
-        <echo message="Success: Template Environment File was cleaned" unless:set="runtime.template.env.properties.exists" />
+        <echo message="Error: Template Environment File was not cleaned" if:true="runtime.template.env.properties.exists" />
+        <echo message="Success: Template Environment File was cleaned" unless:true="runtime.template.env.properties.exists" />
     </target>
 
     <target name="_setenvproperties">
@@ -139,12 +142,53 @@
         <set-property-if-nonempty name="environment.type" if-property-isset="env.CC_TEMPLATE_ENV_TYPE" />
         <set-property-if-nonempty name="target.host" if-property-isset="env.CC_TEMPLATE_ENV_TARGET_HOST" />
 
+        <!-- database values -->
+        <set-property-if-nonempty name="db.name" if-property-isset="env.db_name" />
+        <set-property-if-nonempty name="db.sid" if-property-isset="env.db_sid" />
+        <set-property-if-nonempty name="db.type" if-property-isset="env.db_type" />
+        <set-property-if-nonempty name="db.host" if-property-isset="env.db_host" />
+        <set-property-if-nonempty name="db.port" if-property-isset="env.db_port" />
+        <set-property-if-nonempty name="db.url" if-property-isset="env.db_url" />
+        <set-property-if-nonempty name="db.tablespace.dir" if-property-isset="env.db_tablespace_dir" />
+        <set-property-if-nonempty name="db.tablespace.data" if-property-isset="env.db_tablespace_data" />
+        <set-property-if-nonempty name="db.tablespace.index" if-property-isset="env.db_tablespace_index" />
+
+        <set-property-if-nonempty name="db.product.version" if-property-isset="env.db_product_version" />
+        <set-property-if-nonempty name="db.component.version" if-property-isset="env.db_component_version" />
+        <set-property-if-nonempty name="db.components" if-property-isset="env.db_components" />
+        <set-property-if-nonempty name="db.products" if-property-isset="env.db_products" />
+        <set-property-if-nonempty name="db.username" if-property-isset="env.db_username" />
+        <set-property-if-nonempty name="db.password" if-property-isset="env.db_password" />
+        <set-property-if-nonempty name="db.admin.username" if-property-isset="env.db_admin_username" />
+        <set-property-if-nonempty name="db.admin.password" if-property-isset="env.db_admin_password" />
+
         <!-- saving to env file because there's no other way...we need to pass these values using that env file -->
         <propertyfile file="${env.properties}">
             <entry key="repo.username" value="${repo.username}" if:set="repo.username" />
             <entry key="repo.password" value="${repo.password}" if:set="repo.password" />
             <entry key="environment.type" value="${environment.type}" if:set="environment.type" />
             <entry key="target.host" value="${target.host}" if:set="target.host" />
+
+            <entry key="db.name" value="${db.name}" if:set="db.name" />
+            <entry key="db.sid" value="${db.sid}" if:set="db.sid" />
+            <entry key="db.type" value="${db.type}" if:set="db.type" />
+            <entry key="db.host" value="${db.host}" if:set="db.host" />
+            <entry key="db.port" value="${db.port}" if:set="db.port" />
+            <entry key="db.url" value="${db.url}" if:set="db.url" />
+
+            <entry key="db.tablespace.dir" value="${db.tablespace.dir}" if:set="db.tablespace.dir" />
+            <entry key="db.tablespace.data" value="${db.tablespace.data}" if:set="db.tablespace.data" />
+            <entry key="db.tablespace.index" value="${db.tablespace.index}" if:set="db.tablespace.index" />
+
+            <entry key="db.username" value="${db.username}" if:set="db.username" />
+            <entry key="db.password" value="${db.password}" if:set="db.password" />
+            <entry key="db.admin.username" value="${db.admin.username}" if:set="db.admin.username" />
+            <entry key="db.admin.password" value="${db.admin.password}" if:set="db.admin.password" />
+
+            <entry key="db.product.version" value="${db.product.version}" if:set="db.product.version" />
+            <entry key="db.component.version" value="${db.component.version}" if:set="db.component.version" />
+            <entry key="db.products" value="${db.products}" if:set="db.products" />
+            <entry key="db.components" value="${db.components}" if:set="db.components" />
         </propertyfile>
 
         <property file="${env.properties}" />
@@ -168,7 +212,7 @@
         <property name="licenses.dir" value="build/licenses" if:set="licenses.zip.url"/>
 
         <echo if:set="licenses.zip.url">Downloading license keys .zip from: ${licenses.zip.url}</echo>
-        <mkdir dir="../sag_bpms/provisioning/fromCompositeTemplates/build/downloads" />
+        <mkdir dir="build/downloads" />
         <get src="${licenses.zip.url}" dest="build/downloads/licenses.zip" usetimestamp="true" if:set="licenses.zip.url" />
         <unzip src="build/downloads/licenses.zip" dest="licenses" if:set="licenses.zip.url" />
 
