@@ -3,21 +3,17 @@ description: My webMethods Server single instance or a cluster
 
 environments:
   default:
-    repo.product:        products
-    repo.fix:            fixes
-
-    spm.port:            8092                    # SPM connection port
-    spm.secure:          false                   # Use HTTPS connection to SPM: true,false
-    spm.memory.max:      512                     # max mem
-    spm.configure:       [spm-tuneup]
-    spm.fixes:           [wMFix.SPM]             # SPM/SUM/SD core fixes by default
+    repo.product:        ${}
+    repo.fix:            ${}
+    repo.spm:            ${repo.product}
 
     # My webMethods Server
     mws.host:            ${}                # REQUIRED:
     mws.instance.name:   default
     mws.http.port:       8585
     mws.https.port:      8586
-    mws.jmx.port:        8587
+    mws.jmx.port:        5002
+    mws.debug.port:      10033
     mws.memory.init:     512                # memory configuration
     mws.memory.max:      1024               # memory configuration
     mws.password:        manage
@@ -26,8 +22,7 @@ environments:
     mws.lb.host:         ${mws.host}
     mws.lb.http.port:    ${mws.http.port}
     mws.lb.https.port:   ${mws.https.port}
-    mws.jndiEnabled:     true
-    mws.jndiProviderUrl: "nsp://mwsumserver:9000"
+    mws.jndiEnabled:     false
 
     # Fixes: MWS core, MWS IS Portal, Business Rules, Business console (portal and runtime), TN portal, Collaboration, DBO, Optimze UI,
     mws.fixes:           [wMFix.MwsProgramFiles]
@@ -43,33 +38,39 @@ environments:
 #      - wMFix.OPT.optimizeUI                    # Collaboration
 #      - wMFix.OPT.infraDCUI                     # Collaboration
 
-    mws.target.is.host:            mws                # REQUIRED:
-    mws.target.is.http.port:       8585
-    mws.target.is.https.port:      8586
-    mws.target.is.lb.protocol:     http
-    mws.target.is.lb.host:         ${mws.target.is.host}
-    mws.target.is.lb.http.port:    ${mws.target.is.http.port}
-    mws.target.is.lb.https.port:   ${mws.target.is.https.port}
-
-    env.password:        manage             # IS/MWS Administrator password
-
     # Database connection
-    db.type:             oracle             # REQUIRED: Database type: oracle,sqlserver,db2
-    db.host:             mws_db             # REQUIRED: Database server hostname
-    db.port:             1521               # REQUIRED: Database server port
-    db.name:             webm
-    db.username:         mws_dbuser         # Database username
-    db.password:         strong123!         # Database password
-    db.sid:              XE                 # Database name
-    db.url.oracle:       "jdbc:wm:oracle://${db.host}:${db.port};SID=${db.sid}"
-    db.url.sqlserver:    "jdbc:wm:${db.type}://${db.host}:${db.port};databaseName=${db.name}"
-    db.url:              ${db.url.oracle}
+    db.url:              ${}           # JDBC URL
+    db.type:             ${}           # REQUIRED: Database type: oracle,sqlserver,db2
+    db.host:             ${}           # REQUIRED: Database server hostname
+    db.port:             ${}           # REQUIRED: Database server port
+    db.name:             ${}
+    db.username:         ${}           # Database username
+    db.password:         ${}           # Database password
+    db.sid:              ${}           # Database name
+
+    # Remote system configuration
+    spm.port:       8092                    # SPM connection port
+    spm.secure:     false                   # Use HTTPS connection to SPM: true,false
+    spm.configure:  [spm-tuneup]
+    spm.fixes:      [wMFix.SPM]             # SPM/SUM/SD core fixes by default
+
+    ## remote provisioning
+    spm.host:         ${is.host}                # REQUIRED for all in one installation as default host
+    os.username:      ${}                       # remote machine SSH username, default CCE process user account (as java system property)
+    os.password:      ${}                       # remote machine SSH password
+    os.auth.method:   ${}                       # remote machine authentication method: PASSWORD,INTERACTIVE,CERTIFICATE
+    os.auth.key:      ${}                       # keyfile for CERTIFICATE auth method
+    os.ssh.port:      ${}                        # remote machine SSH port
+    install.dir:      ${}                       # suite installation directory
+    install.installer: ${}
 
   server:
 
   docker:
-    mws.host:       localhost
-    spm.alias:      local
+    repo.product:       products
+    repo.fix:           fixes
+    mws.host:           localhost
+    spm.alias:          local
 
 layers:
   default:
@@ -121,6 +122,7 @@ templates:
           db.url:      "${db.url}"
           db.username: ${db.username}
           db.password: ${db.password}
+          install.service: ${mws.install.service}
           configuration:
             OSGI-MWS_${mws.instance.name}:
               COMMON-MEMORY:
@@ -176,6 +178,15 @@ nodes:
     default:
       port:   ${spm.port}
       secure: ${spm.secure}
+      bootstrapInfo:
+        installDir:   ${install.dir}
+        installer:    ${install.installer}
+        port:         ${os.ssh.port}
+        credentials:
+          userName:   ${os.username}
+          password:   ${os.password}
+          authenticationMethod: ${os.auth.method}
+          privateKey: ${os.auth.key}
   docker:
     ${spm.alias}:
       host: ${mws.host}

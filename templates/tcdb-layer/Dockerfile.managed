@@ -1,0 +1,14 @@
+ARG PARENT_BUILDER
+ARG PARENT_IMAGE
+
+FROM $PARENT_BUILDER as builder
+
+FROM $PARENT_IMAGE
+
+### ADD management support
+ENV CC_CLI_HOME=$SAG_HOME/CommandCentral/client
+ENV PATH=$PATH:$CC_CLI_HOME/bin
+COPY --from=builder $SAG_HOME/profiles/SPM/ $SAG_HOME/profiles/SPM/
+COPY --from=builder $SAG_HOME/CommandCentral/client/ $SAG_HOME/CommandCentral/client/
+EXPOSE 8092 8093
+### end manage

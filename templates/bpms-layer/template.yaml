@@ -15,7 +15,7 @@ environments:
     # BPMS / Integration Server. See is-layer template for parameters documentation
     is.host:             ${}
     is.instance.name:    default            # IS BPM instance
-    is.primary.port:     5555
+    is.primary.port:     ${}
     is.diagnostic.port:  9999
     is.jmx.port:         8094
     is.install.service:  true
@@ -276,6 +276,15 @@ nodes:
     default:
       port:   ${spm.port}
       secure: ${spm.secure}
+      bootstrapInfo:
+        installDir:   ${install.dir}
+        installer:    ${install.installer}
+        port:         ${os.ssh.port}
+        credentials:
+          userName:   ${os.username}
+          password:   ${os.password}
+          authenticationMethod: ${os.auth.method}
+          privateKey: ${os.auth.key}
   docker:
     ${spm.alias}:
       host: ${is.host}

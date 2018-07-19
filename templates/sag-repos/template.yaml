@@ -12,14 +12,14 @@ environments:
 
 repositories:
   product:
-    products:
+    ${repo.product}:
       location: ${repo.products.location}
       username: ${repo.username}
       password: ${repo.password}
       description: ${repo.products.description}
 
   fix:
-    fixes:
+    ${repo.fix}:
       location: ${repo.fixes.location}
       username: ${repo.username}
       password: ${repo.password}

@@ -1,0 +1,48 @@
+alias: cc-creds
+description: Default master repositories registration
+version: 10.1
+
+environments:
+  default:                      
+    empower.username: ${}       # REQUIRED, username on https://empower.softwareag.com/
+    empower.password: ${}       # REQUIRED, password
+    cc.password: manage123      # password for remote SPMs Administrator user
+    user.name: centos
+
+layers:
+  cce:
+    templates:
+      - creds
+
+templates:
+  creds:
+    products:
+      CCE:
+        default:
+          configuration:
+            OSGI-CCE-ENGINE:              
+              COMMON-CREDENTIALS:
+                COMMON-CREDENTIALS-EMPOWER:
+                    "@alias": EMPOWER
+                    AuthenticationType: BASIC
+                    UserName: "${empower.username}"
+                    Password: "${empower.password}"
+                    Description: "empower.softwareag.com Download Center"
+                COMMON-CREDENTIALS-SECURE_ADMINISTRATOR:
+                    "@alias": SECURE_ADMINISTRATOR
+                    AuthenticationType: BASIC
+                    UserName: Administrator
+                    Password: ${cc.password}          
+                    Description: "Custom Administrator password"
+                COMMON-CREDENTIALS-SSH-PRIVATE-KEY:
+                  '@alias': SSH-PRIVATE-KEY
+                  AuthenticationType: SSH                    # Can be used for SSH protocol authentication
+                  UserName: ${user.name}                     # User account running CCE, e.g. sagadmin
+                  PrivateKeyPath: ${user.home}/.ssh/SAGGS_KEYPAIR.pem   # Default private key location. MUST be there!
+                  KnownHosts: ${user.home}/.ssh/known_hosts  # Default location of the known_hosts file
+                  Description: "${user.name}'s default SSH private key"
+
+provision:
+  default:
+    cce:  
+      - local

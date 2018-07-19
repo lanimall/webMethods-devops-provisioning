@@ -101,6 +101,15 @@ nodes:
     default:
       port:   ${spm.port}
       secure: ${spm.secure}
+      bootstrapInfo:
+        installDir:   ${install.dir}
+        installer:    ${install.installer}
+        port:         ${os.ssh.port}
+        credentials:
+          userName:   ${os.username}
+          password:   ${os.password}
+          authenticationMethod: ${os.auth.method}
+          privateKey: ${os.auth.key}
   docker:
     ${spm.alias}:
       host: ${is.host}
