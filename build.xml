@@ -142,6 +142,10 @@
         <set-property-if-nonempty name="environment.type" if-property-isset="env.CC_TEMPLATE_ENV_TYPE" />
         <set-property-if-nonempty name="target.host" if-property-isset="env.CC_TEMPLATE_ENV_TARGET_HOST" />
 
+        <!-- App-specific values -->
+        <set-property-if-nonempty name="is.tsa.url" if-property-isset="env.is_tsa_url" />
+        <set-property-if-nonempty name="is.um.url" if-property-isset="env.is_um_url" />
+
         <!-- database values -->
         <set-property-if-nonempty name="db.name" if-property-isset="env.db_name" />
         <set-property-if-nonempty name="db.sid" if-property-isset="env.db_sid" />
@@ -168,6 +172,9 @@
             <entry key="repo.password" value="${repo.password}" if:set="repo.password" />
             <entry key="environment.type" value="${environment.type}" if:set="environment.type" />
             <entry key="target.host" value="${target.host}" if:set="target.host" />
+
+            <entry key="is.tsa.url" value="${is.tsa.url}" if:set="is.tsa.url" />
+            <entry key="is.um.url" value="${is.um.url}" if:set="is.um.url" />
 
             <entry key="db.name" value="${db.name}" if:set="db.name" />
             <entry key="db.sid" value="${db.sid}" if:set="db.sid" />
