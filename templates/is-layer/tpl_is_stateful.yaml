@@ -18,26 +18,26 @@ environments:
     is.diagnostic.port: 9999                # Dialgnostic port number
     is.jmx.port:        8094                # JMX port number
     is.password:        manage              # Administrator user password
-    is.memory.init:     128                 # Initial memory size
-    is.memory.max:      1024                # Maximum memory size
+    is.memory.init:     2048                # Initial memory size
+    is.memory.max:      4096                # Maximum memory size
     is.install.service: true
     is.configure:       [is-server]         # List of templates to apply
     is.fixes:           [wMFix.integrationServer.Core]
 
     # IS clustering
+    is.tsa.url:           ${}
     is.cluster.enabled:   true
     is.cluster.name:      "${is.instance.name}-cluster"
-    tsa.url:              "tcserver:9510"
 
     # Database connection
-    db.type:             oracle             # REQUIRED: Database type: oracle,sqlserver,db2
-    db.host:             is_db            # REQUIRED: Database server hostname
-    db.port:             1521               # REQUIRED: Database server port
-    db.name:             webm
-    db.username:         is_dbuser        # Database username
-    db.password:         strong123!         # Database password
-    db.sid:              XE                 # Database name
-    db.url:              "jdbc:wm:oracle://${db.host}:${db.port};SID=${db.sid}"
+    db.url:              ${}           # JDBC URL
+    db.type:             ${}           # REQUIRED: Database type: oracle,sqlserver,db2
+    db.host:             ${}           # REQUIRED: Database server hostname
+    db.port:             ${}           # REQUIRED: Database server port
+    db.name:             ${}
+    db.username:         ${}           # Database username
+    db.password:         ${}           # Database password
+    db.sid:              ${}           # Database name
 
     # Remote system configuration
     spm.port:       8092                    # SPM connection port
@@ -47,15 +47,13 @@ environments:
 
     ## remote provisioning
     spm.host:         ${is.host}                # REQUIRED for all in one installation as default host
-    os.platform:      ${target.os.platform}     # remote machine OS platform code
     os.username:      ${}                       # remote machine SSH username, default CCE process user account (as java system property)
     os.password:      ${}                       # remote machine SSH password
     os.auth.method:   ${}                       # remote machine authentication method: PASSWORD,INTERACTIVE,CERTIFICATE
     os.auth.key:      ${}                       # keyfile for CERTIFICATE auth method
     os.ssh.port:      ${}                        # remote machine SSH port
     install.dir:      ${}                       # suite installation directory
-    spm.distribution: ALL                       # EXPERIMENTAL! distribution, ALL, DEF, MIN
-    spm.useImage:     false                     # EXPERIMENTAL! false for direct connection to the MASTER repo!
+    install.installer: ${}
 
   server:
 
@@ -129,7 +127,7 @@ templates:
                   Servers:
                     Server:
                       -
-                        URL: ${tsa.url}
+                        URL: ${is.tsa.url}
 
 provision:
   default:

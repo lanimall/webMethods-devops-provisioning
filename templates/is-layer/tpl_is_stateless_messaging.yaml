@@ -1,5 +1,5 @@
 alias: is_stateless_messaging
-description: Integration Server Stateful instance connected to DB, Terracotta, and UM
+description: Integration Server Stateless instance connected to UM
 
 environments:
   default:
@@ -8,8 +8,8 @@ environments:
     repo.spm:            ${repo.product}
 
     # Integration Server Instance Configuration
-    target.os.platform:   lnxamd64          # w64/lnxamd64/solamd64/sol/aix
-    is.license.key.alias:  "Integration_Server-${target.os.platform}"
+    os.platform:           lnxamd64
+    is.license.key.alias:  "Integration_Server-${os.platform}"
 
     is.host:            ${}
     is.instance.name:   default             # Instance name
@@ -17,8 +17,8 @@ environments:
     is.diagnostic.port: 9999                # Dialgnostic port number
     is.jmx.port:        8094                # JMX port number
     is.password:        manage              # Administrator user password
-    is.memory.init:     128                 # Initial memory size
-    is.memory.max:      1024                # Maximum memory size
+    is.memory.init:     2048                # Initial memory size
+    is.memory.max:      4096                # Maximum memory size
     is.install.service: true
     is.configure:       [is-server,um-client]         # List of templates to apply
     is.fixes:           [wMFix.integrationServer.Core]
@@ -27,9 +27,12 @@ environments:
     is.cluster.enabled:  false
 
     # IS Messaging
-    um.fixes:          [wMFix.NUMClient]
-    um.url:            "nsp://umserver:9000"
-    um.jndi.cf:        umcf
+    is.um.url:                ${}
+    is.um.fixes:              [wMFix.NUMClient]
+    is.jms.jndi.alias:        "CUSTOM_IS_JNDI_PROVIDER"
+    is.jms.jndi.cf:           umcf
+    is.jms.connection.alias:  "CUSTOM_IS_JMS_CONNECTION"
+    is.wm.messaging.alias:    "CUSTOM_IS_UM_CONNECTION"
 
     # Remote system configuration
     spm.port:       8092                    # SPM connection port
@@ -39,15 +42,13 @@ environments:
 
     ## remote provisioning
     spm.host:         ${is.host}                # REQUIRED for all in one installation as default host
-    os.platform:      ${target.os.platform}     # remote machine OS platform code
     os.username:      ${}                       # remote machine SSH username, default CCE process user account (as java system property)
     os.password:      ${}                       # remote machine SSH password
     os.auth.method:   ${}                       # remote machine authentication method: PASSWORD,INTERACTIVE,CERTIFICATE
     os.auth.key:      ${}                       # keyfile for CERTIFICATE auth method
     os.ssh.port:      ${}                        # remote machine SSH port
     install.dir:      ${}                       # suite installation directory
-    spm.distribution: ALL                       # EXPERIMENTAL! distribution, ALL, DEF, MIN
-    spm.useImage:     false                     # EXPERIMENTAL! false for direct connection to the MASTER repo!
+    install.installer: ${}
 
   server:
 
@@ -114,24 +115,24 @@ templates:
                        "@name": "AllowDigestAuthentication"
                        $: false
               COMMON-JNDI:
-                COMMON-JNDI-DEFAULT_IS_JNDI_PROVIDER:
+                COMMON-JNDI-${is.jms.jndi.alias}:
                   JNDI:
-                    "@alias": DEFAULT_IS_JNDI_PROVIDER
-                    Description: Default JNDI provider alias
+                    "@alias": ${is.jms.jndi.alias}
+                    Description: JNDI provider alias
                     Provider:
-                      URL: "${um.url}"
+                      URL: "${is.um.url}"
                       InitialContextFactory: com.pcbsys.nirvana.nSpace.NirvanaContextFactory
               COMMON-WMMESSAGING:
-                COMMON-WMMESSAGING-IS_UM_CONNECTION:
+                COMMON-WMMESSAGING-${is.wm.messaging.alias}:
                   Messaging:
-                    '@alias': IS_UM_CONNECTION
-                    Description: Default UM connection alias
-                    ClientPrefix: IS_UM_PREFIX
+                    '@alias': ${is.wm.messaging.alias}
+                    Description: UM connection alias
+                    ClientPrefix: ${is.wm.messaging.alias}_CLIENT_PREFIX
                     ShareClientPrefix: 'true'
                     Enabled: 'true'
                     Provider:
                       '@type': UM
-                      URL: ${um.url}
+                      URL: ${is.um.url}
                       MaxRetryAttempts: '5'
                       RetryInterval: '30000'
                       Auth:
@@ -151,17 +152,17 @@ templates:
                       - '@name': um_followTheMasterForPublish
                         $: 'true'
               COMMON-JMS:
-                COMMON-JMS-DEFAULT_IS_JMS_CONNECTION:
+                COMMON-JMS-${is.jms.connection.alias}:
                   JMS:
-                    '@alias': DEFAULT_IS_JMS_CONNECTION
-                    Description: Default JMS connection alias
+                    '@alias': ${is.jms.connection.alias}
+                    Description: JMS connection alias
                     Enabled: 'true'
                     TransactionType: NO_TRANSACTION
-                    ClientId: DEFAULT_IS_JMS_CLIENT
+                    ClientId: ${is.jms.connection.alias}_CLIENT
                     Provider:
                       '@type': JNDI
-                      JNDIAlias: DEFAULT_IS_JNDI_PROVIDER
-                      JNDIConnectionFactoryName: ${um.jndi.cf}
+                      JNDIAlias: ${is.jms.jndi.alias}
+                      JNDIConnectionFactoryName: ${is.jms.jndi.cf}
                     User: ''
                     MaxRetryAttempts: '0'
                     RetryInterval: '0'

@@ -23,19 +23,19 @@ environments:
     is.install.service: true
     is.configure:       [is-server,um-client]         # List of templates to apply
     is.fixes:           [wMFix.integrationServer.Core]
-    is.jms.jndi.alias:        "CUSTOM_IS_JNDI_PROVIDER"
-    is.jms.connection.alias:  "CUSTOM_IS_JMS_CONNECTION"
-    is.wm.messaging.alias:    "CUSTOM_IS_UM_CONNECTION"
 
     # IS clustering
-    tsa.url:              ${}
+    is.tsa.url:           ${}
     is.cluster.enabled:   true
     is.cluster.name:      "${is.instance.name}-cluster"
 
     # IS Messaging
-    um.url:            ${}
-    um.fixes:          [wMFix.NUMClient]
-    um.jndi.cf:        umcf
+    is.um.url:                ${}
+    is.um.fixes:              [wMFix.NUMClient]
+    is.jms.jndi.alias:        "CUSTOM_IS_JNDI_PROVIDER"
+    is.jms.jndi.cf:           umcf
+    is.jms.connection.alias:  "CUSTOM_IS_JMS_CONNECTION"
+    is.wm.messaging.alias:    "CUSTOM_IS_UM_CONNECTION"
 
     # Database connection
     db.url:              ${}           # JDBC URL
@@ -134,12 +134,12 @@ templates:
                        "@name": "AllowDigestAuthentication"
                        $: false
               COMMON-JNDI:
-                COMMON-JNDI-${is.jndi.alias}:
+                COMMON-JNDI-${is.jms.jndi.alias}:
                   JNDI:
-                    "@alias": ${is.jndi.alias}
+                    "@alias": ${is.jms.jndi.alias}
                     Description: JNDI provider alias
                     Provider:
-                      URL: "${um.url}"
+                      URL: "${is.um.url}"
                       InitialContextFactory: com.pcbsys.nirvana.nSpace.NirvanaContextFactory
               COMMON-WMMESSAGING:
                 COMMON-WMMESSAGING-${is.wm.messaging.alias}:
@@ -151,7 +151,7 @@ templates:
                     Enabled: 'true'
                     Provider:
                       '@type': UM
-                      URL: ${um.url}
+                      URL: ${is.um.url}
                       MaxRetryAttempts: '5'
                       RetryInterval: '30000'
                       Auth:
@@ -180,8 +180,8 @@ templates:
                     ClientId: ${is.jms.connection.alias}_CLIENT
                     Provider:
                       '@type': JNDI
-                      JNDIAlias: ${is.jndi.alias}
-                      JNDIConnectionFactoryName: ${um.jndi.cf}
+                      JNDIAlias: ${is.jms.jndi.alias}
+                      JNDIConnectionFactoryName: ${is.jms.jndi.cf}
                     User: ''
                     MaxRetryAttempts: '0'
                     RetryInterval: '0'
@@ -213,7 +213,7 @@ templates:
                   Servers:
                     Server:
                       -
-                        URL: ${tsa.url}
+                        URL: ${is.tsa.url}
 
 provision:
   default:
