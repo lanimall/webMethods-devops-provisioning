@@ -1,0 +1,26 @@
+#FROM centos:7
+FROM softwareag/commandcentral:10.1-client
+
+MAINTAINER fabien.sanglier@softwareaggov.com
+
+ENV SAG_HOME=/opt/softwareag
+ENV JAVA_HOME $SAG_HOME/jvm/jvm/
+ENV JRE_HOME $SAG_HOME/jvm/jvm/jre/
+ENV ANT_HOME $SAG_HOME/common/lib/ant
+ENV CC_CLI_HOME=$SAG_HOME/CommandCentral/client
+ENV PATH=$PATH:/bin:/usr/bin:$JAVA_HOME/bin:$ANT_HOME/bin:$CC_CLI_HOME/bin
+
+USER root
+
+#RUN yum -y install ant
+
+# exists in the commandcentral client image
+#RUN mkdir /src
+
+ENV PATH=$PATH:/bin:/usr/bin:$JAVA_HOME/bin:$ANT_HOME/bin:$CC_CLI_HOME/bin
+
+# use a custom entry point
+#COPY ./scripts/runtimesetup-entrypoint.sh /usr/bin/
+#RUN chmod +x /usr/bin/runtimesetup-entrypoint.sh
+
+#ENTRYPOINT ["/bin/bash", "-c"]

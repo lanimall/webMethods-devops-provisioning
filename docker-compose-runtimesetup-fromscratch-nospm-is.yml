@@ -1,0 +1,49 @@
+version: "3"
+
+networks:
+  sagdevops:
+
+services:
+  cce:
+    image: custom/centos:7
+    build:
+      context: .
+      dockerfile: Dockerfile.runtimesetup.base
+    hostname: cce
+    networks:
+      - sagdevops
+    ports:
+      - "8090:8090"
+      - "8091:8091"
+    volumes:
+      - ./:/src
+    command: tail -f /dev/null
+
+  is1:
+    image: custom/centos:7
+    build:
+      context: .
+      dockerfile: Dockerfile.runtimesetup.base
+    hostname: is1
+    networks:
+      - sagdevops
+    ports:
+      - "5555:5555"
+    volumes:
+      - ./:/src
+
+  tcserver:
+    image: custom/centos:7
+    build:
+      context: .
+      dockerfile: Dockerfile.runtimesetup.base
+    hostname: tcserver
+    networks:
+      - sagdevops
+    expose:
+      - "9510"
+      - "9520"
+      - "9530"
+      - "9540"
+    volumes:
+      - ./:/src
