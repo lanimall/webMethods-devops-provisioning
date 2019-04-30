@@ -8,6 +8,7 @@ environments:
 
     spm.port:       8092                    # SPM connection port
     spm.secure:     false                   # Use HTTPS connection to SPM: true,false
+
     spm.configure:  [spm-tuneup]
     spm.fixes:      [wMFix.SPM]             # SPM/SUM/SD core fixes by default
 

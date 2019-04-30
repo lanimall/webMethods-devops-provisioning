@@ -48,6 +48,7 @@
     </target>
 
     <target name="waitForTargetNodeUp" description="Wait for target node up" depends="_localinit">
+        <!-- if host defined -->
         <set-property-if-nonempty name="socketcheck.target.host" if-property-isset="env.SOCKET_CHECK_TARGET_HOST" />
         <set-property-if-nonempty name="socketcheck.target.port" if-property-isset="env.SOCKET_CHECK_TARGET_PORT" />
 
@@ -55,6 +56,26 @@
         <antcall target="_waitForSocketConnect">
             <param name="wait.host" value="${socketcheck.target.host}" if:set="socketcheck.target.host" />
             <param name="wait.port" value="${socketcheck.target.port}" if:set="socketcheck.target.port"/>
+        </antcall>
+
+        <!-- if host2 defined -->
+        <set-property-if-nonempty name="socketcheck.target.host2" if-property-isset="env.SOCKET_CHECK_TARGET_HOST2" />
+        <set-property-if-nonempty name="socketcheck.target.port2" if-property-isset="env.SOCKET_CHECK_TARGET_PORT2" />
+
+        <!-- check target host connectivity -->
+        <antcall target="_waitForSocketConnect">
+            <param name="wait.host" value="${socketcheck.target.host2}" if:set="socketcheck.target.host2" />
+            <param name="wait.port" value="${socketcheck.target.port2}" if:set="socketcheck.target.port2"/>
+        </antcall>
+
+        <!-- if host3 defined -->
+        <set-property-if-nonempty name="socketcheck.target.host3" if-property-isset="env.SOCKET_CHECK_TARGET_HOST3" />
+        <set-property-if-nonempty name="socketcheck.target.port3" if-property-isset="env.SOCKET_CHECK_TARGET_PORT3" />
+
+        <!-- check target host connectivity -->
+        <antcall target="_waitForSocketConnect">
+            <param name="wait.host" value="${socketcheck.target.host3}" if:set="socketcheck.target.host3" />
+            <param name="wait.port" value="${socketcheck.target.port3}" if:set="socketcheck.target.port3"/>
         </antcall>
     </target>
 
@@ -68,7 +89,6 @@
         <property name="wait.enabled" value="false"/>
 
         <echo message="Checking connectivity to ${wait.host}:${wait.port}" if:true="${wait.enabled}"/>
-        <echo message="Ignoring... host/port not set!!" unless:true="${wait.enabled}" />
         <waitfor maxwait="600" maxwaitunit="second" checkevery="5" checkeveryunit="second" if:true="${wait.enabled}">
             <socket server="${wait.host}" port="${wait.port}"/>
         </waitfor>
@@ -141,6 +161,8 @@
         <set-property-if-nonempty name="repo.password" if-property-isset="env.CC_SAG_REPO_PWD" />
         <set-property-if-nonempty name="environment.type" if-property-isset="env.CC_TEMPLATE_ENV_TYPE" />
         <set-property-if-nonempty name="target.host" if-property-isset="env.CC_TEMPLATE_ENV_TARGET_HOST" />
+        <set-property-if-nonempty name="target.host2" if-property-isset="env.CC_TEMPLATE_ENV_TARGET_HOST2" />
+        <set-property-if-nonempty name="target.host3" if-property-isset="env.CC_TEMPLATE_ENV_TARGET_HOST3" />
 
         <!-- App-specific values -->
         <set-property-if-nonempty name="is.tsa.url" if-property-isset="env.is_tsa_url" />
@@ -172,6 +194,8 @@
             <entry key="repo.password" value="${repo.password}" if:set="repo.password" />
             <entry key="environment.type" value="${environment.type}" if:set="environment.type" />
             <entry key="target.host" value="${target.host}" if:set="target.host" />
+            <entry key="target.host2" value="${target.host2}" if:set="target.host2" />
+            <entry key="target.host3" value="${target.host3}" if:set="target.host3" />
 
             <entry key="is.tsa.url" value="${is.tsa.url}" if:set="is.tsa.url" />
             <entry key="is.um.url" value="${is.um.url}" if:set="is.um.url" />

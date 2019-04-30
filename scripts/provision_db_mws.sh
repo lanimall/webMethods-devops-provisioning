@@ -13,7 +13,7 @@ export db_port="1521"
 #no need to pass the tablespace dir if db_create_file_dest is set on the target database
 #export db_tablespace_dir="/u01/app/oracle/oradata/XE"
 export db_admin_username="sagdb_admin"
-export db_admin_password="Wee!BdXr8Gf9*6e8"
+export db_admin_password="verystrong123!"
 export db_username="mws_dbuser"
 export db_password="strong123!"
 export db_product_version="latest"

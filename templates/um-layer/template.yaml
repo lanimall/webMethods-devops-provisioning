@@ -10,17 +10,20 @@ environments:
     target.os.platform:   lnxamd64
     um.license.key.alias: UniversalMessaging-${target.os.platform}
 
-    um.provisioning.host: ${}                       # This is the provisoning host name (where the UM instance / product should be installed)
-    um.access.host:       ${um.provisioning.host}   # This is the access host name (general access - generally should be equal to um.provisioning.host, but not in case of docker creation)
+    um.runtime.configure: [um-server]       # this is the default template for um runtime
+    um.cluster.configure: []                # this is for a UM cluster, which is empty by default, unless you enable the cluster configuration
+    um.host:             ${}                # This is the provisoning host name (where the UM instance / product should be installed)
+    um.access.host:      ${um.host}         # This is the access host name (general access - generally should be equal to um.host, but not in case of docker creation)
     um.instance.name:    umserver           # realm server instance name
     um.instance.port:    9000               # primary port
-    um.instance.ip:      ${}                # this is the IP that the UM process will bind to
+    um.instance.ip:      ${um.host}       # This is the IP that the UM process will bind to
+    um.instance.alias:   ${um.instance.name}
     um.jmx.port:         9988               # jmx port
-    um.memory.init:      1024                 # memory configuration
-    um.memory.max:       4096                # memory configuration
+    um.memory.init:      1024               # memory configuration
+    um.memory.max:       4096               # memory configuration
     um.memory.direct:    1G                 # memory configuration
     um.fixes:            [wMFix.NUMRealmServer]                # all fixes
-    install.service:     true
+    install.service:     false
 
     um.jndi.factory.url: "nsp://${um.access.host}:${um.instance.port}"
     um.jndi.cf:          umcf
@@ -30,7 +33,6 @@ environments:
     um.jndi.dest.queue1:  umqueue
     um.jndi.dest.topic1:  umtopic
 
-
     # Remote system configuration
     spm.port:            8092                    # SPM connection port
     spm.secure:          false                   # Use HTTPS connection to SPM: true,false
@@ -38,7 +40,7 @@ environments:
     spm.fixes:           [wMFix.SPM]             # SPM/SUM/SD core fixes by default
 
     ## remote provisioning
-    spm.host:         ${um.provisioning.host}   # REQUIRED for all in one installation as default host
+    spm.host:         ${um.host}   # REQUIRED for all in one installation as default host
     os.platform:      ${target.os.platform}     # remote machine OS platform code
     os.username:      ${}                       # remote machine SSH username, default CCE process user account (as java system property)
     os.password:      ${}                       # remote machine SSH password
@@ -51,10 +53,16 @@ environments:
 
   server:
 
+  cluster:
+    um.host2:           ${}                 # REQURIED um cluster installation host2
+    um.host3:           ${}                 # REQURIED um cluster installation host3
+    um.cluster.configure: [um-cluster-3]
+    um.cluster:         cluster
+
   docker:
     repo.product:           products
     repo.fix:               fixes
-    um.provisioning.host:   localhost
+    um.host:                localhost
     spm.alias:              local
     install.service:        false
     um.access.host:         "umserver"        # important: this is the external URL that the UM instance can be accessed at via JNDI CF URLs
@@ -67,9 +75,12 @@ layers:
   spm:
     description: Management layer of SPM's
     templates:   ${spm.configure}
-  um:
-    templates:
-      - um-server
+  um-runtime:
+    description: UM runtime layer
+    templates:   ${um.runtime.configure}
+  um-cluster:
+    description: UM cluster layer
+    templates:   ${um.cluster.configure}
 
 templates:
   spm-tuneup:
@@ -88,6 +99,7 @@ templates:
         ${um.instance.name}:                                       # instance name is different from realm
           instance.port: ${um.instance.port}                       # instance port
           instance.ip:   ${um.instance.ip}                         # bind to node's host name
+          node.alias:    ${um.instance.alias}
           install.service: ${install.service}
           license.file:  UniversalMessaging/server/templates/licence.xml
           runtimeComponentId: Universal-Messaging-${um.instance.name} # hint for CC to skip instance creation if it exists
@@ -104,7 +116,7 @@ templates:
                        $: ${um.memory.direct}
               COMMON-JAVASYSPROPS:
                 COMMON-JAVASYSPROPS: |
-                   REALM=${um.instance.name}                             # IMPORTANT: this can only be set before first startup
+                   REALM=${um.instance.alias}                             # IMPORTANT: this can only be set before first startup
                    com.sun.management.jmxremote.port=${um.jmx.port}
                    com.sun.management.jmxremote.authenticate=false
                    com.sun.management.jmxremote.ssl=false
@@ -140,16 +152,46 @@ templates:
                   storeName: ${um.jndi.dest.topic1}
                   autoCreateDest: 'true'
 
+  um-cluster-3:
+    description: Cluster configuration for 3 node cluster
+    products:
+      NUMRealmServer:
+        ${um.instance.name}:
+          runtimeComponentId: Universal-Messaging-${instance.name}
+          configuration:
+            Universal-Messaging-${instance.name}:
+              COMMON-CLUSTER:
+                COMMON-CLUSTER:
+                  Name: ${um.cluster}
+                  Servers:
+                    Server:
+                      -
+                        "@name": ${um.host}
+                        URL: "nsp://${um.host}:${um.instance.port}"
+                      -
+                        "@name": ${um.host2}
+                        URL: "nsp://${um.host2}:${um.instance.port}"
+                      -
+                        "@name": ${um.host3}
+                        URL: "nsp://${um.host3}:${um.instance.port}"
+
 provision:
   default:
-    spm: ["${um.provisioning.host}"]
-    um:  ["${um.provisioning.host}"]
+    spm:          ["${um.host}"]
+    um-runtime:   ["${um.host}"]
+    um-cluster:   ["${um.host}"]
   server:
-    spm: ["${um.provisioning.host}"]
-    um:  ["${um.provisioning.host}"]
+    spm:          ["${um.host}"]
+    um-runtime:   ["${um.host}"]
+    um-cluster:   ["${um.host}"]
+  cluster:
+    spm:          ["${um.host}", "${um.host2}", "${um.host3}"]
+    um-runtime:   ["${um.host}", "${um.host2}", "${um.host3}"] ##all nodes
+    um-cluster:   ["${um.host}"] ## first node only
   docker:
-    spm:  ["${spm.alias}"]
-    um:   ["${spm.alias}"]
+    spm:          ["${spm.alias}"]
+    um-runtime:   ["${spm.alias}"]
+    um-cluster:   ["${spm.alias}"]
 
 nodes:
   default:
@@ -167,4 +209,4 @@ nodes:
           privateKey: ${os.auth.key}
   docker:
     ${spm.alias}:
-      host: ${um.provisioning.host}
+      host: ${um.host}
