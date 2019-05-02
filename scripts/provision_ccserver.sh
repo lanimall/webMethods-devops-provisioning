@@ -3,7 +3,7 @@
 ANT_CMD="ant"
 
 CC_BOOT=default
-SPM_INSTALL_DIR=/opt/softwareag104
+SPM_INSTALL_DIR=/opt/softwareag
 
 ## first, make sure ant is installed
 sudo yum -y install ant

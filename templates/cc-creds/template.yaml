@@ -1,13 +1,13 @@
-alias: cc-creds
+alias: sag-cc-creds
 description: Default master repositories registration
 version: 10.1
 
 environments:
   default:                      
-    empower.username: ${}       # REQUIRED, username on https://empower.softwareag.com/
-    empower.password: ${}       # REQUIRED, password
-    cc.password: manage123      # password for remote SPMs Administrator user
-    user.name: centos
+    cc.password: ${}            # password for remote SPMs Administrator user
+    user.name: ${}              # linux user name to use when making ssh connections
+    repo.username: ${}           # REQUIRED, repo username
+    repo.password: ${}           # REQUIRED, repo password
 
 layers:
   cce:
@@ -23,11 +23,11 @@ templates:
             OSGI-CCE-ENGINE:              
               COMMON-CREDENTIALS:
                 COMMON-CREDENTIALS-EMPOWER:
-                    "@alias": EMPOWER
+                    "@alias": SAG_PRODUCTS_REPO
                     AuthenticationType: BASIC
-                    UserName: "${empower.username}"
-                    Password: "${empower.password}"
-                    Description: "empower.softwareag.com Download Center"
+                    UserName: "${repo.username}"
+                    Password: "${repo.password}"
+                    Description: "repository containing softwareag products / fixes"
                 COMMON-CREDENTIALS-SECURE_ADMINISTRATOR:
                     "@alias": SECURE_ADMINISTRATOR
                     AuthenticationType: BASIC
@@ -37,8 +37,8 @@ templates:
                 COMMON-CREDENTIALS-SSH-PRIVATE-KEY:
                   '@alias': SSH-PRIVATE-KEY
                   AuthenticationType: SSH                    # Can be used for SSH protocol authentication
-                  UserName: ${user.name}                     # User account running CCE, e.g. sagadmin
-                  PrivateKeyPath: ${user.home}/.ssh/SAGGS_KEYPAIR.pem   # Default private key location. MUST be there!
+                  UserName: ${user.name}                     # User account running CCE, e.g. sagadmin        
+                  PrivateKeyPath: ${user.home}/.ssh/id_rsa   # Default private key location. MUST be there!
                   KnownHosts: ${user.home}/.ssh/known_hosts  # Default location of the known_hosts file
                   Description: "${user.name}'s default SSH private key"
 
