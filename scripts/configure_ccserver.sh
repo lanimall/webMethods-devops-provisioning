@@ -8,10 +8,14 @@ SAGCCANT_CMD="sagccant"
 
 $SAGCCANT_CMD apply_licenses
 
-$SAGCCANT_CMD -Denv.CC_TEMPLATE=sag-repos  \
-                -Denv.CC_TEMPLATE_ENV=sag-repos  \
+$SAGCCANT_CMD -Denv.CC_TEMPLATE=sag-cc-creds  \
+                -Denv.CC_TEMPLATE_ENV=sag-creds  \
                 -Denv.CC_SAG_REPO_USR=$CC_SAG_REPO_USR  \
                 -Denv.CC_SAG_REPO_PWD=$CC_SAG_REPO_PWD \
+                setup
+
+$SAGCCANT_CMD -Denv.CC_TEMPLATE=sag-repos  \
+                -Denv.CC_TEMPLATE_ENV=sag-repos \
                 setup
 
 $SAGCCANT_CMD -Denv.CC_TEMPLATE=cc-tuneup  \
