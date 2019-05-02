@@ -16,5 +16,5 @@ $ANT_CMD -Denv.CC_BOOT=$CC_BOOT -Denv.CC_PASSWORD=$CC_PASSWORD -Dinstall.dir=$SP
 # once done, make sure to run this script to install SPM as a service
 sudo sh $SPM_INSTALL_DIR/bin/afterInstallAsRoot.sh
 
-#re-source the bashrc file now it's been updated with CC client bin in PATH
-. $HOME/.bashrc
+#source the profile file now it's been updated with CC client bin in PATH
+. $HOME/.sag/profile
