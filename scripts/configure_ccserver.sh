@@ -10,6 +10,11 @@ CC_SSH_KEY_PATH=${HOME}/.ssh/id_rsa
 CC_SSH_KEY_PWD=
 CC_SSH_USER=centos
 
+## apply env
+if [ -f ${HOME}/setenv-cce.sh ]; then
+    . ${HOME}/setenv-cce.sh
+fi
+
 $SAGCCANT_CMD apply_licenses
 
 $SAGCCANT_CMD -Denv.CC_TEMPLATE=sag-cc-creds  \
