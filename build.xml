@@ -157,8 +157,12 @@
                  <!--target="print.name"-->
                  <!--param="pack.id" />-->
 
-        <set-property-if-nonempty name="repo.username" if-property-isset="env.CC_SAG_REPO_USR" />
-        <set-property-if-nonempty name="repo.password" if-property-isset="env.CC_SAG_REPO_PWD" />
+        <set-property-if-nonempty name="cc.password" if-property-isset="env.CC_PASSWORD" />
+        <set-property-if-nonempty name="sag.repo.username" if-property-isset="env.CC_SAG_REPO_USR" />
+        <set-property-if-nonempty name="sag.repo.password" if-property-isset="env.CC_SAG_REPO_PWD" />
+        <set-property-if-nonempty name="ssh.user.name" if-property-isset="env.CC_SSH_USER" />
+        <set-property-if-nonempty name="ssh.pk.path" if-property-isset="env.CC_SSH_KEY_PATH" />
+        <set-property-if-nonempty name="ssh.pk.password" if-property-isset="env.CC_SSH_KEY_PWD" />
         <set-property-if-nonempty name="environment.type" if-property-isset="env.CC_TEMPLATE_ENV_TYPE" />
         <set-property-if-nonempty name="target.host" if-property-isset="env.CC_TEMPLATE_ENV_TARGET_HOST" />
         <set-property-if-nonempty name="target.host2" if-property-isset="env.CC_TEMPLATE_ENV_TARGET_HOST2" />
@@ -190,8 +194,12 @@
 
         <!-- saving to env file because there's no other way...we need to pass these values using that env file -->
         <propertyfile file="${env.properties}">
-            <entry key="repo.username" value="${repo.username}" if:set="repo.username" />
-            <entry key="repo.password" value="${repo.password}" if:set="repo.password" />
+            <entry key="cc.password" value="${cc.password}" if:set="cc.password" />
+            <entry key="sag.repo.username" value="${sag.repo.username}" if:set="sag.repo.username" />
+            <entry key="sag.repo.password" value="${sag.repo.password}" if:set="sag.repo.password" />
+            <entry key="ssh.user.name" value="${ssh.user.name}" if:set="ssh.user.name" />
+            <entry key="ssh.pk.path" value="${ssh.pk.path}" if:set="ssh.pk.path" />
+            <entry key="ssh.pk.password" value="${ssh.pk.password}" if:set="ssh.pk.password" />
             <entry key="environment.type" value="${environment.type}" if:set="environment.type" />
             <entry key="target.host" value="${target.host}" if:set="target.host" />
             <entry key="target.host2" value="${target.host2}" if:set="target.host2" />

@@ -5,9 +5,11 @@ version: 10.1
 environments:
   default:                      
     cc.password: ${}            # password for remote SPMs Administrator user
-    user.name: ${}              # linux user name to use when making ssh connections
-    repo.username: ${}           # REQUIRED, repo username
-    repo.password: ${}           # REQUIRED, repo password
+    sag.repo.username: ${}      # REQUIRED, repo username
+    sag.repo.password: ${}      # REQUIRED, repo password
+    ssh.user.name: ${}          # linux user name to use when making ssh connections
+    ssh.pk.path: ${}
+    ssh.pk.password: ${}
 
 layers:
   cce:
@@ -22,11 +24,11 @@ templates:
           configuration:
             OSGI-CCE-ENGINE:              
               COMMON-CREDENTIALS:
-                COMMON-CREDENTIALS-EMPOWER:
-                    "@alias": SAG_PRODUCTS_REPO
+                COMMON-CREDENTIALS-SAG_REPO:
+                    "@alias": SAG_REPO
                     AuthenticationType: BASIC
-                    UserName: "${repo.username}"
-                    Password: "${repo.password}"
+                    UserName: "${sag.repo.username}"
+                    Password: "${sag.repo.password}"
                     Description: "repository containing softwareag products / fixes"
                 COMMON-CREDENTIALS-SECURE_ADMINISTRATOR:
                     "@alias": SECURE_ADMINISTRATOR
@@ -37,10 +39,12 @@ templates:
                 COMMON-CREDENTIALS-SSH-PRIVATE-KEY:
                   '@alias': SSH-PRIVATE-KEY
                   AuthenticationType: SSH                    # Can be used for SSH protocol authentication
-                  UserName: ${user.name}                     # User account running CCE, e.g. sagadmin        
-                  PrivateKeyPath: ${user.home}/.ssh/id_rsa   # Default private key location. MUST be there!
+                  UserName: ${ssh.user.name}                     # User account running CCE, e.g. sagadmin        
+                  PrivateKeySource: KeyFileOnCommandCentral
+                  PrivateKeyPath:   ${ssh.pk.path}           # Default private key location. MUST be there!
+                  PrivateKeyPassword: ${ssh.pk.password}
                   KnownHosts: ${user.home}/.ssh/known_hosts  # Default location of the known_hosts file
-                  Description: "${user.name}'s default SSH private key"
+                  Description: "${ssh.user.name}'s default SSH private key"
 
 provision:
   default:

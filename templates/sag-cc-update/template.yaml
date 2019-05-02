@@ -17,7 +17,7 @@
 #
 ###############################################################################
 alias: sag-cc-update
-description: Install latest fixes
+description: Install latest fixes on local command central and spm node
 
 environments:
   default:                      
@@ -25,15 +25,19 @@ environments:
     nodes: local
 
 layers:
-  runtime:
-    fixRepo: ${repo.fix}
+  fixRepo: ${repo.fix}
+  cce:
+    templates:
+      - updates
+  spm:
     templates:
       - updates
 
 templates:
   updates:
     fixes: ALL
-  
+
 provision:
   default:
-    runtime: ${nodes}
+    cce: local    # apply to local CCE
+    spm: ${nodes} # apply to all SPM's identified by a list of node aliases

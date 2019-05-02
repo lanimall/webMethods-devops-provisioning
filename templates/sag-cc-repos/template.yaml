@@ -1,0 +1,27 @@
+alias: sag-cc-repos
+description: Default public SAG master repositories
+version: 10.2
+
+environments:
+  default:
+    repo.product.name: ${}
+    repo.fix.name: ${}
+    repo.products.location: ${}
+    repo.products.description: ${}
+    repo.products.credentials.key: ${}
+    repo.fixes.location: ${}
+    repo.fixes.description: ${}
+    repo.fixes.credentials.key: ${}
+
+repositories:
+  product: 
+    ${repo.product.name}:           
+      location: ${repo.products.location}
+      description: ${repo.products.description}
+      credentials: ${repo.products.credentials.key}
+ 
+  fix:                                  
+    ${repo.fix.name}:
+      location: ${repo.fixes.location}
+      description: ${repo.fixes.description}
+      credentials: ${repo.fixes.credentials.key}
