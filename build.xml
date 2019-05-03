@@ -161,7 +161,7 @@
         <set-property-if-nonempty name="sag.repo.username" if-property-isset="env.CC_SAG_REPO_USR" />
         <set-property-if-nonempty name="sag.repo.password" if-property-isset="env.CC_SAG_REPO_PWD" />
         <set-property-if-nonempty name="ssh.user.name" if-property-isset="env.CC_SSH_USER" />
-        <set-property-if-nonempty name="ssh.pk.path" if-property-isset="env.CC_SSH_KEY_PATH" />
+        <set-property-if-nonempty name="ssh.pk.filename" if-property-isset="env.CC_SSH_KEY_FILENAME" />
         <set-property-if-nonempty name="ssh.pk.password" if-property-isset="env.CC_SSH_KEY_PWD" />
         <set-property-if-nonempty name="environment.type" if-property-isset="env.CC_TEMPLATE_ENV_TYPE" />
         <set-property-if-nonempty name="target.host" if-property-isset="env.CC_TEMPLATE_ENV_TARGET_HOST" />
@@ -198,7 +198,7 @@
             <entry key="sag.repo.username" value="${sag.repo.username}" if:set="sag.repo.username" />
             <entry key="sag.repo.password" value="${sag.repo.password}" if:set="sag.repo.password" />
             <entry key="ssh.user.name" value="${ssh.user.name}" if:set="ssh.user.name" />
-            <entry key="ssh.pk.path" value="${ssh.pk.path}" if:set="ssh.pk.path" />
+            <entry key="ssh.pk.filename" value="${ssh.pk.filename}" if:set="ssh.pk.filename" />
             <entry key="ssh.pk.password" value="${ssh.pk.password}" if:set="ssh.pk.password" />
             <entry key="environment.type" value="${environment.type}" if:set="environment.type" />
             <entry key="target.host" value="${target.host}" if:set="target.host" />

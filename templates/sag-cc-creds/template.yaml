@@ -8,7 +8,7 @@ environments:
     sag.repo.username: ${}      # REQUIRED, repo username
     sag.repo.password: ${}      # REQUIRED, repo password
     ssh.user.name: ${}          # linux user name to use when making ssh connections
-    ssh.pk.path: ${}
+    ssh.pk.filename: ${}
     ssh.pk.password: ${}
 
 layers:
@@ -41,7 +41,7 @@ templates:
                   AuthenticationType: SSH                    # Can be used for SSH protocol authentication
                   UserName: ${ssh.user.name}                     # User account running CCE, e.g. sagadmin        
                   PrivateKeySource: KeyFileOnCommandCentral
-                  PrivateKeyPath:   ${ssh.pk.path}           # Default private key location. MUST be there!
+                  PrivateKeyPath:   ${user.home}/.ssh/${ssh.pk.filename}  # Default private key location. MUST be there!
                   PrivateKeyPassword: ${ssh.pk.password}
                   KnownHosts: ${user.home}/.ssh/known_hosts  # Default location of the known_hosts file
                   Description: "${ssh.user.name}'s default SSH private key"

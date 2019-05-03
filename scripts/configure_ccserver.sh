@@ -19,7 +19,7 @@ $SAGCCANT_CMD -Denv.CC_TEMPLATE=sag-cc-creds  \
                 -Denv.CC_SAG_REPO_USR="$CC_SAG_REPO_USR"  \
                 -Denv.CC_SAG_REPO_PWD="$CC_SAG_REPO_PWD" \
                 -Denv.CC_SSH_USER="$CC_SSH_USER" \
-                -Denv.CC_SSH_KEY_PATH="$CC_SSH_KEY_PATH" \
+                -Denv.CC_SSH_KEY_FILENAME="$CC_SSH_KEY_FILENAME" \
                 -Denv.CC_SSH_KEY_PWD="$CC_SSH_KEY_PWD" \
                 -Denv.CC_PASSWORD="$CC_PASSWORD" \
                 setup
