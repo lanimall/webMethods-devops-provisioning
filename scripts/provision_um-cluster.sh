@@ -11,6 +11,11 @@ if [ -f ${HOME}/setenv-cce.sh ]; then
     . ${HOME}/setenv-cce.sh
 fi
 
+if [ "x$TARGET_HOST" = "x" ]; then
+    echo "error: variable TARGET_HOST is required...exiting!"
+    exit 2;
+fi
+
 ##### apply um template
 $SAGCCANT_CMD -Denv.CC_CLIENT=$CC_CLIENT \
               -Denv.CC_TEMPLATE=um-layer \

@@ -9,6 +9,11 @@ if [ -f ${HOME}/setenv-cce.sh ]; then
     . ${HOME}/setenv-cce.sh
 fi
 
+if [ "x$TARGET_HOST" = "x" ]; then
+    echo "error: variable TARGET_HOST is required...exiting!"
+    exit 2;
+fi
+
 ## env variables
 export db_name="XE"
 export db_sid="XE"
