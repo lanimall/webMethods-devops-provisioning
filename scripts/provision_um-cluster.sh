@@ -6,6 +6,11 @@ TARGET_HOST=sagdevops_ccinfra_um
 TARGET_HOST2=sagdevops_ccinfra_um2
 TARGET_HOST3=sagdevops_ccinfra_um3
 
+## apply env
+if [ -f ${HOME}/setenv-cce.sh ]; then
+    . ${HOME}/setenv-cce.sh
+fi
+
 ##### apply um template
 $SAGCCANT_CMD -Denv.CC_CLIENT=$CC_CLIENT \
               -Denv.CC_TEMPLATE=um-layer \

@@ -5,6 +5,11 @@ CC_CLIENT=default
 TARGET_HOST=sagdevops_ccinfra_tc1
 TARGET_HOST2=sagdevops_ccinfra_tc2
 
+## apply env
+if [ -f ${HOME}/setenv-cce.sh ]; then
+    . ${HOME}/setenv-cce.sh
+fi
+
 ##### apply um template
 $SAGCCANT_CMD -Denv.CC_CLIENT=$CC_CLIENT \
               -Denv.CC_TEMPLATE=tc-layer \

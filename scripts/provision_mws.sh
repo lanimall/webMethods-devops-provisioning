@@ -4,6 +4,11 @@ SAGCCANT_CMD="sagccant"
 CC_CLIENT=default
 TARGET_HOST=sagdevops_ccinfra_mws
 
+## apply env
+if [ -f ${HOME}/setenv-cce.sh ]; then
+    . ${HOME}/setenv-cce.sh
+fi
+
 ## env variables
 export db_type="oracle"
 export db_name="XE"

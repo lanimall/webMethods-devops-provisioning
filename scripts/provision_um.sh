@@ -4,6 +4,11 @@ SAGCCANT_CMD="sagccant"
 CC_CLIENT=default
 TARGET_HOST=sagdevops_ccinfra_um
 
+## apply env
+if [ -f ${HOME}/setenv-cce.sh ]; then
+    . ${HOME}/setenv-cce.sh
+fi
+
 ##### apply um template
 $SAGCCANT_CMD -Denv.CC_CLIENT=$CC_CLIENT \
               -Denv.CC_TEMPLATE=um-layer \
