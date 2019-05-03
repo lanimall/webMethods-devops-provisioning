@@ -16,10 +16,26 @@ if [ "x$TARGET_HOST" = "x" ]; then
     exit 2;
 fi
 
+if [ "x$TARGET_HOST2" = "x" ]; then
+    echo "error: variable TARGET_HOST2 is required...exiting!"
+    exit 2;
+fi
+
+if [ "x$TARGET_HOST3" = "x" ]; then
+    echo "error: variable TARGET_HOST3 is required...exiting!"
+    exit 2;
+fi
+
+if [ "x$LICENSE_KEY_ALIAS1" = "x" ]; then
+    echo "error: Variable LICENSE_KEY_ALIAS1 (for UM) is required...exiting!"
+    exit 2;
+fi
+
 ##### apply um template
 $SAGCCANT_CMD -Denv.CC_CLIENT=$CC_CLIENT \
               -Denv.CC_TEMPLATE=um-layer \
               -Denv.CC_TEMPLATE_ENV=um \
+              -Denv.CC_TEMPLATE_ENV_LICENSE_KEY_ALIAS1=$LICENSE_KEY_ALIAS1 \
               -Denv.CC_TEMPLATE_ENV_TARGET_HOST=$TARGET_HOST \
               -Denv.CC_TEMPLATE_ENV_TARGET_HOST2=$TARGET_HOST2 \
               -Denv.CC_TEMPLATE_ENV_TARGET_HOST3=$TARGET_HOST3 \

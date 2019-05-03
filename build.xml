@@ -167,7 +167,9 @@
         <set-property-if-nonempty name="target.host" if-property-isset="env.CC_TEMPLATE_ENV_TARGET_HOST" />
         <set-property-if-nonempty name="target.host2" if-property-isset="env.CC_TEMPLATE_ENV_TARGET_HOST2" />
         <set-property-if-nonempty name="target.host3" if-property-isset="env.CC_TEMPLATE_ENV_TARGET_HOST3" />
-        <set-property-if-nonempty name="license.key.alias" if-property-isset="env.CC_TEMPLATE_ENV_LICENSE_KEY_ALIAS" />
+        <set-property-if-nonempty name="license.key.alias1" if-property-isset="env.CC_TEMPLATE_ENV_LICENSE_KEY_ALIAS1" />
+        <set-property-if-nonempty name="license.key.alias2" if-property-isset="env.CC_TEMPLATE_ENV_LICENSE_KEY_ALIAS2" />
+        <set-property-if-nonempty name="license.key.alias3" if-property-isset="env.CC_TEMPLATE_ENV_LICENSE_KEY_ALIAS3" />
 
         <!-- App-specific values -->
         <set-property-if-nonempty name="is.tsa.url" if-property-isset="env.is_tsa_url" />
@@ -205,7 +207,9 @@
             <entry key="target.host" value="${target.host}" if:set="target.host" />
             <entry key="target.host2" value="${target.host2}" if:set="target.host2" />
             <entry key="target.host3" value="${target.host3}" if:set="target.host3" />
-            <entry key="license.key.alias" value="${license.key.alias}" if:set="license.key.alias" />
+            <entry key="license.key.alias1" value="${license.key.alias1}" if:set="license.key.alias1" />
+            <entry key="license.key.alias2" value="${license.key.alias2}" if:set="license.key.alias2" />
+            <entry key="license.key.alias3" value="${license.key.alias3}" if:set="license.key.alias3" />
 
             <entry key="is.tsa.url" value="${is.tsa.url}" if:set="is.tsa.url" />
             <entry key="is.um.url" value="${is.um.url}" if:set="is.um.url" />

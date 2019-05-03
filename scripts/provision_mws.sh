@@ -14,6 +14,11 @@ if [ "x$TARGET_HOST" = "x" ]; then
     exit 2;
 fi
 
+if [ "x$LICENSE_KEY_ALIAS1" = "x" ]; then
+    echo "error: Variable LICENSE_KEY_ALIAS1 (for MWS) is required...exiting!"
+    exit 2;
+fi
+
 ## env variables
 export db_type="oracle"
 export db_name="XE"
@@ -27,6 +32,7 @@ export db_password="strong123!"
 $SAGCCANT_CMD -Denv.CC_CLIENT=$CC_CLIENT \
               -Denv.CC_TEMPLATE=mws-layer/tpl_mws_simple.yaml \
               -Denv.CC_TEMPLATE_ENV=mws \
+              -Denv.CC_TEMPLATE_ENV_LICENSE_KEY_ALIAS1=$LICENSE_KEY_ALIAS1 \
               -Denv.CC_TEMPLATE_ENV_TARGET_HOST=$TARGET_HOST \
               -Denv.CC_TEMPLATE_ENV_TYPE=server \
               -Denv.SOCKET_CHECK_TARGET_HOST=$TARGET_HOST \
