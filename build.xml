@@ -244,45 +244,6 @@
         <!--</propertyfile>-->
     <!--</target>-->
 
-    <target name="apply_licenses" depends="waitcc,_localinit" description="Import licence keys">
-        <property file="${env.properties}" />
-
-        <property name="licenses.dir" value="licenses" unless:set="licenses.zip.url"/>
-        <property name="licenses.dir" value="build/licenses" if:set="licenses.zip.url"/>
-
-        <echo if:set="licenses.zip.url">Downloading license keys .zip from: ${licenses.zip.url}</echo>
-        <mkdir dir="build/downloads" />
-        <get src="${licenses.zip.url}" dest="build/downloads/licenses.zip" usetimestamp="true" if:set="licenses.zip.url" />
-        <unzip src="build/downloads/licenses.zip" dest="licenses" if:set="licenses.zip.url" />
-
-        <cc command="list license-tools keys includeHeaders=false" format="csv" outputproperty="aliases" />
-
-        <iterate target="_import-license-files">
-            <fileset dir="${licenses.dir}/lnxamd64" includes="*.xml" />
-            <fileset dir="${licenses.dir}/w64" includes="*.xml" />
-            <fileset dir="${licenses.dir}/any" includes="*.xml" />
-            <fileset dir="${licenses.dir}/lnxamd64" includes="*.key" />
-            <fileset dir="${licenses.dir}/w64" includes="*.key" />
-            <fileset dir="${licenses.dir}/any" includes="*.key" />
-        </iterate>
-
-        <echo>Registered license keys</echo>
-        <cc command="list license-tools keys" format="tsv"/>
-    </target>
-
-    <target name="_import-license-files">
-        <property name="alias" value="${filename}-${dirname}"/>
-        <!-- chcek if we already have this license key -->
-        <contains list="${aliases}" item="${alias}" property="exists" />
-
-        <echo if:true="${exists}">${alias}: already present!</echo>
-
-        <sequential unless:true="${exists}">
-            <echo>${alias}: importing from ${dir}/${file}</echo>
-            <cc command="add license-tools keys ${alias}" input="${dir}/${file}" failonerror="false" />
-        </sequential>
-    </target>
-
     <target name="_tryRandom">
         <randomint max="100000000" property="random_prop" />
         <echo message="my random number: ${random_prop}" />

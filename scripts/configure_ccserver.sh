@@ -12,7 +12,17 @@ if [ -f ${HOME}/setenv-cce.sh ]; then
     . ${HOME}/setenv-cce.sh
 fi
 
-$SAGCCANT_CMD apply_licenses
+##apply default command central license
+$SAGCCANT_CMD -Denv.CC_ENV=cc \
+                -Dlicenses.zip.url=https://github.com/SoftwareAG/sagdevops-cc-server/blob/release/104apr2019/licenses/licenses.zip?raw=true \
+                licenses
+
+##apply custom product licenses
+if [ -f ${HOME}/sag_licenses.zip ]; then
+    $SAGCCANT_CMD -Denv.CC_ENV=cc \
+                -Dlicenses.zip.url="file://${HOME}/sag_licenses.zip" \
+                licenses
+fi
 
 $SAGCCANT_CMD -Denv.CC_TEMPLATE=sag-cc-creds  \
                 -Denv.CC_TEMPLATE_ENV=sag-cc-creds \
