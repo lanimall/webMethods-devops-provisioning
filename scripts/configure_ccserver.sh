@@ -3,12 +3,9 @@
 SAGCCANT_CMD="sagccant"
 
 ##### apply repos, licenses, mirrors, etc...
-## Make sure that EMPOWER_PSW and EMPOWER_PSW are defined in the shell $HOME/.bashrc or $HOME/.bash_profile
-## or provide them here -DEMPOWER_PSW= -DEMPOWER_PSW=
 
-CC_SSH_KEY_PATH=${HOME}/.ssh/id_rsa
-CC_SSH_KEY_PWD=
-CC_SSH_USER=centos
+## Make sure that the various variables needed (eg. CC_SAG_REPO_USR, CC_SAG_REPO_PWD etc...) are defined in the shell
+## or in the predefined setenv file: ${HOME}/setenv-cce.sh
 
 ## apply env
 if [ -f ${HOME}/setenv-cce.sh ]; then
