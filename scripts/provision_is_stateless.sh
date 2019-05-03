@@ -14,11 +14,17 @@ if [ "x$TARGET_HOST" = "x" ]; then
     exit 2;
 fi
 
+if [ "x$LICENSE_KEY_ALIAS" = "x" ]; then
+    echo "error: variable LICENSE_KEY_ALIAS is required...exiting!"
+    exit 2;
+fi
+
 ##### apply um template
 $SAGCCANT_CMD -Denv.CC_CLIENT=$CC_CLIENT \
               -Dinstall.dir=$SPM_INSTALL_DIR \
               -Denv.CC_TEMPLATE=is-layer/tpl_is_stateless.yaml \
               -Denv.CC_TEMPLATE_ENV=is \
+              -Denv.CC_TEMPLATE_ENV_LICENSE_KEY_ALIAS=$LICENSE_KEY_ALIAS \
               -Denv.CC_TEMPLATE_ENV_TARGET_HOST=$TARGET_HOST \
               -Denv.CC_TEMPLATE_ENV_TYPE=server \
               -Denv.SOCKET_CHECK_TARGET_HOST=$TARGET_HOST \

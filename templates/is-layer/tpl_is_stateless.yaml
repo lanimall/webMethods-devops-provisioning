@@ -9,7 +9,7 @@ environments:
 
     # Integration Server Instance Configuration
     os.platform:           lnxamd64
-    is.license.key.alias:  "Integration_Server-${os.platform}"
+    is.license.key.alias:  ${license.key.alias}
 
     is.host:            ${}
     is.instance.name:   default             # Instance name
