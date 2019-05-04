@@ -2,7 +2,6 @@
 
 SAGCCANT_CMD="sagccant"
 CC_CLIENT=default
-TARGET_HOST=sagdevops_ccinfra_um
 
 ## apply env
 if [ -f ${HOME}/setenv-cce.sh ]; then
