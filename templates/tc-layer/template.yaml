@@ -8,7 +8,7 @@ environments:
     repo.spm:            ${repo.product}
 
     target.os.platform:   lnxamd64          # w64/lnxamd64/solamd64/sol/aix
-    tc.license.key.alias:  terracotta-license-${target.os.platform}
+    tc.license.key.alias:  ${license.key.alias1}
 
     # TC Server Instance Configuration
     tc.configure:        [tc-runtime]
@@ -36,15 +36,11 @@ environments:
 
     ## remote provisioning
     spm.host:         ${tc.host}                # REQUIRED for all in one installation as default host
-    os.platform:      ${target.os.platform}     # remote machine OS platform code
-    os.username:      ${}                       # remote machine SSH username, default CCE process user account (as java system property)
-    os.password:      ${}                       # remote machine SSH password
-    os.auth.method:   ${}                       # remote machine authentication method: PASSWORD,INTERACTIVE,CERTIFICATE
-    os.auth.key:      ${}                       # keyfile for CERTIFICATE auth method
-    os.ssh.port:      ${}                        # remote machine SSH port
-    install.dir:      ${}                       # suite installation directory
-    spm.distribution: ALL                       # EXPERIMENTAL! distribution, ALL, DEF, MIN
-    spm.useImage:     false                     # EXPERIMENTAL! false for direct connection to the MASTER repo!
+    spm.credentials.alias: ${}
+    bootstrap.credentials.alias:      ${}       # remote machine credential alias to use
+    bootstrap.ssh.port:      ${}                # remote machine SSH port
+    bootstrap.install.dir:      ${}             # suite installation directory
+    bootstrap.install.installer: ${}            # installer to use for the SPM node
 
   server:
 
@@ -202,15 +198,12 @@ nodes:
     default:
       port:   ${spm.port}
       secure: ${spm.secure}
+      credentials: ${spm.credentials.alias}
       bootstrapInfo:
-        installDir:   ${install.dir}
-        installer:    ${install.installer}
-        port:         ${os.ssh.port}
-        credentials:
-          userName:   ${os.username}
-          password:   ${os.password}
-          authenticationMethod: ${os.auth.method}
-          privateKey: ${os.auth.key}
+        installDir:   ${bootstrap.install.dir}
+        installer:    ${bootstrap.install.installer}
+        port:         ${bootstrap.ssh.port}
+        credentials:  ${bootstrap.credentials.alias}
   docker:
     ${spm.alias}:
       host: ${tc.host}
