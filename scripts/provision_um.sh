@@ -20,7 +20,7 @@ fi
 
 ##### apply um template
 $SAGCCANT_CMD -Denv.CC_CLIENT=$CC_CLIENT \
-              -Denv.CC_TEMPLATE=um-layer/tpl_server.yaml \
+              -Denv.CC_TEMPLATE=um-layer/tpl-server.yaml \
               -Denv.CC_TEMPLATE_ENV=um \
               -Denv.CC_TEMPLATE_ENV_LICENSE_KEY_ALIAS1=$LICENSE_KEY_ALIAS1 \
               -Denv.CC_TEMPLATE_ENV_TARGET_HOST=$TARGET_HOST \
