@@ -48,8 +48,7 @@ layers:
     productRepo: ${repo.product}
     fixRepo:     ${repo.fix}
   tc:
-    templates:
-      - tc-runtime
+    templates: tc-runtime
 
 templates:
   tc-runtime:

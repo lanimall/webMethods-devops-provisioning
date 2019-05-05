@@ -55,20 +55,11 @@ layers:
   default:
     productRepo: ${repo.product}
     fixRepo:     ${repo.fix}
-  spm:
-    description: Management layer of SPM's
-    templates:   spm-runtime
   um:
     description: UM runtime layer
     templates:   um-runtime
 
 templates:
-  spm-runtime:
-      description: SPM customizations
-      fixes: ${spm.fixes}
-      products:
-        SPM:
-
   um-runtime:
     licenses:
       "UniversalMessaging/server/templates/licence.xml": "${um.license.key.alias}"
@@ -133,10 +124,8 @@ templates:
 
 provision:
   default:
-    spm: ["${is.host}"]
     um:   ["${um.host}"]
   docker:
-    spm: ["${spm.alias}"]
     um:   ["${spm.alias}"]
 
 nodes:
