@@ -48,10 +48,10 @@ layers:
   is:
     description: General purpose IS layer
     templates:
-      - is-server        # first create IS instance profile
+      - is-runtime        # first create IS instance profile
 
 templates:
-  is-server:
+  is-runtime:
     licenses:
       "IntegrationServer/config/licenseKey.xml": ${is.license.key.alias}
     fixes: ${is.fixes}
@@ -88,6 +88,8 @@ templates:
 provision:
   default:
     is:  ["${is.host}"]
+  server:
+    is:  ["${is.host}"]  
   docker:
     is:   ["${spm.alias}"]
 
