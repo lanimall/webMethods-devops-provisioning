@@ -1,0 +1,194 @@
+alias: tc-layer
+description: Terracotta Big Memory server
+
+environments:
+  default:
+    repo.product:        ${}
+    repo.fix:            ${}
+    repo.spm:            ${repo.product}
+
+    target.os.platform:   lnxamd64          # w64/lnxamd64/solamd64/sol/aix
+    tc.license.key.alias:  ${license.key.alias1}
+
+    # TC Server Instance Configuration
+    tc.configure:        [tc-runtime]
+    tc.host:             ${}          ## this should be the actual machine host
+    tc.instance.name:    tcserver     ## not used...using host for name too
+    tc.tsa.port:         9510
+    tc.jmx.port:         9520
+    tc.grp.port:         9530
+    tc.mgt.port:         9540
+    tc.memory.init:      1024               # minimil memory configuration
+    tc.memory.max:       2048               # minimal memory configuration
+    tc.storage.size:     20g
+    tc.offheap.size:     1g
+    tc.fixes:            [wMFix.TES]       # ALL
+    tc.data.dir:         ../data
+    tc.backup.dir:       ../backup
+    tc.logs.dir:         ../logs
+    tc.index.dir:        ../index
+    install.service:     true
+
+    ## remote provisioning
+    spm.port:       8092                    # SPM connection port
+    spm.secure:     false                   # Use HTTPS connection to SPM: true,false
+    spm.credentials.alias: ${}
+    bootstrap.credentials.alias:      ${}       # remote machine credential alias to use
+    bootstrap.ssh.port:      ${}                # remote machine SSH port
+    bootstrap.install.dir:      ${}             # suite installation directory
+    bootstrap.install.installer: ${}            # installer to use for the SPM node
+
+  server:
+
+  cluster:
+    tc.host2:           ${}                 # REQURIED tc installation host2
+    tc.instance.name:   tcserver1           ## not used...using host for name too
+    tc.instance.name2:  tcserver2           ## not used...using host for name too
+    tc.configure:       [tc-runtime,tc-cluster]
+
+  docker:
+    repo.product:    products
+    repo.fix:        fixes
+    tc.host:         localhost
+    spm.alias:       local
+    install.service: false
+
+layers:
+  default:
+    productRepo: ${repo.product}
+    fixRepo:     ${repo.fix}
+  tc:
+    templates:   ${tc.configure}
+
+templates:
+  tc-runtime:
+    licenses:
+      "Terracotta/terracotta-license.key": ${tc.license.key.alias}
+    fixes: ${tc.fixes}
+    products:
+      TES:
+        default:
+          install.service: ${install.service}
+          configuration:
+            TES-default:
+              COMMON-MEMORY:
+                COMMON-MEMORY:
+                  InitSize: ${tc.memory.init}
+                  MaxSize:  ${tc.memory.max}
+              TC-SERVER-NAME:
+                TC-SERVER-NAME:
+                  serverName: ${node.alias}
+              TC-CONFIG:
+                TC-CONFIG: |
+                  <?xml version="1.0" encoding="UTF-8" ?>
+                  <tc:tc-config
+                    xmlns:tc="http://www.terracotta.org/config"
+                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.terracotta.org/schema/terracotta-9.xsd">
+                    <servers>
+                      <server name="${node.alias}" host="${tc.host}">
+                        <data>${tc.data.dir}</data>
+                        <logs>${tc.logs.dir}</logs>
+                        <index>${tc.index.dir}</index>
+                        <data-backup>${tc.backup.dir}</data-backup>
+                        <tsa-port>${tc.tsa.port}</tsa-port>
+                        <jmx-port>${tc.jmx.port}</jmx-port>
+                        <tsa-group-port>${tc.grp.port}</tsa-group-port>
+                        <management-port>${tc.mgt.port}</management-port>
+                        <dataStorage size="${tc.storage.size}">
+                           <offheap size="${tc.offheap.size}"/>
+                           <hybrid/>
+                        </dataStorage>
+                      </server>
+                      <update-check>
+                          <enabled>false</enabled>
+                          <period-days>10</period-days>
+                      </update-check>
+                      <garbage-collection>
+                          <enabled>false</enabled>
+                          <verbose>false</verbose>
+                          <interval>3600</interval>
+                      </garbage-collection>
+                      <restartable enabled="true"/>
+                      <client-reconnect-window>120</client-reconnect-window>
+                    </servers>
+                  </tc:tc-config>
+  
+  tc-cluster:
+    products:
+      TES:
+        default:
+          configuration:
+            TES-default:
+              TC-CONFIG:
+                TC-CONFIG: |
+                  <?xml version="1.0" encoding="UTF-8" ?>
+                  <tc:tc-config
+                    xmlns:tc="http://www.terracotta.org/config"
+                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.terracotta.org/schema/terracotta-9.xsd">
+                    <servers>
+                      <server name="${tc.host}" host="${tc.host}">
+                        <data>${tc.data.dir}</data>
+                        <logs>${tc.logs.dir}</logs>
+                        <index>${tc.index.dir}</index>
+                        <data-backup>${tc.backup.dir}</data-backup>
+                        <tsa-port>${tc.tsa.port}</tsa-port>
+                        <jmx-port>${tc.jmx.port}</jmx-port>
+                        <tsa-group-port>${tc.grp.port}</tsa-group-port>
+                        <management-port>${tc.mgt.port}</management-port>
+                        <dataStorage size="${tc.storage.size}">
+                           <offheap size="${tc.offheap.size}"/>
+                           <hybrid/>
+                        </dataStorage>
+                      </server>
+                      <server name="${tc.host2}" host="${tc.host2}">
+                        <data>${tc.data.dir}</data>
+                        <logs>${tc.logs.dir}</logs>
+                        <index>${tc.index.dir}</index>
+                        <data-backup>${tc.backup.dir}</data-backup>
+                        <tsa-port>${tc.tsa.port}</tsa-port>
+                        <jmx-port>${tc.jmx.port}</jmx-port>
+                        <tsa-group-port>${tc.grp.port}</tsa-group-port>
+                        <management-port>${tc.mgt.port}</management-port>
+                        <dataStorage size="${tc.storage.size}">
+                           <offheap size="${tc.offheap.size}"/>
+                           <hybrid/>
+                        </dataStorage>
+                      </server>                      
+                      <update-check>
+                          <enabled>false</enabled>
+                          <period-days>10</period-days>
+                      </update-check>
+                      <garbage-collection>
+                          <enabled>false</enabled>
+                          <verbose>false</verbose>
+                          <interval>3600</interval>
+                      </garbage-collection>
+                      <restartable enabled="true"/>
+                      <client-reconnect-window>120</client-reconnect-window>
+                    </servers>
+                  </tc:tc-config>
+
+provision:
+  default:
+    tc:   ["${tc.host}"]
+  server:
+    tc:   ["${tc.host}"]
+  cluster:
+    tc:   ["${tc.host}", "${tc.host2}"]
+  docker:
+    tc:   ["${spm.alias}"]
+
+nodes:
+  default:
+    default:
+      port:   ${spm.port}
+      secure: ${spm.secure}
+      credentials: ${spm.credentials.alias}
+      bootstrapInfo:
+        installDir:   ${bootstrap.install.dir}
+        installer:    ${bootstrap.install.installer}
+        port:         ${bootstrap.ssh.port}
+        credentials:  ${bootstrap.credentials.alias}
+  docker:
+    ${spm.alias}:
+      host: ${tc.host}
