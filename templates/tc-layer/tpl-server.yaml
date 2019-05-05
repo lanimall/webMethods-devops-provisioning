@@ -6,11 +6,8 @@ environments:
     repo.product:        ${}
     repo.fix:            ${}
 
-    target.os.platform:   lnxamd64          # w64/lnxamd64/solamd64/sol/aix
-    tc.license.key.alias:  ${license.key.alias1}
-
     # TC Server Instance Configuration
-    tc.configure:        [tc-runtime]
+    tc.license.key.alias:  ${license.key.alias1}
     tc.host:             ${}          ## this should be the actual machine host
     tc.instance.name:    tcserver     ## not used...using host for name too
     tc.tsa.port:         9510
@@ -21,7 +18,7 @@ environments:
     tc.memory.max:       2048               # minimal memory configuration
     tc.storage.size:     20g
     tc.offheap.size:     1g
-    tc.fixes:            [wMFix.TES]       # ALL
+    tc.fixes:            [wMFix.TES]       # minimal recommended set of fixes to apply
     tc.data.dir:         ../data
     tc.backup.dir:       ../backup
     tc.logs.dir:         ../logs
@@ -39,12 +36,6 @@ environments:
 
   server:
 
-  cluster:
-    tc.host2:           ${}                 # REQURIED tc installation host2
-    tc.instance.name:   tcserver1           ## not used...using host for name too
-    tc.instance.name2:  tcserver2           ## not used...using host for name too
-    tc.configure:       [tc-runtime,tc-cluster]
-
   docker:
     repo.product:    products
     repo.fix:        fixes
@@ -57,7 +48,8 @@ layers:
     productRepo: ${repo.product}
     fixRepo:     ${repo.fix}
   tc:
-    templates:   ${tc.configure}
+    templates:
+      - tc-runtime
 
 templates:
   tc-runtime:
@@ -111,69 +103,10 @@ templates:
                       <client-reconnect-window>120</client-reconnect-window>
                     </servers>
                   </tc:tc-config>
-  
-  tc-cluster:
-    products:
-      TES:
-        default:
-          configuration:
-            TES-default:
-              TC-CONFIG:
-                TC-CONFIG: |
-                  <?xml version="1.0" encoding="UTF-8" ?>
-                  <tc:tc-config
-                    xmlns:tc="http://www.terracotta.org/config"
-                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.terracotta.org/schema/terracotta-9.xsd">
-                    <servers>
-                      <server name="${tc.host}" host="${tc.host}">
-                        <data>${tc.data.dir}</data>
-                        <logs>${tc.logs.dir}</logs>
-                        <index>${tc.index.dir}</index>
-                        <data-backup>${tc.backup.dir}</data-backup>
-                        <tsa-port>${tc.tsa.port}</tsa-port>
-                        <jmx-port>${tc.jmx.port}</jmx-port>
-                        <tsa-group-port>${tc.grp.port}</tsa-group-port>
-                        <management-port>${tc.mgt.port}</management-port>
-                        <dataStorage size="${tc.storage.size}">
-                           <offheap size="${tc.offheap.size}"/>
-                           <hybrid/>
-                        </dataStorage>
-                      </server>
-                      <server name="${tc.host2}" host="${tc.host2}">
-                        <data>${tc.data.dir}</data>
-                        <logs>${tc.logs.dir}</logs>
-                        <index>${tc.index.dir}</index>
-                        <data-backup>${tc.backup.dir}</data-backup>
-                        <tsa-port>${tc.tsa.port}</tsa-port>
-                        <jmx-port>${tc.jmx.port}</jmx-port>
-                        <tsa-group-port>${tc.grp.port}</tsa-group-port>
-                        <management-port>${tc.mgt.port}</management-port>
-                        <dataStorage size="${tc.storage.size}">
-                           <offheap size="${tc.offheap.size}"/>
-                           <hybrid/>
-                        </dataStorage>
-                      </server>                      
-                      <update-check>
-                          <enabled>false</enabled>
-                          <period-days>10</period-days>
-                      </update-check>
-                      <garbage-collection>
-                          <enabled>false</enabled>
-                          <verbose>false</verbose>
-                          <interval>3600</interval>
-                      </garbage-collection>
-                      <restartable enabled="true"/>
-                      <client-reconnect-window>120</client-reconnect-window>
-                    </servers>
-                  </tc:tc-config>
 
 provision:
   default:
     tc:   ["${tc.host}"]
-  server:
-    tc:   ["${tc.host}"]
-  cluster:
-    tc:   ["${tc.host}", "${tc.host2}"]
   docker:
     tc:   ["${spm.alias}"]
 
