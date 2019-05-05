@@ -106,6 +106,8 @@ templates:
 provision:
   default:
     tc:   ["${tc.host}"]
+  server:
+    tc:   ["${tc.host}"]
   docker:
     tc:   ["${spm.alias}"]
 

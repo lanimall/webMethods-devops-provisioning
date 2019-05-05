@@ -28,3 +28,5 @@ $SAGCCANT_CMD -Denv.CC_CLIENT=$CC_CLIENT \
               -Denv.SOCKET_CHECK_TARGET_HOST=$TARGET_HOST \
               -Denv.SOCKET_CHECK_TARGET_PORT=22 \
               setup
+
+exit 0;

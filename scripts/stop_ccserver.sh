@@ -10,3 +10,5 @@ fi
 
 ## start cce
 $SAGCCANT_CMD -Denv.CC_ENV=$CC_ENV stopcc
+
+exit 0;

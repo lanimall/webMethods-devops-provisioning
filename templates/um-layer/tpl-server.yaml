@@ -125,6 +125,8 @@ templates:
 provision:
   default:
     um:   ["${um.host}"]
+  server:
+    um:   ["${um.host}"]
   docker:
     um:   ["${spm.alias}"]
 
