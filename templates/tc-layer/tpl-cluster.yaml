@@ -5,7 +5,6 @@ environments:
   default:
     repo.product:        ${}
     repo.fix:            ${}
-    repo.spm:            ${repo.product}
 
     target.os.platform:   lnxamd64          # w64/lnxamd64/solamd64/sol/aix
     tc.license.key.alias:  ${license.key.alias1}
