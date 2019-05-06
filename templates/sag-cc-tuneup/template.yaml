@@ -73,6 +73,10 @@ templates:
         default:
           configuration:
             OSGI-CCE:              
+              COMMON-MEMORY:
+                COMMON-MEMORY:
+                  InitSize: '1024'
+                  MaxSize: '2048'
               COMMON-SYSPROPS:
                 COMMON-SYSPROPS:   # CCE system tuneup properties
                   com.softwareag.platform.management.job.thread.pool.size: ${pool.size.jobs}
@@ -87,13 +91,17 @@ templates:
                   com.softwareag.platform.management.client.template.composite.restart.online.status.poll.timeout.miliseconds: ${timeout.status.runtime.seconds}000
                   com.softwareag.platform.management.client.remote.requests.connect.timeout: ${timeout.spm.connect.seconds}000
                   com.softwareag.platform.management.client.remote.requests.sync.read.timeout: ${timeout.spm.read.seconds}000
-
+  
   spm-tuneup:
     products:
       SPM:
         default:
           configuration:
             OSGI-SPM: 
+              COMMON-MEMORY:
+                COMMON-MEMORY:
+                  InitSize: '256'
+                  MaxSize: '512'
               COMMON-SYSPROPS:
                 COMMON-SYSPROPS:   # SPM system tuneup properties
                   com.softwareag.platform.management.job.timeout: ${timeout.job.seconds}000
