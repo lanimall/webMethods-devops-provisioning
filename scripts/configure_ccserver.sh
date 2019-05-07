@@ -45,3 +45,8 @@ $SAGCCANT_CMD -Denv.CC_TEMPLATE=sag-cc-tuneup  \
 $SAGCCANT_CMD -Denv.CC_TEMPLATE=sag-cc-update  \
                 -Denv.CC_TEMPLATE_ENV=cc \
                 setup
+
+##create/update a file in tmp to broadcast that the script is done
+filename=$0
+filename="${filename%.*}"
+touch /tmp/$filename.done.status

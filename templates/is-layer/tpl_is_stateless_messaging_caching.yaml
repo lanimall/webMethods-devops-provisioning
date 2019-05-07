@@ -22,8 +22,13 @@ environments:
     # IS clustering
     is.cluster.enabled:  false
 
+    # IS custom caching
+    tc.license.key.alias:  ${license.key.alias2}
+    is.tsa.url:           ${}
+    is.cluster.name:      "${is.instance.name}-cluster"
+
     # IS Messaging
-    is.um.url:                ${} ### nsp://universalmessaging1.webmethods.local:9000
+    is.um.url:                ${}
     is.um.fixes:              [wMFix.NUMClient]
     is.jms.jndi.alias:        "CUSTOM_IS_JNDI_PROVIDER"
     is.jms.jndi.cf:           umcf
@@ -34,7 +39,7 @@ environments:
     spm.port:       8092                    # SPM connection port
     spm.secure:     false                   # Use HTTPS connection to SPM: true,false
     spm.credentials.alias: ${}
-    bootstrap.credentials.alias:      ${}       # remote machine credential alias to use
+    bootstrap.credentials.alias: ${}       # remote machine credential alias to use
     bootstrap.ssh.port:      ${}                # remote machine SSH port
     bootstrap.install.dir:      ${}             # suite installation directory
     bootstrap.install.installer: ${}            # installer to use for the SPM node
@@ -63,6 +68,17 @@ templates:
     fixes: ${um.fixes}
     products:
       NUMClient:
+
+  tc-client:
+    fixes: ${tc.fixes}
+    products:
+      TESCommon:
+  
+  spm-runtime:
+    fixes: ${spm.fixes}
+    products:
+       TESspm:
+
   is-runtime:
     licenses:
       "IntegrationServer/config/licenseKey.xml": ${is.license.key.alias}
@@ -95,12 +111,11 @@ templates:
               COMMON-JNDI:
                 COMMON-JNDI-${is.jms.jndi.alias}:
                   JNDI:
-                    '@alias': ${is.jms.jndi.alias}
-                    Description: JNDI UM provider
+                    "@alias": ${is.jms.jndi.alias}
+                    Description: JNDI provider alias
                     Provider:
-                      URL: ${is.um.url}
+                      URL: "${is.um.url}"
                       InitialContextFactory: com.pcbsys.nirvana.nSpace.NirvanaContextFactory
-                      User: ''
               COMMON-WMMESSAGING:
                 COMMON-WMMESSAGING-${is.wm.messaging.alias}:
                   Messaging:
@@ -170,47 +185,6 @@ templates:
                 COMMON-CLUSTER:
                   Name: ${is.cluster.name}
                   Enabled: ${is.cluster.enabled}
-
-##### from command central
-              COMMON-JMS:
-                COMMON-JMS-CUSTOM_IS_JMS_CONNECTION:
-                  JMS:
-                    '@alias': CUSTOM_IS_JMS_CONNECTION
-                    Description: UM connection
-                    Enabled: 'true'
-                    TransactionType: NO_TRANSACTION
-                    ClientId: ISConn_ID
-                    Provider:
-                      '@type': JNDI
-                      JNDIAlias: CUSTOM_IS_JNDI_PROVIDER
-                      JNDIConnectionFactoryName: umcf
-                    User: ''
-                    MaxRetryAttempts: '0'
-                    RetryInterval: '1000'
-                    Caching: DISABLED
-                    ExtendedProperties:
-                      Property:
-                      - '@name': jndi_connectionFactoryUpdateType
-                        $: NONE
-                      - '@name': jndi_connectionFactoryPollingInterval
-                        $: '0'
-                      - '@name': jndi_enableFollowTheMaster
-                        $: 'true'
-                      - '@name': classLoader
-                        $: INTEGRATION_SERVER
-                      - '@name': csqSize
-                        $: '-1'
-                      - '@name': csqDrainInOrder
-                        $: 'false'
-                      - '@name': optTempQueueCreate
-                        $: 'false'
-                      - '@name': allowReplyToConsumer
-                        $: 'false'
-                      - '@name': manageDestinations
-                        $: 'false'
-                      - '@name': allowNewConnectionPerTrigger
-                        $: 'true'
-                  
 
 provision:
   default:

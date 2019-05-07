@@ -20,3 +20,8 @@ sudo sh $SPM_INSTALL_DIR/bin/afterInstallAsRoot.sh
 echo "export CC_CLI_HOME=${SPM_INSTALL_DIR}/CommandCentral/client" > ${HOME}/setenv-cce.sh
 echo "export PATH=\$PATH:\${CC_CLI_HOME}/bin" >> ${HOME}/setenv-cce.sh
 echo "export SAGCCANT_CMD=\"sagccant\"" >> ${HOME}/setenv-cce.sh
+
+##create/update a file in tmp to broadcast that the script is done
+filename=$0
+filename="${filename%.*}"
+touch /tmp/$filename.done.status

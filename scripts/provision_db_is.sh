@@ -42,5 +42,10 @@ $SAGCCANT_CMD -Denv.CC_CLIENT=$CC_CLIENT \
               -Denv.SOCKET_CHECK_TARGET_HOST=$TARGET_HOST \
               -Denv.SOCKET_CHECK_TARGET_PORT=22 \
               setup
-                          
+
+##create/update a file in tmp to broadcast that the script is done
+filename=$0
+filename="${filename%.*}"
+touch /tmp/$filename.done.status
+
 exit 0;

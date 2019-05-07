@@ -17,7 +17,6 @@ environments:
     is.memory.init:     2048                # Initial memory size
     is.memory.max:      4096                # Maximum memory size
     is.install.service: true
-    is.configure:       [is-server]         # List of templates to apply
     is.fixes:           [wMFix.integrationServer.Core]
 
     # IS clustering
