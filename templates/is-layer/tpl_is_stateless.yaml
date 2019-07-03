@@ -7,7 +7,7 @@ environments:
     repo.fix:            ${}
 
     # Integration Server Instance Configuration
-    is.license.key.alias:  ${license.key.alias1}
+    is.license.key.alias:  ${}
     is.host:            ${}
     is.instance.name:   default             # Instance name
     is.primary.port:    5555                # Primary port number

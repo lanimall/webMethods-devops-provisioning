@@ -9,42 +9,24 @@
 
     <property environment="env" />
 
-    <target name="_localinit" depends="sagenvInit">
+    <target name="_localinit" depends="">
     </target>
 
-    <target name="_localclean" depends="_cleanRuntimeTemplateEnv, sagenv.clean">
+    <target name="_localclean" depends="sagenv.clean">
     </target>
 
-    <!-- _setRuntimeTemplateEnv must be called first so the copy process happens right,  -->
-    <target name="setup" depends="setup_noclean,_localclean" />
-    <target name="setup_noclean" depends="_setRuntimeTemplateEnv,waitForTargetNodeUp,templateApply" />
+    <!-- removing _localclean for troubleshooting-->
+    <target name="setup" depends="setup_noclean" />
+
+    <target name="setup_noclean" depends="waitForTargetNodeUp,templateApply" />
 
     <target name="setup_withccestart" depends="startcc,setup" />
 
     <target name="templateApply" description="Apply $CC_TEMPLATE" depends="waitcc,_localinit" >
-        <echo message="Applying template with env.properties = ${env.properties}" />
-
-        <trycatch>
-            <try>
-                <!-- call set properties to set soecific env variable in the env file -->
-                <antcall target="_setenvproperties">
-                    <param name="env.properties" value="${env.properties}"/>
-                </antcall>
-
-                <property name="template.path" value="templates/${env.CC_TEMPLATE}" />
-
-                <antcall target="sagenv.apply">
-                    <param name="t" value="${template.path}"/>
-                    <param name="env.properties" value="${env.properties}"/>
-                </antcall>
-            </try>
-            <catch>
-                <fail/>
-            </catch>
-            <finally>
-                <antcall target="_localclean" />
-            </finally>
-        </trycatch>
+        <property name="template.path" value="templates/${env.CC_TEMPLATE}" />
+        <antcall target="sagenv.apply">
+            <param name="t" value="${template.path}"/>
+        </antcall>
     </target>
 
     <target name="waitForTargetNodeUp" description="Wait for target node up" depends="_localinit">
@@ -94,69 +76,7 @@
         </waitfor>
     </target>
 
-    <target name="_getRuntimeTemplateEnv">
-        <set-property-if-nonempty name="template.env" if-property-isset="env.CC_TEMPLATE_ENV" />
-        <property name="template.env" value="default" />
-
-        <condition property="default.template.env.properties" value="environments/${template.env}/env.properties">
-            <available file="environments/${template.env}/env.properties"/>
-        </condition>
-        <condition property="default.template.env.properties" value="environments/${template.env}.properties">
-            <available file="environments/${template.env}.properties"/>
-        </condition>
-        <condition property="default.template.env.properties.exists" >
-            <available file="${default.template.env.properties}"/>
-        </condition>
-        <echo message="Success: Template Environment File: ${default.template.env.properties}" if:set="default.template.env.properties.exists" />
-        <echo message="Error: Template Environment File does not exist" unless:set="default.template.env.properties.exists" />
-
-        <!-- name of the new runtime env file + add a bit of entropy in case the same script is called at the same time...which is possible with docker -->
-        <randomint max="100000000" property="random_prop" />
-        <property name="runtime.template.env" value="runtime-${template.env}-${random_prop}" />
-        <property name="runtime.template.env.properties" value="environments/${runtime.template.env}.properties" />
-    </target>
-
-    <target name="_setRuntimeTemplateEnv" depends="_getRuntimeTemplateEnv">
-        <!-- copy the file tu runtime file -->
-        <copy file="${default.template.env.properties}" tofile="${runtime.template.env.properties}" overwrite="true" if:set="default.template.env.properties.exists"/>
-
-        <!-- check if the copy really happened -->
-        <condition property="runtime.template.env.properties.exists" >
-            <available file="${runtime.template.env.properties}"/>
-        </condition>
-
-        <!-- force env file to be "runtime" one as it is the file that should be used by the template apply command -->
-        <property name="env" value="${runtime.template.env}" if:set="runtime.template.env.properties.exists"/>
-        <echo message="New Environment Property Runtime: ${env}" if:set="env" />
-    </target>
-
-    <target name="_cleanRuntimeTemplateEnv" depends="_getRuntimeTemplateEnv">
-        <echo message="Cleaning runtime env.properties file = ${runtime.template.env.properties}" />
-        <delete file="${runtime.template.env.properties}"/>
-
-        <!-- check if the delete really happened -->
-        <condition property="runtime.template.env.properties.exists" >
-            <available file="${runtime.template.env.properties}"/>
-        </condition>
-        <property name="runtime.template.env.properties.exists" value="false" />
-
-        <echo message="Error: Template Environment File was not cleaned" if:true="runtime.template.env.properties.exists" />
-        <echo message="Success: Template Environment File was cleaned" unless:true="runtime.template.env.properties.exists" />
-    </target>
-
     <target name="_setenvproperties">
-        <!-- get all properties that starts with SAVEENV_<propname> -->
-        <!--<propertyselector property="saveenv.list"-->
-                          <!--delimiter=","-->
-                          <!--match="SAVEENV_(.*)$"-->
-                          <!--select="\1"-->
-                          <!--casesensitive="false" />-->
-
-        <!--<foreach list="${pack.list}"-->
-                 <!--delimiter=","-->
-                 <!--target="print.name"-->
-                 <!--param="pack.id" />-->
-
         <set-property-if-nonempty name="cc.password" if-property-isset="env.CC_PASSWORD" />
         <set-property-if-nonempty name="sag.repo.username" if-property-isset="env.CC_SAG_REPO_USR" />
         <set-property-if-nonempty name="sag.repo.password" if-property-isset="env.CC_SAG_REPO_PWD" />
@@ -194,61 +114,7 @@
         <set-property-if-nonempty name="db.password" if-property-isset="env.db_password" />
         <set-property-if-nonempty name="db.admin.username" if-property-isset="env.db_admin_username" />
         <set-property-if-nonempty name="db.admin.password" if-property-isset="env.db_admin_password" />
-
-        <!-- saving to env file because there's no other way...we need to pass these values using that env file -->
-        <propertyfile file="${env.properties}">
-            <entry key="cc.password" value="${cc.password}" if:set="cc.password" />
-            <entry key="sag.repo.username" value="${sag.repo.username}" if:set="sag.repo.username" />
-            <entry key="sag.repo.password" value="${sag.repo.password}" if:set="sag.repo.password" />
-            <entry key="ssh.user.name" value="${ssh.user.name}" if:set="ssh.user.name" />
-            <entry key="ssh.pk.filename" value="${ssh.pk.filename}" if:set="ssh.pk.filename" />
-            <entry key="ssh.pk.password" value="${ssh.pk.password}" if:set="ssh.pk.password" />
-            <entry key="environment.type" value="${environment.type}" if:set="environment.type" />
-            <entry key="target.host" value="${target.host}" if:set="target.host" />
-            <entry key="target.host2" value="${target.host2}" if:set="target.host2" />
-            <entry key="target.host3" value="${target.host3}" if:set="target.host3" />
-            <entry key="license.key.alias1" value="${license.key.alias1}" if:set="license.key.alias1" />
-            <entry key="license.key.alias2" value="${license.key.alias2}" if:set="license.key.alias2" />
-            <entry key="license.key.alias3" value="${license.key.alias3}" if:set="license.key.alias3" />
-
-            <entry key="is.tsa.url" value="${is.tsa.url}" if:set="is.tsa.url" />
-            <entry key="is.um.url" value="${is.um.url}" if:set="is.um.url" />
-
-            <entry key="db.name" value="${db.name}" if:set="db.name" />
-            <entry key="db.sid" value="${db.sid}" if:set="db.sid" />
-            <entry key="db.type" value="${db.type}" if:set="db.type" />
-            <entry key="db.host" value="${db.host}" if:set="db.host" />
-            <entry key="db.port" value="${db.port}" if:set="db.port" />
-            <entry key="db.url" value="${db.url}" if:set="db.url" />
-
-            <entry key="db.tablespace.dir" value="${db.tablespace.dir}" if:set="db.tablespace.dir" />
-            <entry key="db.tablespace.data" value="${db.tablespace.data}" if:set="db.tablespace.data" />
-            <entry key="db.tablespace.index" value="${db.tablespace.index}" if:set="db.tablespace.index" />
-
-            <entry key="db.username" value="${db.username}" if:set="db.username" />
-            <entry key="db.password" value="${db.password}" if:set="db.password" />
-            <entry key="db.admin.username" value="${db.admin.username}" if:set="db.admin.username" />
-            <entry key="db.admin.password" value="${db.admin.password}" if:set="db.admin.password" />
-
-            <entry key="db.product.version" value="${db.product.version}" if:set="db.product.version" />
-            <entry key="db.component.version" value="${db.component.version}" if:set="db.component.version" />
-            <entry key="db.products" value="${db.products}" if:set="db.products" />
-            <entry key="db.components" value="${db.components}" if:set="db.components" />
-        </propertyfile>
-
-        <property file="${env.properties}" />
     </target>
-
-    <!--<target name="_setproperties" depends="sagenvInit">-->
-        <!--${pack.id}-->
-        <!---->
-        <!--<set-property-if-nonempty name="environment.type" if-property-isset="env.ENV_TYPE" />-->
-
-        <!-- saving to env file because there's no other way...we need to pass these values using that env file -->
-        <!--<propertyfile file="${env.properties}">-->
-            <!--<entry key="environment.type" value="${environment.type}" if:set="environment.type" />-->
-        <!--</propertyfile>-->
-    <!--</target>-->
 
     <target name="_tryRandom">
         <randomint max="100000000" property="random_prop" />

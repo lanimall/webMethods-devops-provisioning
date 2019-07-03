@@ -4,4 +4,4 @@
 THISDIR=`dirname $0`; THISDIR=`cd $THISDIR;pwd`
 BASEDIR="$THISDIR/.."
 
-$BASEDIR/scripts/provision_ccserver.sh agent
+$BASEDIR/scripts/provision_ccserver.sh client

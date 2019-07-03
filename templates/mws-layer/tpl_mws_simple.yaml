@@ -55,7 +55,6 @@ environments:
     spm.fixes:      [wMFix.SPM]             # SPM/SUM/SD core fixes by default
 
     ## remote provisioning
-    spm.host:         ${is.host}                # REQUIRED for all in one installation as default host
     os.username:      ${}                       # remote machine SSH username, default CCE process user account (as java system property)
     os.password:      ${}                       # remote machine SSH password
     os.auth.method:   ${}                       # remote machine authentication method: PASSWORD,INTERACTIVE,CERTIFICATE

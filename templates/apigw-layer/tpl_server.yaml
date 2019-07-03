@@ -1,0 +1,105 @@
+alias: sag-apigateway-server
+description: API Gateway Server provisioning and configuration
+
+environments:
+  default:
+    repo.product:        ${}
+    repo.fix:            ${}
+
+    apigw.is.instance.type:    ${}           # IS instance type: MSC or integrationServer
+
+    apigw.host:            ${}
+    apigw.license.key.alias:             "*_YAIAA_10.*_*_*"                                  
+    apigw.instance.name:                 apigateway                                                        
+    apigw.primary.port:                  5555                                                              
+    apigw.diagnostic.port:               9999                                                                  
+    apigw.jmx.port:                      5559
+    apigw.memory.init:                   512                                                               
+    apigw.memory.max:                    1024                                                               
+    apigw.install.service:               true
+    apigw.fixes:                         ALL   
+
+    ## remote provisioning
+    spm.port:       8092                    # SPM connection port
+    spm.secure:     false                   # Use HTTPS connection to SPM: true,false
+    spm.credentials.alias: ${}
+    bootstrap.credentials.alias:      ${}       # remote machine credential alias to use
+    bootstrap.ssh.port:      ${}                # remote machine SSH port
+    bootstrap.install.dir:      ${}             # suite installation directory
+    bootstrap.install.installer: ${}            # installer to use for the SPM node
+
+  server:
+
+  docker:
+    repo.product:       products
+    repo.fix:           fixes
+    apigw.host:           localhost
+    spm.alias:          local
+    is.install.service: false
+
+layers:
+  default:
+    productRepo: ${repo.product}
+    fixRepo:     ${repo.fix}
+  runtime:
+    templates:   agw-server
+
+templates:
+  agw-server:
+    licenses:
+      "IntegrationServer/config/APIGatewayLicenseKey.xml": ${apigw.license.key.alias} 
+    fixes: ${apigw.fixes}
+    products:
+      YAI:
+      ${apigw.is.instance.type}:
+        ${apigw.instance.name}: 
+          primary.port:    ${apigw.primary.port}
+          diagnostic.port: ${apigw.diagnostic.port}
+          jmx.port:        ${apigw.jmx.port}
+          license.file:    IntegrationServer/config/APIGatewayLicenseKey.xml
+          install.service: ${apigw.install.service}
+          package.list:    WmAPIGateway
+          configuration:
+            OSGI-IS_${instance.name}:
+              COMMON-MEMORY:
+                COMMON-MEMORY:
+                  InitSize: ${apigw.memory.init}
+                  MaxSize:  ${apigw.memory.max}
+              COMMON-JVM-OPTIONS:                             
+                COMMON-JVM-OPTIONS:                          
+                    option: 
+                      - "-Xbootclasspath/a:\"%JAVA_BOOT_CLASSPATH%\""
+                      - "-server"
+                      - "-verbose:gc"
+                      - "-XX:+PrintGC"
+                      - "-XX:+PrintGCDetails"
+                      - "-XX:+PrintGCTimeStamps"
+                      - "-XX:+PrintTenuringDistribution"
+                      - "-XX:+PrintGCCause"
+                      - "-XX:+PrintAdaptiveSizePolicy"
+                      - "-XX:+UseGCLogFileRotation"
+                      - "-XX:NumberOfGCLogFiles=5"
+                      - "-XX:GCLogFileSize=10M"
+                      - "-Xloggc:%OSGI_INSTALL_AREA%/logs/gc_apigw.log"             
+provision:
+  default:
+    runtime:  ["${apigw.host}"]
+  server:
+    runtime:  ["${apigw.host}"]  
+  docker:
+    runtime:  ["${spm.alias}"]
+
+nodes:
+  default:
+    default:
+      port:   ${spm.port}
+      secure: ${spm.secure}
+      credentials: ${spm.credentials.alias}
+      bootstrapInfo:
+        installDir:   ${bootstrap.install.dir}
+        installer:    ${bootstrap.install.installer}
+        port:         ${bootstrap.ssh.port}
+        credentials:  ${bootstrap.credentials.alias}
+  docker:
+    ${spm.alias}:
+      host: ${apigw.host}

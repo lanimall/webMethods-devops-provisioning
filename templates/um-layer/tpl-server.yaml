@@ -7,7 +7,7 @@ environments:
     repo.fix:            ${}
     repo.spm:            ${repo.product}
 
-    um.license.key.alias: ${license.key.alias1}
+    um.license.key.alias: ${}
     um.host:             ${}                # This is the provisoning host name (where the UM instance / product should be installed)
     um.access.host:      ${um.host}         # This is the access host name (general access - generally should be equal to um.host, but not in case of docker creation)
     um.instance.name:    umserver           # realm server instance name

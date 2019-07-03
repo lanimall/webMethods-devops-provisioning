@@ -7,7 +7,7 @@ environments:
     repo.fix:            ${}
 
     # TC Server Instance Configuration
-    tc.license.key.alias:  ${license.key.alias1}
+    tc.license.key.alias:  ${}
     tc.host:             ${}          ## this should be the actual machine host
     tc.instance.name:    tcserver     ## not used...using host for name too
     tc.tsa.port:         9510

@@ -43,7 +43,7 @@ environments:
 #      - wMFix.OPT.optimizeUI                    # Collaboration
 #      - wMFix.OPT.infraDCUI                     # Collaboration
 
-    mws.target.is.host:            mws                # REQUIRED:
+    mws.target.is.host:            ${}                # REQUIRED:
     mws.target.is.http.port:       8585
     mws.target.is.https.port:      8586
     mws.target.is.lb.protocol:     http

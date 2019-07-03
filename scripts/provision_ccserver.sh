@@ -1,27 +1,50 @@
 #!/bin/bash
 
-ANT_CMD="ant"
-
+INSTALL_DIR=/opt/softwareag
 CC_BOOT=default
-SPM_INSTALL_DIR=/opt/softwareag
+RUN_AS_USER="saguser"
 
-## first, make sure ant is installed
-sudo yum -y install ant
+## getting current filename and base path
+THIS=`basename $0`
+THIS_NOEXT="${THIS%.*}"
+THISDIR=`dirname $0`; THISDIR=`cd $THISDIR;pwd`
+BASEDIR="$THISDIR/.."
 
-#not sure how to use the -f sagdevops-cc-server/build.xml command with sagccant
-##### bootstrap: this leverages the ENV
-## for security, CC_PASSWORD should be defined in the shell
-$ANT_CMD -Denv.CC_BOOT=$CC_BOOT -Denv.CC_PASSWORD=$CC_PASSWORD -Dinstall.dir=$SPM_INSTALL_DIR boot
+## get params for bootstrap command target
+BOOTSTRAP_TARGET=$1
+if [ "x$BOOTSTRAP_TARGET" = "x" ]; then
+    echo "Bootstrap target is empty...defaulting to server"
+    BOOTSTRAP_TARGET="boot"
+fi
+echo "Bootstrap target: $BOOTSTRAP_TARGET"
 
-# once done, make sure to run this script to install SPM as a service
-sudo sh $SPM_INSTALL_DIR/bin/afterInstallAsRoot.sh
+##executes the pre-requisites as root
+$BASEDIR/scripts/runas_cmd.sh root "$BASEDIR/scripts/internal/provision_ccserver_prereqs.sh $RUN_AS_USER $INSTALL_DIR"
 
-#create a setenv file to include the newly installed CLI in the PATH
-echo "export CC_CLI_HOME=${SPM_INSTALL_DIR}/CommandCentral/client" > ${HOME}/setenv-cce.sh
-echo "export PATH=\$PATH:\${CC_CLI_HOME}/bin" >> ${HOME}/setenv-cce.sh
-echo "export SAGCCANT_CMD=\"sagccant\"" >> ${HOME}/setenv-cce.sh
+##become target user for install
+$BASEDIR/scripts/runas_cmd.sh $RUN_AS_USER "$BASEDIR/scripts/internal/provision_ccserver.sh $CC_BOOT $INSTALL_DIR $BOOTSTRAP_TARGET"
 
-##create/update a file in tmp to broadcast that the script is done
-filename=$0
-filename="${filename%.*}"
-touch /tmp/$filename.done.status
+runexec=$?
+echo -n "Provisonning status:"
+if [ $runexec -eq 0 ]; then
+    echo "[$THIS: SUCCESS]"
+    
+    # once done, make sure to run this script to install SPM as a service
+    if [ -f $INSTALL_DIR/bin/afterInstallAsRoot.sh ]; then
+        echo "Executing afterInstallAsRoot"
+        $BASEDIR/scripts/runas_cmd.sh root "sh $INSTALL_DIR/bin/afterInstallAsRoot.sh"
+        echo "afterInstallAsRoot done!"
+    else
+        echo "Warning: No afterInstallAsRoot file found..."
+    fi
+
+    ##create/update a file in tmp to broadcast that the script is done
+    touch /tmp/$THIS_NOEXT.done.status
+else
+    echo "[$THIS: FAIL]"
+
+    ##create/update a file in tmp to broadcast that the script is done
+    touch /tmp/$THIS_NOEXT.fail.status
+fi
+
+exit;
