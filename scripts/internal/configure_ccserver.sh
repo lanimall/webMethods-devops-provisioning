@@ -33,12 +33,14 @@ if [ "x$CC_PASSWORD" = "x" ]; then
 fi
 
 ##apply default command central license
+echo "Trying to apply default command central license"
 $SAGCCANT_CMD  -Dbuild.dir=$ANT_BUILD_DIR \
                 -Denv.CC_ENV=cc \
                 -Dlicenses.zip.url=https://github.com/SoftwareAG/sagdevops-cc-server/blob/release/104apr2019/licenses/licenses.zip?raw=true \
                 licenses
 
 ##apply custom product licenses
+echo "Trying to add custom product licenses to Command Central"
 if [ -f ${HOME}/sag_licenses.zip ]; then
     $SAGCCANT_CMD  -Dbuild.dir=$ANT_BUILD_DIR \
                     -Denv.CC_ENV=cc \
@@ -46,8 +48,7 @@ if [ -f ${HOME}/sag_licenses.zip ]; then
                     licenses
 fi
 
-echo "CC_SAG_REPO_USR=$CC_SAG_REPO_USR"
-
+echo "Trying to setup credentials into Command Central"
 $SAGCCANT_CMD  -Dbuild.dir=$ANT_BUILD_DIR \
                 -Denv.CC_TEMPLATE=sag-cc-creds  \
                 -Denv.CC_ENV=sag-cc-creds \
@@ -59,16 +60,19 @@ $SAGCCANT_CMD  -Dbuild.dir=$ANT_BUILD_DIR \
                 -Dcc.password="$CC_PASSWORD" \
                 setup
 
+echo "Trying to setup product and fix repositories in Command Central"
 $SAGCCANT_CMD  -Dbuild.dir=$ANT_BUILD_DIR \
                 -Denv.CC_TEMPLATE=sag-cc-repos  \
                 -Denv.CC_ENV=sag-cc-repos \
                 setup
 
+echo "Trying to tune Command Central settings and timeout"
 $SAGCCANT_CMD  -Dbuild.dir=$ANT_BUILD_DIR \
                 -Denv.CC_TEMPLATE=sag-cc-tuneup  \
                 -Denv.CC_ENV=cc \
                 setup
 
+echo "Trying to update Command Central"
 $SAGCCANT_CMD  -Dbuild.dir=$ANT_BUILD_DIR \
                 -Denv.CC_TEMPLATE=sag-cc-update  \
                 -Denv.CC_ENV=cc \
