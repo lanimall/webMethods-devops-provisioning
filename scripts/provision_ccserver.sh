@@ -9,19 +9,15 @@ THIS_NOEXT="${THIS%.*}"
 THISDIR=`dirname $0`; THISDIR=`cd $THISDIR;pwd`
 BASEDIR="$THISDIR/.."
 
-## get params for bootstrap command target
+##get the params passed-in
 BOOTSTRAP_TARGET=$1
-if [ "x$BOOTSTRAP_TARGET" = "x" ]; then
-    echo "Bootstrap target is empty...defaulting to server"
-    BOOTSTRAP_TARGET="boot"
-fi
-echo "Bootstrap target: $BOOTSTRAP_TARGET"
+BOOTSTRAP_CC_PASSWORD=$2
 
 ##executes the pre-requisites as root
 $BASEDIR/scripts/runas_cmd.sh root "$BASEDIR/scripts/internal/provision_ccserver_prereqs.sh $RUN_AS_USER $INSTALL_DIR"
 
 ##become target user for install
-$BASEDIR/scripts/runas_cmd.sh $RUN_AS_USER "$BASEDIR/scripts/internal/provision_ccserver.sh $BOOTSTRAP_TARGET"
+$BASEDIR/scripts/runas_cmd.sh $RUN_AS_USER "$BASEDIR/scripts/internal/provision_ccserver.sh $BOOTSTRAP_TARGET $BOOTSTRAP_CC_PASSWORD"
 
 runexec=$?
 echo -n "Provisonning status:"

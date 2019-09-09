@@ -6,25 +6,31 @@ THIS_NOEXT="${THIS%.*}"
 THISDIR=`dirname $0`; THISDIR=`cd $THISDIR;pwd`
 BASEDIR="$THISDIR/../.."
 
-##get the params passed-in
-BOOTSTRAP_TARGET=$1
-
-echo "Params: $BOOTSTRAP_TARGET"
-
 ## apply global env
 if [ -f ${BASEDIR}/scripts/internal/provision_envs.sh ]; then
     . ${BASEDIR}/scripts/internal/provision_envs.sh
 fi
 
-## apply env with secrets
-## for security, CC_PASSWORD should be defined in this setenv_cce_init_secrets the shell 
-if [ -f ${HOME}/setenv_cce_init_secrets.sh ]; then
-    echo "applying cce secrets to the shell"
-    . ${HOME}/setenv_cce_init_secrets.sh
+##get the params passed-in
+BOOTSTRAP_TARGET=$1
+BOOTSTRAP_CC_PASSWORD=$2
+
+if [ "x$BOOTSTRAP_TARGET" = "x" ]; then
+    echo "Bootstrap target is empty...defaulting"
+    BOOTSTRAP_TARGET=$BOOTSTRAP_TARGET_DEFAULT
+fi
+
+if [ "x$BOOTSTRAP_CC_PASSWORD" = "x" ]; then
+    echo "Bootstrap CC PASSWORD is empty...defaulting."
+    BOOTSTRAP_CC_PASSWORD=$BOOTSTRAP_CC_PASSWORD_DEFAULT
 fi
 
 ##### bootstrap: this leverages the properties file bootstrap/$CC_BOOT.properties + apply $CC_PASSWORD if defined in setenv_cce_init_secrets
-$ANT_CMD -Denv.CC_BOOT=$CC_BOOT -Denv.CC_PASSWORD=$CC_PASSWORD -Dbuild.dir=$ANT_BUILD_DIR -Dinstall.dir=$INSTALL_DIR $BOOTSTRAP_TARGET
+$ANT_CMD -Denv.CC_BOOT=$CC_BOOT \
+    -Denv.CC_PASSWORD=$BOOTSTRAP_CC_PASSWORD \
+    -Dbuild.dir=$ANT_BUILD_DIR \
+    -Dinstall.dir=$INSTALL_DIR \
+    $BOOTSTRAP_TARGET
 
 runexec=$?
 echo -n "Provisonning status:"
