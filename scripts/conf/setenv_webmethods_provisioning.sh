@@ -1,5 +1,6 @@
 #!/bin/bash
 
+RUN_AS_USER="saguser"
 SAGCCANT_CMD="sagccant"
 ANT_CMD="ant"
 CC_CLIENT=default

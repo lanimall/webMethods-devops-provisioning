@@ -7,11 +7,11 @@ THISDIR=`dirname $0`; THISDIR=`cd $THISDIR;pwd`
 BASEDIR="$THISDIR/../.."
 
 ## apply global env
-if [ -f ${BASEDIR}/scripts/internal/provision_envs.sh ]; then
-    . ${BASEDIR}/scripts/internal/provision_envs.sh
+if [ -f ${BASEDIR}/scripts/conf/setenv_webmethods_provisioning.sh ]; then
+    . ${BASEDIR}/scripts/conf/setenv_webmethods_provisioning.sh
 fi
 
-## apply env
+## apply cce env
 if [ -f ${HOME}/setenv-cce.sh ]; then
     . ${HOME}/setenv-cce.sh
 fi

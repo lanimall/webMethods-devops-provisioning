@@ -4,7 +4,7 @@ SAGCCANT_CMD="sagccant"
 CC_CLIENT=default
 SPM_INSTALL_DIR=/opt/softwareag
 
-## apply env
+## apply cce env
 if [ -f ${HOME}/setenv-cce.sh ]; then
     . ${HOME}/setenv-cce.sh
 fi

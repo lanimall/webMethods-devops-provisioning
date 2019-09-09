@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-webmethods_cc_password=admin123!
+webmethods_cc_password=
 webmethods_repo_username=
 webmethods_repo_password=
 webmethods_cc_ssh_key_filename=

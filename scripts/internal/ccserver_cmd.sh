@@ -1,14 +1,22 @@
 #!/bin/bash
 
-SAGCCANT_CMD="sagccant"
-
 ## getting current filename and basedir
 THIS=`basename $0`
 THIS_NOEXT="${THIS%.*}"
 THISDIR=`dirname $0`; THISDIR=`cd $THISDIR;pwd`
 BASEDIR="$THISDIR/../.."
 
-##get the user passed-in
+## apply global env
+if [ -f ${BASEDIR}/scripts/conf/setenv_webmethods_provisioning.sh ]; then
+    . ${BASEDIR}/scripts/conf/setenv_webmethods_provisioning.sh
+fi
+
+## apply cce env
+if [ -f ${HOME}/setenv-cce.sh ]; then
+    . ${HOME}/setenv-cce.sh
+fi
+
+##get the commands passed-in
 CC_ENV=$1
 CMD_TARGET="${@:2}"
 

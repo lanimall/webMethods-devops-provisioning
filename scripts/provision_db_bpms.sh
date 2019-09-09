@@ -1,8 +1,11 @@
 #!/bin/bash
 
-SAGCCANT_CMD="sagccant"
-CC_CLIENT=default
 TARGET_HOST=sagdevops_ccinfra_is
+
+## apply global env
+if [ -f ${BASEDIR}/scripts/conf/setenv_webmethods_provisioning.sh ]; then
+    . ${BASEDIR}/scripts/conf/setenv_webmethods_provisioning.sh
+fi
 
 ## apply env
 if [ -f ${HOME}/setenv-cce.sh ]; then

@@ -1,8 +1,5 @@
 #!/bin/bash
 
-SAGCCANT_CMD="sagccant"
-ANT_BUILD_DIR=${HOME}/sagcc/build
-
 ## getting filename without path and extension
 THIS=`basename $0`
 THIS_NOEXT="${THIS%.*}"
@@ -14,16 +11,25 @@ BASEDIR="$THISDIR/../.."
 ## Make sure that the various variables needed (eg. CC_SAG_REPO_USR, CC_SAG_REPO_PWD etc...) are defined in the shell
 ## or in the predefined setenv file: ${HOME}/setenv-cce.sh
 
-## apply env
+## apply global env
+if [ -f ${BASEDIR}/scripts/conf/setenv_webmethods_provisioning.sh ]; then
+    . ${BASEDIR}/scripts/conf/setenv_webmethods_provisioning.sh
+fi
+
+## apply cce env
 if [ -f ${HOME}/setenv-cce.sh ]; then
     . ${HOME}/setenv-cce.sh
 fi
 
-## apply env with secrets
-## for security, CC_PASSWORD should be defined in this setenv_cce_init_secrets the shell 
-if [ -f ${HOME}/setenv_cce_init_secrets.sh ]; then
-    echo "applying cce secrets to the shell"
-    . ${HOME}/setenv_cce_init_secrets.sh
+## apply secrets
+if [ -f ${HOME}/.setenv_cce_secrets.sh ]; then
+    . ${HOME}/.setenv_cce_secrets.sh
+fi
+
+##check if CC_PASSWORD set
+if [ "x$CC_PASSWORD" = "x" ]; then
+    echo "Bootstrap CC_PASSWORD is empty...defaulting."
+    CC_PASSWORD=$BOOTSTRAP_CC_PASSWORD_DEFAULT
 fi
 
 ##apply default command central license
