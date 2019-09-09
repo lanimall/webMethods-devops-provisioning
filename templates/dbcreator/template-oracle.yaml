@@ -1,0 +1,71 @@
+alias: dbcreator-oracle
+description: Database Configurator For Oracle backend
+
+environments:
+  default:                 
+    # product and fix repositories
+    repo.product:        ${}
+    repo.fix:            ${}
+    
+    db.type:             oracle             # oracle
+    db.host:             ${}                # REQUIRED: Database server hostname
+    db.port:             ${}                # oracle default port
+    db.sid:              ${}                 # Database name
+    
+    # Database server admin connection for storage/user creation
+    db.admin.url:        "jdbc:wm:oracle://${db.host}:${db.port};SID=${db.sid}" # ;sysLoginRole=sysdba
+    db.admin.username:   ${}             # REQUIRED: for db storage only
+    db.admin.password:   ${}             # REQUIRED: for db storage only
+    db.tablespace.data:  ${}           # for Oracle/DB2
+    db.tablespace.index: ${}           # for Oracle/DB2
+    db.tablespace.dir:   ${} # REQUIRED: for Oracle/DB2
+
+    db.version:          ${}           # REQUIRED: target release, e.g. 10.2
+    db.url:              "jdbc:wm:oracle://${db.host}:${db.port};SID=${db.sid}"
+    db.name:             ${}
+    db.username:         ${}         # Database username
+    db.password:         ${}         # Database password
+    db.products:         ${}
+    db.fixes:            []                 # Database component configurator fixes to install
+    
+layers:
+  default:
+    productRepo: ${repo.product}            # install products from
+    fixRepo:     ${repo.fix}                # install fixes from
+  db:
+    templates:   
+      - dbc
+    databases:
+      storage:
+        components:  
+          - STR
+        version:     latest
+        db.type:     ${db.type}
+        db.url:      ${db.admin.url}
+        db.admin.username: ${db.admin.username}
+        db.admin.password: ${db.admin.password}
+        db.tablespace.dir: ${db.tablespace.dir}
+        db.tablespace.data: ${db.tablespace.data}
+        db.tablespace.index: ${db.tablespace.index}
+        db.username: ${db.username}
+        db.password: ${db.password}
+        db.name:     ${db.name}
+      schemas:
+        products:    ${db.products}
+        version:     ${db.version}
+        db.type:     ${db.type}
+        db.url:      ${db.url}
+        db.username: ${db.username}
+        db.password: ${db.password}
+        db.name:     ${db.name}
+
+templates:
+  dbc:
+    products:
+      DatabaseComponentConfigurator:
+      # FEATURE: we need runtime instance to tag as layer instance
+    fixes: ${db.fixes}
+
+provision:
+  default:
+    db: local

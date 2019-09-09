@@ -1,51 +1,26 @@
 #!/bin/bash
 
-SAGCCANT_CMD="sagccant"
-CC_CLIENT=default
-TARGET_HOST=sagdevops_ccinfra_is
+RUN_AS_USER="saguser"
 
-## apply env
-if [ -f ${HOME}/setenv-cce.sh ]; then
-    . ${HOME}/setenv-cce.sh
+## getting current filename and base path
+THIS=`basename $0`
+THIS_NOEXT="${THIS%.*}"
+THISDIR=`dirname $0`; THISDIR=`cd $THISDIR;pwd`
+BASEDIR="$THISDIR/.."
+
+##become target user for install
+$BASEDIR/scripts/runas_cmd.sh $RUN_AS_USER "$BASEDIR/scripts/internal/$THIS"
+runexec=$?
+
+echo -n "Provisonning status:"
+if [ $runexec -eq 0 ]; then
+    echo "[$THIS: SUCCESS]"
+    ##create/update a file in tmp to broadcast that the script is done
+    touch /tmp/$THIS_NOEXT.done.status
+else
+    echo "[$THIS: FAIL]"
+    ##create/update a file in tmp to broadcast that the script is done
+    touch /tmp/$THIS_NOEXT.fail.status
 fi
 
-if [ "x$TARGET_HOST" = "x" ]; then
-    echo "error: variable TARGET_HOST is required...exiting!"
-    exit 2;
-fi
-
-## env variables
-export db_name="XE"
-export db_sid="XE"
-export db_type="oracle"
-export db_host="sagdevops_ccinfra_db"
-export db_port="1521"
-#no need to pass the tablespace dir if db_create_file_dest is set on the target database
-#export db_tablespace_dir="/u01/app/oracle/oradata/XE"
-export db_tablespace_data="WEBMDATA"
-export db_tablespace_index="WEBMINDX"
-export db_admin_username="sagdb_admin"
-export db_admin_password="verystrong123!"
-export db_username="is_dbuser"
-export db_password="strong123!"
-export db_product_version="latest"
-export db_component_version="latest"
-export db_components="[STR]"
-export db_products="[IS]"
-
-##### apply um template
-$SAGCCANT_CMD -Denv.CC_CLIENT=$CC_CLIENT \
-              -Denv.CC_TEMPLATE=dbcreator \
-              -Denv.CC_TEMPLATE_ENV=dbcreator \
-              -Denv.CC_TEMPLATE_ENV_TARGET_HOST=$TARGET_HOST \
-              -Denv.CC_TEMPLATE_ENV_TYPE=server \
-              -Denv.SOCKET_CHECK_TARGET_HOST=$TARGET_HOST \
-              -Denv.SOCKET_CHECK_TARGET_PORT=22 \
-              setup
-
-##create/update a file in tmp to broadcast that the script is done
-filename=$0
-filename="${filename%.*}"
-touch /tmp/$filename.done.status
-
-exit 0;
+exit $runexec

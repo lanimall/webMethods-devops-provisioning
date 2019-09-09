@@ -1,0 +1,13 @@
+#!/bin/bash
+
+SAGCCANT_CMD="sagccant"
+ANT_CMD="ant"
+CC_CLIENT=default
+CC_BOOT=default
+INSTALL_DIR=/opt/softwareag
+ANT_BUILD_DIR=${HOME}/sagcc/build
+
+CC_BOOTSTRAPPER_VERSION=10.3
+CC_BOOTSTRAPPER_VERSION_FIX=fix7
+CC_REPO_NAME_PRODUCTS=webMethods-10.3
+CC_REPO_NAME_FIXES=Empower

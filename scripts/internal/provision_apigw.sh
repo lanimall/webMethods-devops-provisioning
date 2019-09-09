@@ -1,15 +1,17 @@
 #!/bin/bash
 
-SAGCCANT_CMD="sagccant"
-CC_CLIENT=default
-INSTALL_DIR=/opt/softwareag
-ANT_BUILD_DIR=${HOME}/sagcc/build
-CC_BOOTSTRAPPER_VERSION=10.3
-CC_BOOTSTRAPPER_VERSION_FIX=fix7
-CC_REPO_NAME_PRODUCTS=webMethods-10.3
-CC_REPO_NAME_FIXES=Empower
+## getting current filename and basedir
+THIS=`basename $0`
+THIS_NOEXT="${THIS%.*}"
+THISDIR=`dirname $0`; THISDIR=`cd $THISDIR;pwd`
+BASEDIR="$THISDIR/../.."
 
-## apply env
+## apply global env
+if [ -f ${BASEDIR}/scripts/internal/provision_envs.sh ]; then
+    . ${BASEDIR}/scripts/internal/provision_envs.sh
+fi
+
+## apply user env
 if [ -f ${HOME}/setenv-cce.sh ]; then
     . ${HOME}/setenv-cce.sh
 fi
@@ -23,13 +25,13 @@ fi
 $SAGCCANT_CMD -Denv.CC_CLIENT=$CC_CLIENT \
               -Dbuild.dir=$ANT_BUILD_DIR \
               -Dinstall.dir=$INSTALL_DIR \
-              -Denv.CC_TEMPLATE=apigw-layer/tpl_server.yaml \
-              -Denv.CC_ENV=apigw \
-              -Dbootstrap.install.dir=$INSTALL_DIR \
               -Drepo.product=$CC_REPO_NAME_PRODUCTS \
               -Drepo.fix=$CC_REPO_NAME_FIXES \
+              -Dbootstrap.install.dir=$INSTALL_DIR \
               -Dbootstrap.install.installer.version=$CC_BOOTSTRAPPER_VERSION \
               -Dbootstrap.install.installer.version.fix=$CC_BOOTSTRAPPER_VERSION_FIX \
+              -Denv.CC_TEMPLATE=apigw-layer/tpl_server.yaml \
+              -Denv.CC_ENV=apigw \
               -Denvironment.type=server \
               -Dapigw.host=$TARGET_HOST \
               -Dapigw.is.instance.type=integrationServer \

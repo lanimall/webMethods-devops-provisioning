@@ -1,8 +1,5 @@
 #!/bin/bash
 
-ANT_CMD="ant"
-ANT_BUILD_DIR=${HOME}/sagcc/build
-
 ## getting current filename and basedir
 THIS=`basename $0`
 THIS_NOEXT="${THIS%.*}"
@@ -10,11 +7,14 @@ THISDIR=`dirname $0`; THISDIR=`cd $THISDIR;pwd`
 BASEDIR="$THISDIR/../.."
 
 ##get the params passed-in
-CC_BOOT=$1
-INSTALL_DIR=$2
-BOOTSTRAP_TARGET=$3
+BOOTSTRAP_TARGET=$1
 
-echo "Params: $CC_BOOT;$INSTALL_DIR;$BOOTSTRAP_TARGET"
+echo "Params: $BOOTSTRAP_TARGET"
+
+## apply global env
+if [ -f ${BASEDIR}/scripts/internal/provision_envs.sh ]; then
+    . ${BASEDIR}/scripts/internal/provision_envs.sh
+fi
 
 ## apply env with secrets
 ## for security, CC_PASSWORD should be defined in this setenv_cce_init_secrets the shell 

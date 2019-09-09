@@ -1,8 +1,7 @@
 #!/bin/bash
 
-INSTALL_DIR=/opt/softwareag
-CC_BOOT=default
 RUN_AS_USER="saguser"
+INSTALL_DIR=/opt/softwareag
 
 ## getting current filename and base path
 THIS=`basename $0`
@@ -22,7 +21,7 @@ echo "Bootstrap target: $BOOTSTRAP_TARGET"
 $BASEDIR/scripts/runas_cmd.sh root "$BASEDIR/scripts/internal/provision_ccserver_prereqs.sh $RUN_AS_USER $INSTALL_DIR"
 
 ##become target user for install
-$BASEDIR/scripts/runas_cmd.sh $RUN_AS_USER "$BASEDIR/scripts/internal/provision_ccserver.sh $CC_BOOT $INSTALL_DIR $BOOTSTRAP_TARGET"
+$BASEDIR/scripts/runas_cmd.sh $RUN_AS_USER "$BASEDIR/scripts/internal/provision_ccserver.sh $BOOTSTRAP_TARGET"
 
 runexec=$?
 echo -n "Provisonning status:"
