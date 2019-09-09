@@ -12,7 +12,13 @@ if [ -f ${BASEDIR}/scripts/conf/setenv_webmethods_provisioning.sh ]; then
 fi
 
 ##get the params passed-in
-BOOTSTRAP_TARGET=$1
+STATUS_ID=$1
+BOOTSTRAP_TARGET=$2
+
+if [ "x$STATUS_ID" = "x" ]; then
+    #apply now date/time in milli precision to the STATUSID
+    STATUS_ID=`date +%Y%m%d_%H%M%S%3N`
+fi
 
 ##executes the pre-requisites as root
 $BASEDIR/scripts/runas_cmd.sh root "$BASEDIR/scripts/internal/provision_ccserver_prereqs.sh $RUN_AS_USER $INSTALL_DIR"
@@ -35,12 +41,12 @@ if [ $runexec -eq 0 ]; then
     fi
 
     ##create/update a file in tmp to broadcast that the script is done
-    touch /tmp/$THIS_NOEXT.done.status
+    touch /tmp/$THIS_NOEXT.done.status_$STATUS_ID
 else
     echo "[$THIS: FAIL]"
 
     ##create/update a file in tmp to broadcast that the script is done
-    touch /tmp/$THIS_NOEXT.fail.status
+    touch /tmp/$THIS_NOEXT.fail.status_$STATUS_ID
 fi
 
 exit;
