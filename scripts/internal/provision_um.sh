@@ -31,13 +31,23 @@ if [ "x$LICENSE_KEY_ALIAS1" = "x" ]; then
     exit 2;
 fi
 
-##### apply um template
+##### apply template
 $SAGCCANT_CMD -Denv.CC_CLIENT=$CC_CLIENT \
+              -Dbuild.dir=$ANT_BUILD_DIR \
+              -Dinstall.dir=$INSTALL_DIR \
+              -Drepo.product=$CC_REPO_NAME_PRODUCTS \
+              -Drepo.fix=$CC_REPO_NAME_FIXES \
+              -Dbootstrap.install.dir=$INSTALL_DIR \
+              -Dbootstrap.install.installer.version=$CC_BOOTSTRAPPER_VERSION \
+              -Dbootstrap.install.installer.version.fix=$CC_BOOTSTRAPPER_VERSION_FIX \
               -Denv.CC_TEMPLATE=um-layer/tpl-server.yaml \
-              -Denv.CC_TEMPLATE_ENV=um \
-              -Denv.CC_TEMPLATE_ENV_LICENSE_KEY_ALIAS1=$LICENSE_KEY_ALIAS1 \
-              -Denv.CC_TEMPLATE_ENV_TARGET_HOST=$TARGET_HOST \
-              -Denv.CC_TEMPLATE_ENV_TYPE=server \
+              -Denv.CC_ENV=um \
+              -Denvironment.type=server \
+              -Dum.host=$TARGET_HOST \
+              -Dum.host2=$TARGET_HOST \
+              -Dum.host3=$TARGET_HOST \
+              -Dum.provisioning.host=$TARGET_HOST \
+              -Dum.license.key.alias=$LICENSE_KEY_ALIAS1 \
               -Denv.SOCKET_CHECK_TARGET_HOST=$TARGET_HOST \
               -Denv.SOCKET_CHECK_TARGET_PORT=22 \
               setup
