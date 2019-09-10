@@ -21,10 +21,10 @@ if [ "x$STATUS_ID" = "x" ]; then
 fi
 
 ##executes the pre-requisites as root
-$BASEDIR/scripts/runas_cmd.sh root "$BASEDIR/scripts/internal/provision_ccserver_prereqs.sh $RUN_AS_USER $INSTALL_DIR"
+$BASEDIR/scripts/utils/runas_cmd.sh root "$BASEDIR/scripts/internal/provision_ccserver_prereqs.sh $RUN_AS_USER $INSTALL_DIR"
 
 ##become target user for install
-$BASEDIR/scripts/runas_cmd.sh $RUN_AS_USER "$BASEDIR/scripts/internal/provision_ccserver.sh $BOOTSTRAP_TARGET"
+$BASEDIR/scripts/utils/runas_cmd.sh $RUN_AS_USER "$BASEDIR/scripts/internal/provision_ccserver.sh $BOOTSTRAP_TARGET"
 
 runexec=$?
 echo -n "Provisonning status:"

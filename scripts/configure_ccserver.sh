@@ -19,7 +19,7 @@ if [ "x$STATUS_ID" = "x" ]; then
 fi
 
 ##become target user for install
-$BASEDIR/scripts/runas_cmd.sh $RUN_AS_USER "$BASEDIR/scripts/internal/configure_ccserver.sh"
+$BASEDIR/scripts/utils/runas_cmd.sh $RUN_AS_USER "$BASEDIR/scripts/internal/configure_ccserver.sh"
 
 ##create/update a file in tmp to broadcast that the script is done
 touch /tmp/$THIS_NOEXT.done.status_$STATUS_ID
