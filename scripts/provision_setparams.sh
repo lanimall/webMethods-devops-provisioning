@@ -6,6 +6,11 @@ THIS_NOEXT="${THIS%.*}"
 THISDIR=`dirname $0`; THISDIR=`cd $THISDIR;pwd`
 BASEDIR="$THISDIR/.."
 
+## apply global env
+if [ -f ${BASEDIR}/scripts/conf/setenv_webmethods_provisioning.sh ]; then
+    . ${BASEDIR}/scripts/conf/setenv_webmethods_provisioning.sh
+fi
+
 PROVIONING_KEY=$1
 PARAM_NAME=$2
 PARAM_VALUE=$3
