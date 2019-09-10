@@ -16,6 +16,11 @@ if [ -f ${HOME}/setenv-cce.sh ]; then
     . ${HOME}/setenv-cce.sh
 fi
 
+## apply script specific env (where things needed for the provisoning are needed, like TARGET_HOST etc...)
+if [ -f ${HOME}/setenv-${THIS_NOEXT}.sh ]; then
+    . ${HOME}/setenv-${THIS_NOEXT}.sh
+fi
+
 if [ "x$TARGET_HOST" = "x" ]; then
     echo "error: variable TARGET_HOST is required...exiting!"
     exit 2;
