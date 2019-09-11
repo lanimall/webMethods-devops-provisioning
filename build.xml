@@ -9,6 +9,8 @@
 
     <property environment="env" />
 
+    <target name="_localinit" depends=""></target>
+
     <target name="_localclean" depends="sagenv.clean">
     </target>
 
