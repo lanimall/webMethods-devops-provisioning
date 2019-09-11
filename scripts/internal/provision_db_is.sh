@@ -63,7 +63,7 @@ $SAGCCANT_CMD -Denv.CC_CLIENT=$CC_CLIENT \
               -Ddb.tablespace.data=${db_tablespace_data} \
               -Ddb.tablespace.index=${db_tablespace_index} \
               -Ddb.tablespace.dir=${db_tablespace_dir} \
-              setup
+              setup_noclean
 
 runexec=$?
 exit $runexec;

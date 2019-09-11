@@ -47,7 +47,7 @@ $SAGCCANT_CMD -Denv.CC_CLIENT=$CC_CLIENT \
               -Dis.license.key.alias=$LICENSE_KEY_ALIAS1 \
               -Denv.SOCKET_CHECK_TARGET_HOST=$TARGET_HOST \
               -Denv.SOCKET_CHECK_TARGET_PORT=22 \
-              setup
+              setup_noclean
 
 runexec=$?
 exit $runexec;
