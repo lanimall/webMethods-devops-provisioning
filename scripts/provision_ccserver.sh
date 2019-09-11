@@ -12,12 +12,11 @@ if [ -f ${BASEDIR}/scripts/conf/setenv_webmethods_provisioning.sh ]; then
 fi
 
 ##get the params passed-in
-STATUS_ID=$1
+CMD_UNIQUE_ID=$1
 BOOTSTRAP_TARGET=$2
 
-if [ "x$STATUS_ID" = "x" ]; then
-    #apply now date/time in milli precision to the STATUSID
-    STATUS_ID=`date +%Y%m%d_%H%M%S%3N`
+if [ "x$CMD_UNIQUE_ID" != "x" ]; then
+    CMD_UNIQUE_ID="_$CMD_UNIQUE_ID"
 fi
 
 ##executes the pre-requisites as root
@@ -41,12 +40,12 @@ if [ $runexec -eq 0 ]; then
     fi
 
     ##create/update a file in tmp to broadcast that the script is done
-    touch /tmp/$THIS_NOEXT.done.status_$STATUS_ID
+    touch /tmp/$THIS_NOEXT.done.status$CMD_UNIQUE_ID
 else
     echo "[$THIS: FAIL]"
 
     ##create/update a file in tmp to broadcast that the script is done
-    touch /tmp/$THIS_NOEXT.fail.status_$STATUS_ID
+    touch /tmp/$THIS_NOEXT.fail.status$CMD_UNIQUE_ID
 fi
 
 exit;

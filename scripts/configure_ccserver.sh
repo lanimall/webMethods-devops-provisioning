@@ -12,14 +12,13 @@ if [ -f ${BASEDIR}/scripts/conf/setenv_webmethods_provisioning.sh ]; then
 fi
 
 ##get the params passed-in
-STATUS_ID=$1
-if [ "x$STATUS_ID" = "x" ]; then
-    #apply now date/time in milli precision to the STATUSID
-    STATUS_ID=`date +%Y%m%d_%H%M%S%3N`
+CMD_UNIQUE_ID=$1
+if [ "x$CMD_UNIQUE_ID" != "x" ]; then
+    CMD_UNIQUE_ID="_$CMD_UNIQUE_ID"
 fi
 
 ##become target user for install
 $BASEDIR/scripts/utils/runas_cmd.sh $RUN_AS_USER "$BASEDIR/scripts/internal/configure_ccserver.sh"
 
 ##create/update a file in tmp to broadcast that the script is done
-touch /tmp/$THIS_NOEXT.done.status_$STATUS_ID
+touch /tmp/$THIS_NOEXT.done.status$CMD_UNIQUE_ID
