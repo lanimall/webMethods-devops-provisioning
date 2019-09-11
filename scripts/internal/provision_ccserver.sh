@@ -30,7 +30,7 @@ if [ "x$CC_PASSWORD" = "x" ]; then
 fi
 
 #build the installer name
-CC_INSTALLER="cc-def-${CC_BOOTSTRAPPER_VERSION}-${CC_BOOTSTRAPPER_VERSION_FIX}-\${platform}"
+CC_INSTALLER="cc-def-${CC_BOOTSTRAPPER_VERSION}-${CC_BOOTSTRAPPER_VERSION_FIX}-${CC_BOOTSTRAPPER_PLATFORM}"
 
 ##### bootstrap: this leverages the properties file bootstrap/$CC_BOOT.properties + apply $CC_PASSWORD if defined in setenv_cce_init_secrets
 $ANT_CMD -Denv.CC_BOOT=$CC_BOOT \
