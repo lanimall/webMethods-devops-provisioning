@@ -9,14 +9,10 @@
 
     <property environment="env" />
 
-    <target name="_localinit" depends="">
-    </target>
-
     <target name="_localclean" depends="sagenv.clean">
     </target>
 
-    <!-- removing _localclean for troubleshooting-->
-    <target name="setup" depends="setup_noclean" />
+    <target name="setup" depends="setup_noclean, _localclean" />
 
     <target name="setup_noclean" depends="waitForTargetNodeUp,templateApply" />
 

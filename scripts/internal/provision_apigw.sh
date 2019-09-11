@@ -37,7 +37,7 @@ $SAGCCANT_CMD -Denv.CC_CLIENT=$CC_CLIENT \
               -Dapigw.is.instance.type=integrationServer \
               -Denv.SOCKET_CHECK_TARGET_HOST=$TARGET_HOST \
               -Denv.SOCKET_CHECK_TARGET_PORT=22 \
-              setup
+              setup_noclean
 
 runexec=$?
 exit $runexec;
