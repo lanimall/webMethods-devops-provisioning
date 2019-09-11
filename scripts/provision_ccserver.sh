@@ -34,7 +34,7 @@ if [ $runexec -eq 0 ]; then
     # once done, make sure to run this script to install SPM as a service
     if [ -f $INSTALL_DIR/bin/afterInstallAsRoot.sh ]; then
         echo "Executing afterInstallAsRoot"
-        $BASEDIR/scripts/runas_cmd.sh root "sh $INSTALL_DIR/bin/afterInstallAsRoot.sh"
+        $BASEDIR/scripts/utils/runas_cmd.sh root "sh $INSTALL_DIR/bin/afterInstallAsRoot.sh"
         echo "afterInstallAsRoot done!"
     else
         echo "Warning: No afterInstallAsRoot file found..."
