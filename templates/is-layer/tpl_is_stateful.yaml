@@ -22,7 +22,12 @@ environments:
     is.memory.max:      4096                # Maximum memory size
     is.install.service: true
     is.configure:       [is-server]         # List of templates to apply
-    is.fixes:           [wMFix.integrationServer.Core]
+    
+    ## multiple notations
+    ## Fix Name and Version (can be used 9.7 and later): wMFix.integrationServer.Core_10.3.0.0005-0009
+    ## Fix ID (can be used 10.3 and later): IS_10.3_Core_Fix5
+    ## Fix Name (to get the latest fixes): wMFix.integrationServer.Core
+    is.fixes:           ${}
 
     # IS clustering
     is.tsa.url:           ${}
