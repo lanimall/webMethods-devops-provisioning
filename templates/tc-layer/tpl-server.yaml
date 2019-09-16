@@ -18,7 +18,7 @@ environments:
     tc.memory.max:       2048               # minimal memory configuration
     tc.storage.size:     20g
     tc.offheap.size:     1g
-    tc.fixes:            [wMFix.TES]       # minimal recommended set of fixes to apply
+    tc.fixes:            ${}       
     tc.data.dir:         ../data
     tc.backup.dir:       ../backup
     tc.logs.dir:         ../logs
