@@ -11,11 +11,6 @@ if [ -f ${BASEDIR}/scripts/conf/setenv_webmethods_provisioning.sh ]; then
     . ${BASEDIR}/scripts/conf/setenv_webmethods_provisioning.sh
 fi
 
-## apply cce env
-if [ -f ${HOME}/setenv-cce.sh ]; then
-    . ${HOME}/setenv-cce.sh
-fi
-
 ##get the commands passed-in
 CC_ENV=$1
 CMD_TARGET="${@:2}"
