@@ -1,5 +1,5 @@
-alias: is_stateless_messaging
-description: Integration Server Stateless instance connected to UM
+alias: is_stateless_messaging_caching
+description: Integration Server Stateless instance connected to UM and Terracotta
 
 environments:
   default:
@@ -7,30 +7,23 @@ environments:
     repo.fix:            ${}
 
     # Integration Server Instance Configuration
-    is.license.key.alias:  ${license.key.alias1}
+    is.license.key.alias:  ${}
     is.host:            ${}
     is.instance.name:   default             # Instance name
     is.primary.port:    5555                # Primary port number
     is.diagnostic.port: 9999                # Dialgnostic port number
     is.jmx.port:        8094                # JMX port number
-    is.password:        manage              # Administrator user password
+    is.password:        ${}              # Administrator user password
     is.memory.init:     2048                # Initial memory size
     is.memory.max:      4096                # Maximum memory size
     is.install.service: true
-
-    ## multiple notations
-    ## Fix Name and Version (can be used 9.7 and later): wMFix.integrationServer.Core_10.3.0.0005-0009
-    ## Fix ID (can be used 10.3 and later): IS_10.3_Core_Fix5
-    ## Fix Name (to get the latest fixes): wMFix.integrationServer.Core
     is.fixes:           ${}
-    
-    # IS clustering
     is.cluster.enabled:  false
 
     # IS custom caching
-    tc.license.key.alias:  ${license.key.alias2}
+    tc.license.key.alias: ${}
     is.tsa.url:           ${}
-    is.cluster.name:      "${is.instance.name}-cluster"
+    is.tc.fixes:          [wMFix.NUMClient]
 
     # IS Messaging
     is.um.url:                ${}
@@ -188,7 +181,7 @@ templates:
                         $: 'true'
               COMMON-CLUSTER:
                 COMMON-CLUSTER:
-                  Name: ${is.cluster.name}
+                  Name: ${is.instance.name}-cluster
                   Enabled: ${is.cluster.enabled}
 
 provision:

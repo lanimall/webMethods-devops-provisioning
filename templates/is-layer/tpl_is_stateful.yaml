@@ -5,19 +5,15 @@ environments:
   default:
     repo.product:        ${}
     repo.fix:            ${}
-    repo.spm:            ${repo.product}
 
     # Integration Server Instance Configuration
-    os.platform:           lnxamd64
-    is.license.key.alias:  ${license.key.alias1}
-    tc.license.key.alias:  ${license.key.alias2}
-
+    is.license.key.alias:  ${}
     is.host:            ${}
     is.instance.name:   default             # Instance name
     is.primary.port:    5555                # Primary port number
     is.diagnostic.port: 9999                # Dialgnostic port number
     is.jmx.port:        8094                # JMX port number
-    is.password:        manage              # Administrator user password
+    is.password:        ${}              # Administrator user password
     is.memory.init:     2048                # Initial memory size
     is.memory.max:      4096                # Maximum memory size
     is.install.service: true
@@ -31,34 +27,25 @@ environments:
 
     # IS clustering
     is.tsa.url:           ${}
+    tc.license.key.alias:  ${}
     is.cluster.enabled:   true
     is.cluster.name:      "${is.instance.name}-cluster"
 
     # Database connection
     db.url:              ${}           # JDBC URL
     db.type:             ${}           # REQUIRED: Database type: oracle,sqlserver,db2
-    db.host:             ${}           # REQUIRED: Database server hostname
-    db.port:             ${}           # REQUIRED: Database server port
-    db.name:             ${}
     db.username:         ${}           # Database username
     db.password:         ${}           # Database password
-    db.sid:              ${}           # Database name
-
-    # Remote system configuration
-    spm.port:       8092                    # SPM connection port
-    spm.secure:     false                   # Use HTTPS connection to SPM: true,false
-    spm.configure:  [spm-tuneup]
-    spm.fixes:      [wMFix.SPM]             # SPM/SUM/SD core fixes by default
 
     ## remote provisioning
-    spm.host:         ${is.host}                # REQUIRED for all in one installation as default host
-    os.username:      ${}                       # remote machine SSH username, default CCE process user account (as java system property)
-    os.password:      ${}                       # remote machine SSH password
-    os.auth.method:   ${}                       # remote machine authentication method: PASSWORD,INTERACTIVE,CERTIFICATE
-    os.auth.key:      ${}                       # keyfile for CERTIFICATE auth method
-    os.ssh.port:      ${}                        # remote machine SSH port
-    install.dir:      ${}                       # suite installation directory
-    install.installer: ${}
+    spm.port:       8092                    # SPM connection port
+    spm.secure:     false                   # Use HTTPS connection to SPM: true,false
+    spm.credentials.alias: ${}
+    spm.fixes:      [wMFix.SPM]             # SPM/SUM/SD core fixes by default
+    bootstrap.credentials.alias:      ${}       # remote machine credential alias to use
+    bootstrap.ssh.port:      ${}                # remote machine SSH port
+    bootstrap.install.dir:      ${}             # suite installation directory
+    bootstrap.install.installer: ${}            # installer to use for the SPM node
 
   server:
 
@@ -73,24 +60,13 @@ layers:
   default:
     productRepo: ${repo.product}
     fixRepo:     ${repo.fix}
-
-  spm:
-    description: Management layer of SPM's
-    templates:   ${spm.configure}
-
   is:
     description: General purpose IS layer
-    templates:   ${is.configure}
-
+    templates:
+      - is-runtime        # first create IS instance profile
+  
 templates:
-  spm-tuneup:
-    description: SPM customizations
-    fixes: ${spm.fixes}
-    products:
-      SPM:
-      ISspm:
-
-  is-server:
+  is-runtime:
     licenses:
       "IntegrationServer/config/licenseKey.xml": ${is.license.key.alias}
       "common/conf/terracotta-license.key":      ${tc.license.key.alias}
@@ -127,7 +103,7 @@ templates:
                        $: false
               COMMON-CLUSTER:
                 COMMON-CLUSTER:
-                  Name: ${is.cluster.name}
+                  Name: ${is.instance.name}-cluster
                   Enabled: ${is.cluster.enabled}
                   Servers:
                     Server:
@@ -136,13 +112,10 @@ templates:
 
 provision:
   default:
-    spm: ["${is.host}"]
     is:  ["${is.host}"]
   server:
-    spm: ["${is.host}"]
-    is:  ["${is.host}"]
+    is:  ["${is.host}"]  
   docker:
-    spm:  ["${spm.alias}"]
     is:   ["${spm.alias}"]
 
 nodes:
@@ -150,15 +123,12 @@ nodes:
     default:
       port:   ${spm.port}
       secure: ${spm.secure}
+      credentials: ${spm.credentials.alias}
       bootstrapInfo:
-        installDir:   ${install.dir}
-        installer:    ${install.installer}
-        port:         ${os.ssh.port}
-        credentials:
-          userName:   ${os.username}
-          password:   ${os.password}
-          authenticationMethod: ${os.auth.method}
-          privateKey: ${os.auth.key}
+        installDir:   ${bootstrap.install.dir}
+        installer:    ${bootstrap.install.installer}
+        port:         ${bootstrap.ssh.port}
+        credentials:  ${bootstrap.credentials.alias}
   docker:
     ${spm.alias}:
       host: ${is.host}

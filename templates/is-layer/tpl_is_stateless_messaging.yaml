@@ -13,7 +13,7 @@ environments:
     is.primary.port:    5555                # Primary port number
     is.diagnostic.port: 9999                # Dialgnostic port number
     is.jmx.port:        8094                # JMX port number
-    is.password:        manage              # Administrator user password
+    is.password:        ${}              # Administrator user password
     is.memory.init:     2048                # Initial memory size
     is.memory.max:      4096                # Maximum memory size
     is.install.service: true
