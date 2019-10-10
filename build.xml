@@ -73,47 +73,7 @@
             <socket server="${wait.host}" port="${wait.port}"/>
         </waitfor>
     </target>
-
-    <target name="_setenvproperties">
-        <set-property-if-nonempty name="cc.password" if-property-isset="env.CC_PASSWORD" />
-        <set-property-if-nonempty name="sag.repo.username" if-property-isset="env.CC_SAG_REPO_USR" />
-        <set-property-if-nonempty name="sag.repo.password" if-property-isset="env.CC_SAG_REPO_PWD" />
-        <set-property-if-nonempty name="ssh.user.name" if-property-isset="env.CC_SSH_USER" />
-        <set-property-if-nonempty name="ssh.pk.filename" if-property-isset="env.CC_SSH_KEY_FILENAME" />
-        <set-property-if-nonempty name="ssh.pk.password" if-property-isset="env.CC_SSH_KEY_PWD" />
-        <set-property-if-nonempty name="environment.type" if-property-isset="env.CC_TEMPLATE_ENV_TYPE" />
-        <set-property-if-nonempty name="target.host" if-property-isset="env.CC_TEMPLATE_ENV_TARGET_HOST" />
-        <set-property-if-nonempty name="target.host2" if-property-isset="env.CC_TEMPLATE_ENV_TARGET_HOST2" />
-        <set-property-if-nonempty name="target.host3" if-property-isset="env.CC_TEMPLATE_ENV_TARGET_HOST3" />
-        <set-property-if-nonempty name="license.key.alias1" if-property-isset="env.CC_TEMPLATE_ENV_LICENSE_KEY_ALIAS1" />
-        <set-property-if-nonempty name="license.key.alias2" if-property-isset="env.CC_TEMPLATE_ENV_LICENSE_KEY_ALIAS2" />
-        <set-property-if-nonempty name="license.key.alias3" if-property-isset="env.CC_TEMPLATE_ENV_LICENSE_KEY_ALIAS3" />
-
-        <!-- App-specific values -->
-        <set-property-if-nonempty name="is.tsa.url" if-property-isset="env.is_tsa_url" />
-        <set-property-if-nonempty name="is.um.url" if-property-isset="env.is_um_url" />
-
-        <!-- database values -->
-        <set-property-if-nonempty name="db.name" if-property-isset="env.db_name" />
-        <set-property-if-nonempty name="db.sid" if-property-isset="env.db_sid" />
-        <set-property-if-nonempty name="db.type" if-property-isset="env.db_type" />
-        <set-property-if-nonempty name="db.host" if-property-isset="env.db_host" />
-        <set-property-if-nonempty name="db.port" if-property-isset="env.db_port" />
-        <set-property-if-nonempty name="db.url" if-property-isset="env.db_url" />
-        <set-property-if-nonempty name="db.tablespace.dir" if-property-isset="env.db_tablespace_dir" />
-        <set-property-if-nonempty name="db.tablespace.data" if-property-isset="env.db_tablespace_data" />
-        <set-property-if-nonempty name="db.tablespace.index" if-property-isset="env.db_tablespace_index" />
-
-        <set-property-if-nonempty name="db.product.version" if-property-isset="env.db_product_version" />
-        <set-property-if-nonempty name="db.component.version" if-property-isset="env.db_component_version" />
-        <set-property-if-nonempty name="db.components" if-property-isset="env.db_components" />
-        <set-property-if-nonempty name="db.products" if-property-isset="env.db_products" />
-        <set-property-if-nonempty name="db.username" if-property-isset="env.db_username" />
-        <set-property-if-nonempty name="db.password" if-property-isset="env.db_password" />
-        <set-property-if-nonempty name="db.admin.username" if-property-isset="env.db_admin_username" />
-        <set-property-if-nonempty name="db.admin.password" if-property-isset="env.db_admin_password" />
-    </target>
-
+    
     <target name="_tryRandom">
         <randomint max="100000000" property="random_prop" />
         <echo message="my random number: ${random_prop}" />

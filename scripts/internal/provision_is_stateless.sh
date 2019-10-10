@@ -42,11 +42,14 @@ $SAGCCANT_CMD -Denv.CC_CLIENT=$CC_CLIENT \
               -Dbootstrap.install.installer.version.fix=$CC_BOOTSTRAPPER_VERSION_FIX \
               -Denv.CC_TEMPLATE=is-layer/tpl_is_stateless.yaml \
               -Denv.CC_ENV=is \
+              -Denv.SOCKET_CHECK_TARGET_HOST=$TARGET_HOST \
+              -Denv.SOCKET_CHECK_TARGET_PORT=22 \
               -Denvironment.type=server \
               -Dis.host=$TARGET_HOST \
               -Dis.license.key.alias=$LICENSE_KEY_ALIAS1 \
-              -Denv.SOCKET_CHECK_TARGET_HOST=$TARGET_HOST \
-              -Denv.SOCKET_CHECK_TARGET_PORT=22 \
+              -Dis.password=manage \
+              
+
               setup_noclean
 
 runexec=$?
