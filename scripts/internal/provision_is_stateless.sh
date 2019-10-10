@@ -48,8 +48,6 @@ $SAGCCANT_CMD -Denv.CC_CLIENT=$CC_CLIENT \
               -Dis.host=$TARGET_HOST \
               -Dis.license.key.alias=$LICENSE_KEY_ALIAS1 \
               -Dis.password=manage \
-              
-
               setup_noclean
 
 runexec=$?
