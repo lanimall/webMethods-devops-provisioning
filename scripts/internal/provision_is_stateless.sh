@@ -31,6 +31,11 @@ if [ "x$LICENSE_KEY_ALIAS1" = "x" ]; then
     exit 2;
 fi
 
+if [ "x$ADMIN_PASSWORD" = "x" ]; then
+    echo "error: Variable ADMIN_PASSWORD (for IS) is required...exiting!"
+    exit 2;
+fi
+
 ##### apply um template
 $SAGCCANT_CMD -Denv.CC_CLIENT=$CC_CLIENT \
               -Dbuild.dir=$ANT_BUILD_DIR \
@@ -47,7 +52,7 @@ $SAGCCANT_CMD -Denv.CC_CLIENT=$CC_CLIENT \
               -Denvironment.type=server \
               -Dis.host=$TARGET_HOST \
               -Dis.license.key.alias=$LICENSE_KEY_ALIAS1 \
-              -Dis.password=manage \
+              -Dis.password=$ADMIN_PASSWORD \
               setup_noclean
 
 runexec=$?
