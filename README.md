@@ -21,7 +21,7 @@ Author: Fabien Sanglier
 First, let's clone the project (and its required submodules) onto your target Centos or Rhel Linux server
 
 ```
-git clone --recursive -b rel103 https://github.com/lanimall/webMethods-devops-provisioning.git
+git clone --recursive --branch workingdemo_wm103_v1.0 https://github.com/lanimall/webMethods-devops-provisioning.git
 cd webMethods-devops-provisioning
 ```
 
