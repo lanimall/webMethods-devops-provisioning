@@ -1,4 +1,4 @@
 [submodule "antcc"]
 	path = antcc
-	url = https://github.com/lanimall/sagdevops-antcc.git
-	branch = release/104apr2019
+	url = https://github.com/SoftwareAG/sagdevops-antcc.git
+	branch = release/105oct2019
