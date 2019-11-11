@@ -5,10 +5,13 @@ environments:
   default:
     repo.product:        ${}
     repo.fix:            ${}
+    
+    # target install nodes
+    nodes:            ${}
 
     # Integration Server Instance Configuration
     is.license.key.alias:  ${}
-    is.host:            ${}
+    
     is.instance.name:   default             # Instance name
     is.primary.port:    5555                # Primary port number
     is.diagnostic.port: 9999                # Dialgnostic port number
@@ -37,13 +40,7 @@ environments:
     bootstrap.install.dir:      ${}             # suite installation directory
     bootstrap.install.installer: ${}            # installer to use for the SPM node
 
-  server:
-
   docker:
-    repo.product:       products
-    repo.fix:           fixes
-    is.host:            localhost
-    spm.alias:          local
     is.install.service: false
 
 layers:
@@ -92,11 +89,9 @@ templates:
 
 provision:
   default:
-    is:  ["${is.host}"]
-  server:
-    is:  ["${is.host}"]  
+    is:  ${nodes}
   docker:
-    is:   ["${spm.alias}"]
+    is:   ["local"]
 
 nodes:
   default:
@@ -110,5 +105,5 @@ nodes:
         port:         ${bootstrap.ssh.port}
         credentials:  ${bootstrap.credentials.alias}
   docker:
-    ${spm.alias}:
-      host: ${is.host}
+    local:
+      host: localhost

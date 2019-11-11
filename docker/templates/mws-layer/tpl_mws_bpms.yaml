@@ -1,0 +1,247 @@
+alias: mws-bpms
+description: My webMethods Server single instance or a cluster
+
+environments:
+  default:
+    repo.product:        products
+    repo.fix:            fixes
+
+    spm.port:            8092                    # SPM connection port
+    spm.secure:          false                   # Use HTTPS connection to SPM: true,false
+    spm.memory.max:      512                     # max mem
+    spm.configure:       [spm-tuneup]
+    spm.fixes:           [wMFix.SPM]             # SPM/SUM/SD core fixes by default
+
+    # My webMethods Server
+    mws.host:            ${}                # REQUIRED:
+    mws.instance.name:   default
+    mws.http.port:       8585
+    mws.https.port:      8586
+    mws.jmx.port:        8587
+    mws.memory.init:     512                # memory configuration
+    mws.memory.max:      1024               # memory configuration
+    mws.password:        manage
+    mws.email:           admin@company.com
+    mws.configure:       [mws-server]
+    mws.lb.host:         ${mws.host}
+    mws.lb.http.port:    ${mws.http.port}
+    mws.lb.https.port:   ${mws.https.port}
+    mws.jndiEnabled:     true
+    mws.jndiProviderUrl: "nsp://mwsumserver:9000"
+
+    # Fixes: MWS core, MWS IS Portal, Business Rules, Business console (portal and runtime), TN portal, Collaboration, DBO, Optimze UI,
+    mws.fixes:           [wMFix.MwsProgramFiles]
+#      - wMFix.MwsProgramFiles                   # Collaboration
+#      - wMFix.integrationServerPortal           # Collaboration
+#      - wMFix.brmsui                            # Collaboration
+#      - wMFix.SBPPortal                         # Collaboration
+#      - wMFix.SBPRuntime                        # Collaboration
+#      - wMFix.TNPortal                          # Collaboration
+#      - wMFix.YIL                               # Collaboration
+#      - wMFix.SBPWMNPortal                      # DBO
+#      - wMFix.OPT.centralConfiguratorUI         # Collaboration
+#      - wMFix.OPT.optimizeUI                    # Collaboration
+#      - wMFix.OPT.infraDCUI                     # Collaboration
+
+    mws.target.is.host:            ${}                # REQUIRED:
+    mws.target.is.http.port:       8585
+    mws.target.is.https.port:      8586
+    mws.target.is.lb.protocol:     http
+    mws.target.is.lb.host:         ${mws.target.is.host}
+    mws.target.is.lb.http.port:    ${mws.target.is.http.port}
+    mws.target.is.lb.https.port:   ${mws.target.is.https.port}
+
+    env.password:        manage             # IS/MWS Administrator password
+
+    # Database connection
+    db.type:             oracle             # REQUIRED: Database type: oracle,sqlserver,db2
+    db.host:             mws_db             # REQUIRED: Database server hostname
+    db.port:             1521               # REQUIRED: Database server port
+    db.name:             webm
+    db.username:         mws_dbuser         # Database username
+    db.password:         strong123!         # Database password
+    db.sid:              XE                 # Database name
+    db.url.oracle:       "jdbc:wm:oracle://${db.host}:${db.port};SID=${db.sid}"
+    db.url.sqlserver:    "jdbc:wm:${db.type}://${db.host}:${db.port};databaseName=${db.name}"
+    db.url:              ${db.url.oracle}
+
+  server:
+
+  docker:
+    mws.host:       localhost
+    spm.alias:      local
+
+layers:
+  default:
+    productRepo: ${repo.product}
+    fixRepo:     ${repo.fix}
+
+  spm:
+    description: Management layer of SPM's
+    templates:   ${spm.configure}
+
+  mws:
+    description: General purpose MWS layer
+    templates:   ${mws.configure}
+
+templates:
+
+# Platform Manager
+  spm-tuneup:
+    description: SPM customizations
+    fixes: ${spm.fixes}
+    products:
+      # SUM:       # Ensure we have SUM installed - no longer needed for 10.1
+      SPM:
+      MWSspm:
+      ISspm:
+      PIFspm:
+      WMNspm:
+      WOKspm:
+      EDAspm:
+      WOKMWSspm:
+      MwsSpmIsTask:
+      MwsSpmTaskEngine:
+
+  mws-server:
+    description: MWS instance
+    fixes: ${mws.fixes}
+    products:
+      TaskEngineRuntime:
+      brmsui:
+      optimizeSharedUI:
+      monitorUI:
+      MwsProgramFiles: # MWS core product
+        ${mws.instance.name}: # MWS instance
+          node.name:   ${node.host} # unique cluster node name
+          http.port:   ${mws.http.port}
+          https.port:  ${mws.https.port}
+          jmx.port:    ${mws.jmx.port}
+          db.type:     ${db.type}
+          db.url:      "${db.url}"
+          db.username: ${db.username}
+          db.password: ${db.password}
+          configuration:
+            OSGI-MWS_${mws.instance.name}:
+              COMMON-MEMORY:
+                COMMON-MEMORY:
+                  InitSize: ${mws.memory.init}
+                  MaxSize:  ${mws.memory.max}
+            MwsProgramFiles-${mws.instance.name}:
+              COMMON-LOCAL-USERS:
+                COMMON-LOCAL-USERS-Administrator:
+                  "@id": Administrator
+                  Enabled: true
+                  FirstName: My webMethods Administrator
+                  LastName:  Administrator
+                  Email:     ${mws.email}
+                  Password:  ${mws.password}
+                COMMON-LOCAL-USERS-SysAdmin:
+                  "@id": SysAdmin
+                  Enabled: true
+                  FirstName: Sys Admin
+                  LastName:  Administrator
+                  Email:     ${mws.email}
+                  Password:  ${mws.password}
+              COMMON-CLUSTER:
+                COMMON-CLUSTER:
+                  ExtendedProperties:
+                    Property:
+                      -
+                        "@name": LoadBalancerHost
+                        $: ${mws.lb.host}
+                      -
+                        "@name": LoadBalancerHttpPort
+                        $: ${mws.lb.http.port}
+                      -
+                        "@name": LoadBalancerHttpsPort
+                        $: ${mws.lb.https.port}
+                      -
+                        "@name": jndiEnabled
+                        $: ${mws.jndiEnabled}
+                      -
+                        "@name": jndiProviderUrl
+                        $: ${mws.jndiProviderUrl}
+              COMMON-SYSPROPS:
+                COMMON-SYSPROPS: |
+                  update.completed.task=true
+                  task.based.permission=false
+            MwsProgramFiles-${mws.instance.name}:
+              COMMON-VARS:
+                COMMON-VARS-wsclient-password:
+                  Variable:
+                    "@key": "wsclient-password"
+                    "@secure": "true"
+                    "@type": "java.lang.String"
+                    $: ${env.password}
+                COMMON-VARS-wsclient-username:
+                  Variable:
+                    "@key": "wsclient-username"
+                    "@secure": "false"
+                    "@type": "java.lang.String"
+                    $: Administrator
+            TaskEngineRuntime-${mws.instance.name}:
+              COMMON-COMPONENT-ENDPOINTS:
+                COMMON-COMPONENT-ENDPOINTS-TASKENGINE:
+                  "@alias": TASKENGINE
+                  Transport:
+                    Protocol: ${mws.target.is.lb.protocol}
+                    Host:     ${mws.target.is.lb.host}
+                    Port:     ${mws.target.is.lb.port}
+                  Auth:
+                    "@type": BASIC
+                    User: Administrator
+                    Password: ${env.password}
+            brmsui-${mws.instance.name}:
+              COMMON-COMPONENT-ENDPOINTS:
+                COMMON-COMPONENT-ENDPOINTS-Default:
+                  "@alias": Default
+                  Description: Default
+                  Transport:
+                    Protocol: ${mws.target.is.lb.protocol}
+                    Host:     ${mws.target.is.lb.host}
+                    Port:     ${mws.target.is.lb.port}
+                  Auth:
+                    "@type": BASIC
+                    User: Administrator
+                    Password: ${env.password}
+            optimizeSharedUI-${mws.instance.name}:
+              COMMON-COMPONENT-ENDPOINTS:
+                COMMON-COMPONENT-ENDPOINTS-IS-BPMonly:
+                  "@alias": IS-BPMonly
+                  Description: "BPM only"
+                  Transport:
+                    Protocol: ${mws.target.is.lb.protocol}
+                    Host:     ${mws.target.is.lb.host}
+                    Port:     ${mws.target.is.lb.port}
+                  Auth:
+                    "@type": AUTO
+
+provision:
+  default:
+    spm:  ["${mws.host}"]
+    mws:  ["${mws.host}"]
+  server:
+    spm:  ["${mws.host}"]
+    mws:  ["${mws.host}"]
+  docker:
+    spm:  ["${spm.alias}"]
+    mws:  ["${spm.alias}"]
+
+nodes:
+  default:
+    default:
+      port:   ${spm.port}
+      secure: ${spm.secure}
+      bootstrapInfo:
+        installDir:   ${install.dir}
+        installer:    ${install.installer}
+        port:         ${os.ssh.port}
+        credentials:
+          userName:   ${os.username}
+          password:   ${os.password}
+          authenticationMethod: ${os.auth.method}
+          privateKey: ${os.auth.key}
+  docker:
+    ${spm.alias}:
+      host: ${mws.host}

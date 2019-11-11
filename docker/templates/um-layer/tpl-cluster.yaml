@@ -1,0 +1,187 @@
+alias: um-layer
+description: Universal Messaging Realm server
+
+environments:
+  default:
+    repo.product:        ${}
+    repo.fix:            ${}
+    repo.spm:            ${repo.product}
+
+    um.license.key.alias: ${license.key.alias1}
+
+    um.runtime.configure: [um-server]       # this is the default template for um runtime
+    um.cluster.configure: []                # this is for a UM cluster, which is empty by default, unless you enable the cluster configuration
+    um.host:             ${}                # This is the provisoning host name (where the UM instance / product should be installed)
+    um.access.host:      ${um.host}         # This is the access host name (general access - generally should be equal to um.host, but not in case of docker creation)
+    um.instance.name:    umserver           # realm server instance name
+    um.instance.port:    9000               # primary port
+    um.instance.ip:      ${um.host}       # This is the IP that the UM process will bind to
+    um.instance.alias:   ${um.instance.name}
+    um.jmx.port:         9988               # jmx port
+    um.memory.init:      1024               # memory configuration
+    um.memory.max:       4096               # memory configuration
+    um.memory.direct:    1G                 # memory configuration
+    um.fixes:                               # minimal recommended set of fixes to apply
+      - wMFix.NUMRealmServer                # Universal Messaging Realm Server fix
+      - wMFix.NUMspmBundles                 # Universal Messaging SPM Plugin fix
+    install.service:     true
+
+    um.jndi.factory.url: "nsp://${um.access.host}:${um.instance.port}"
+    um.jndi.cf:          umcf
+    um.jndi.cfxa:        umcfxa
+    um.jndi.qcf:         umqcf
+    um.jndi.tcf:         umtcf
+    um.jndi.dest.queue1:  umqueue
+    um.jndi.dest.topic1:  umtopic
+
+    ## remote provisioning
+    spm.port:            8092                    # SPM connection port
+    spm.secure:          false                   # Use HTTPS connection to SPM: true,false
+    spm.credentials.alias: ${}
+    bootstrap.credentials.alias:      ${}       # remote machine credential alias to use
+    bootstrap.ssh.port:      ${}                # remote machine SSH port
+    bootstrap.install.dir:      ${}             # suite installation directory
+    bootstrap.install.installer: ${}            # installer to use for the SPM node
+
+  server:
+
+  cluster:
+    um.host2:           ${}                 # REQURIED um cluster installation host2
+    um.host3:           ${}                 # REQURIED um cluster installation host3
+    um.cluster.configure: [um-cluster-3]
+    um.cluster:         cluster
+
+  docker:
+    repo.product:           products
+    repo.fix:               fixes
+    um.host:                localhost
+    spm.alias:              local
+    install.service:        false
+    um.access.host:         "umserver"        # important: this is the external URL that the UM instance can be accessed at via JNDI CF URLs
+    um.instance.ip:         "0.0.0.0"         # important to set that here so the UM docker image is set to listen on all interfaces (vs. just localhost)
+
+layers:
+  default:
+    productRepo: ${repo.product}
+    fixRepo:     ${repo.fix}
+  um-runtime:
+    description: UM runtime layer
+    templates:   ${um.runtime.configure}
+  um-cluster:
+    description: UM cluster layer
+    templates:   ${um.cluster.configure}
+
+templates:
+  um-server:
+    licenses:
+      "UniversalMessaging/server/templates/licence.xml": "${um.license.key.alias}"
+    fixes: ${um.fixes}
+    products:
+      NUMRealmServer:
+        ${um.instance.name}:                                       # instance name is different from realm
+          instance.port: ${um.instance.port}                       # instance port
+          instance.ip:   ${um.instance.ip}                         # bind to node's host name
+          node.alias:    ${um.instance.alias}
+          install.service: ${install.service}
+          license.file:  UniversalMessaging/server/templates/licence.xml
+          runtimeComponentId: Universal-Messaging-${um.instance.name} # hint for CC to skip instance creation if it exists
+          configuration:
+            Universal-Messaging-${um.instance.name}:
+              COMMON-MEMORY:
+                COMMON-MEMORY:
+                  InitSize: ${um.memory.init}
+                  MaxSize:  ${um.memory.max}
+                  ExtendedProperties:
+                    Property:
+                      -
+                       "@name": "-XX:MaxDirectMemorySize"
+                       $: ${um.memory.direct}
+              COMMON-JAVASYSPROPS:
+                COMMON-JAVASYSPROPS: |
+                   REALM=${um.instance.alias}                             # IMPORTANT: this can only be set before first startup
+                   com.sun.management.jmxremote.port=${um.jmx.port}
+                   com.sun.management.jmxremote.authenticate=false
+                   com.sun.management.jmxremote.ssl=false
+                   CORE_SPIN=false
+              UM-JNDI-CF:                                                ## JNDI connection factories for JMS
+                UM-JNDI-CF-${um.jndi.cf}:
+                  name: ${um.jndi.cf}
+                  type: ConnectionFactory
+                  url: ${um.jndi.factory.url}
+                  durableType: Shared
+                UM-JNDI-CF-${um.jndi.cfxa}:
+                  name: ${um.jndi.cfxa}
+                  type: XAConnectionFactory
+                  url: ${um.jndi.factory.url}
+                UM-JNDI-CF-${um.jndi.qcf}:
+                  name: ${um.jndi.qcf}
+                  type: QueueConnectionFactory
+                  url: ${um.jndi.factory.url}
+                UM-JNDI-CF-${um.jndi.tcf}:
+                  name: ${um.jndi.tcf}
+                  type: TopicConnectionFactory
+                  url: ${um.jndi.factory.url}
+                  durableType: Shared
+              UM-JNDI-DEST:                                             ## JNDI destinations for JMS (queues or topics)
+                UM-JNDI-DEST-${um.jndi.dest.queue1}:
+                  name: ${um.jndi.dest.queue1}
+                  type: Queue
+                  storeName: ${um.jndi.dest.queue1}
+                  autoCreateDest: 'true'
+                UM-JNDI-DEST-${um.jndi.dest.topic1}:
+                  name: ${um.jndi.dest.topic1}
+                  type: Topic
+                  storeName: ${um.jndi.dest.topic1}
+                  autoCreateDest: 'true'
+
+  um-cluster-3:
+    description: Cluster configuration for 3 node cluster
+    products:
+      NUMRealmServer:
+        ${um.instance.name}:
+          runtimeComponentId: Universal-Messaging-${instance.name}
+          configuration:
+            Universal-Messaging-${instance.name}:
+              COMMON-CLUSTER:
+                COMMON-CLUSTER:
+                  Name: ${um.cluster}
+                  Servers:
+                    Server:
+                      -
+                        "@name": ${um.host}
+                        URL: "nsp://${um.host}:${um.instance.port}"
+                      -
+                        "@name": ${um.host2}
+                        URL: "nsp://${um.host2}:${um.instance.port}"
+                      -
+                        "@name": ${um.host3}
+                        URL: "nsp://${um.host3}:${um.instance.port}"
+
+provision:
+  default:
+    um-runtime:   ["${um.host}"]
+    um-cluster:   ["${um.host}"]
+  server:
+    um-runtime:   ["${um.host}"]
+    um-cluster:   ["${um.host}"]
+  cluster:
+    um-runtime:   ["${um.host}", "${um.host2}", "${um.host3}"] ##all nodes
+    um-cluster:   ["${um.host}"] ## first node only
+  docker:
+    um-runtime:   ["${spm.alias}"]
+    um-cluster:   ["${spm.alias}"]
+
+nodes:
+  default:
+    default:
+      port:   ${spm.port}
+      secure: ${spm.secure}
+      credentials: ${spm.credentials.alias}
+      bootstrapInfo:
+        installDir:   ${bootstrap.install.dir}
+        installer:    ${bootstrap.install.installer}
+        port:         ${bootstrap.ssh.port}
+        credentials:  ${bootstrap.credentials.alias}
+  docker:
+    ${spm.alias}:
+      host: ${um.host}

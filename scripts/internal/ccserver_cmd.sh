@@ -7,27 +7,31 @@ THISDIR=`dirname $0`; THISDIR=`cd $THISDIR;pwd`
 BASEDIR="$THISDIR/../.."
 
 ## apply global env
-if [ -f ${BASEDIR}/scripts/conf/setenv_webmethods_provisioning.sh ]; then
-    . ${BASEDIR}/scripts/conf/setenv_webmethods_provisioning.sh
+if [ -f ${BASEDIR}/scripts/conf/setenv_cce_globals.sh ]; then
+    . ${BASEDIR}/scripts/conf/setenv_cce_globals.sh
 fi
 
-##get the commands passed-in
-CC_ENV=$1
-CMD_TARGET="${@:2}"
+## apply globals overrides
+if [ -f ${HOME}/.setenv_cce_globals.sh ]; then
+    . ${HOME}/.setenv_cce_globals.sh
+fi
 
-## apply env if file is there
+## apply cce env
 if [ -f ${HOME}/setenv-cce.sh ]; then
     . ${HOME}/setenv-cce.sh
 fi
+
+##get the commands passed-in
+CMD_TARGET="${@:1}"
 
 $SAGCCANT_CMD -f $BASEDIR/build.xml -Denv.CC_ENV=$CC_ENV $CMD_TARGET
 
 runexec=$?
 echo -n "Command status:"
 if [ $runexec -eq 0 ]; then
-    echo "[$THIS: SUCCESS]"
+    echo "[$THIS: $CMD_TARGET -- SUCCESS!]"
 else
-    echo "[$THIS: FAIL]"
+    echo "[$THIS: $CMD_TARGET -- FAIL!]"
 fi
 
 exit $runexec;

@@ -1,27 +1,38 @@
 alias: sag-cc-repos
 description: Default public SAG master repositories
-version: 10.2
+version: 10.5
 
 environments:
   default:
-    repo.product.name: ${}
-    repo.fix.name: ${}
-    repo.products.location: ${}
-    repo.products.description: ${}
-    repo.products.credentials.key: ${}
+    repo.products.103.name: ${}
+    repo.products.103.location: ${}
+    repo.products.103.description: ${}
+    repo.products.103.credentials.key: ${}
+    
+    repo.products.105.name: ${}
+    repo.products.105.location: ${}
+    repo.products.105.description: ${}
+    repo.products.105.credentials.key: ${}
+
+    repo.fixes.name: ${}
     repo.fixes.location: ${}
     repo.fixes.description: ${}
     repo.fixes.credentials.key: ${}
 
 repositories:
   product: 
-    ${repo.product.name}:           
-      location: ${repo.products.location}
-      description: ${repo.products.description}
-      credentials: ${repo.products.credentials.key}
- 
+    ${repo.products.103.name}:           
+      location: ${repo.products.103.location}
+      description: ${repo.products.103.description}
+      credentials: ${repo.products.103.credentials.key}
+    
+    ${repo.products.105.name}:           
+      location: ${repo.products.105.location}
+      description: ${repo.products.105.description}
+      credentials: ${repo.products.105.credentials.key}
+
   fix:                                  
-    ${repo.fix.name}:
+    ${repo.fixes.name}:
       location: ${repo.fixes.location}
       description: ${repo.fixes.description}
       credentials: ${repo.fixes.credentials.key}

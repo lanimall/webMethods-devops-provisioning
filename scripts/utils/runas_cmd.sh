@@ -12,6 +12,14 @@ else
     SU="/bin/su"
 fi
 
+##Command
+echo "About to execute command: $CMD"
+
+if [ "$RUN_AS_USER" == "self" ]; then
+    RUN_AS_USER=$CURRENT_USER
+    echo "running command as current user $RUN_AS_USER"
+fi
+
 ##check target user
 getent passwd $RUN_AS_USER > /dev/null
 if [ $? -eq 0 ]; then
@@ -21,15 +29,12 @@ else
     exit 2;
 fi
 
-##Command
-echo "About to execute command: $CMD"
-
 ##become target user for install
 if [ "x$CURRENT_USER" != "x$RUN_AS_USER" ]; then
-    echo "Will RUN AS: $RUN_AS_USER"
+    echo "Will try to escalate with SUDO and RUN AS: $RUN_AS_USER"
     sudo $SU $RUN_AS_USER -c "$CMD"
 else
-    echo "Executing command as $CURRENT_USER"
+    echo "Already $RUN_AS_USER! Executing command as myself!"
     exec $CMD
 fi
 

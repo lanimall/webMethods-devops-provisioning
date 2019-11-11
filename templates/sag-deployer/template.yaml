@@ -1,0 +1,64 @@
+alias: sag-deployer
+description: Software AG Deployer
+
+environments:
+  default:  
+    repo.product:        ${}
+    repo.fix:            ${}
+    nodes:               ${} 
+
+    deployer.fixes:      ${}
+
+    deployer.license.key: "*_PIE_10.*_*_*"  # IS license key
+    deployer.instance.name: default
+    deployer.instance.packages: ${}
+    deployer.primary.port: 5555
+    deployer.diagnostic.port: 9999
+    deployer.jmx.port:  8094
+    deployer.memory.init:     512                             # Initial memory size
+    deployer.memory.max:      1024                            # Maximum memory size
+
+layers:
+  runtime:
+    productRepo: ${repo.product}            # install products from
+    fixRepo:     ${repo.fix}                # install fixes from
+    templates:   
+      - deployer
+
+templates:
+  deployer:
+    licenses:
+      "IntegrationServer/config/licenseKey.xml": "${deployer.license.key}"
+    fixes: ${deployer.fixes}
+    products:
+      GWM_IS:   # Unit Test Framework
+      Deployer: 
+      integrationServer:
+        ${deployer.instance.name}:
+          primary.port: ${deployer.primary.port}
+          diagnostic.port: ${deployer.diagnostic.port}
+          jmx.port: ${deployer.jmx.port}
+          license.file: IntegrationServer/config/licenseKey.xml
+          package.list: ${deployer.instance.packages}
+          configuration:
+            OSGI-IS_${instance.name}:
+              COMMON-MEMORY:
+                COMMON-MEMORY:
+                  InitSize: ${deployer.memory.init}
+                  MaxSize:  ${deployer.memory.max}
+
+provision:
+  default:
+    runtime:  ${nodes}
+
+nodes:
+  default:
+    default:
+      port:   ${spm.port}
+      secure: ${spm.secure}
+      credentials: ${spm.credentials.alias}
+      bootstrapInfo:
+        installDir:   ${bootstrap.install.dir}
+        installer:    ${bootstrap.install.installer}
+        port:         ${bootstrap.ssh.port}
+        credentials:  ${bootstrap.credentials.alias}

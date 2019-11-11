@@ -1,0 +1,38 @@
+alias: sag-internaldatastore-cluster
+description: Internal Data Store provisioning in cluster configuration
+
+environments:
+  default:
+    nodes:                 ${}
+    release.major:         10                                                   # release major version number
+    ids.port:              9340
+    ids.fixes:             ${}
+    ids.repo.shared.path:  "/opt/softwareag/InternalDataStore/archives"
+    
+layers:
+  runtime:
+    productRepo:           ${repo.product}
+    fixRepo:               ${repo.fix}
+    templates:             ids-server
+    
+templates:
+  ids-cluster-1:
+    fixes: ${ids.fixes}
+    products:
+      CEL:
+                          
+provision:
+  default:
+    runtime: ${nodes}
+
+nodes:
+  default:
+    default:
+      port:   ${spm.port}
+      secure: ${spm.secure}
+      credentials: ${spm.credentials.alias}
+      bootstrapInfo:
+        installDir:   ${bootstrap.install.dir}
+        installer:    ${bootstrap.install.installer}
+        port:         ${bootstrap.ssh.port}
+        credentials:  ${bootstrap.credentials.alias}

@@ -1,0 +1,241 @@
+alias: is_stateless_messaging
+description: Integration Server Stateless instance connected to UM
+
+environments:
+  default:
+    repo.product:        ${}
+    repo.fix:            ${}
+
+    # Integration Server Instance Configuration
+    is.license.key.alias:  ${license.key.alias1}
+    is.host:            ${}
+    is.instance.name:   default             # Instance name
+    is.primary.port:    5555                # Primary port number
+    is.diagnostic.port: 9999                # Dialgnostic port number
+    is.jmx.port:        8094                # JMX port number
+    is.password:        ${}              # Administrator user password
+    is.memory.init:     2048                # Initial memory size
+    is.memory.max:      4096                # Maximum memory size
+    is.install.service: true
+
+    ## multiple notations
+    ## Fix Name and Version (can be used 9.7 and later): wMFix.integrationServer.Core_10.3.0.0005-0009
+    ## Fix ID (can be used 10.3 and later): IS_10.3_Core_Fix5
+    ## Fix Name (to get the latest fixes): wMFix.integrationServer.Core
+    is.fixes:           ${}
+
+    # IS clustering
+    is.cluster.enabled:  false
+
+    # IS Messaging
+    is.um.url:                ${} ### nsp://universalmessaging1.webmethods.local:9000
+    is.um.fixes:              [wMFix.NUMClient]
+    is.jms.jndi.alias:        "CUSTOM_IS_JNDI_PROVIDER"
+    is.jms.jndi.cf:           umcf
+    is.jms.connection.alias:  "CUSTOM_IS_JMS_CONNECTION"
+    is.wm.messaging.alias:    "CUSTOM_IS_UM_CONNECTION"
+
+    ## remote provisioning
+    spm.port:       8092                    # SPM connection port
+    spm.secure:     false                   # Use HTTPS connection to SPM: true,false
+    spm.credentials.alias: ${}
+    bootstrap.credentials.alias:      ${}       # remote machine credential alias to use
+    bootstrap.ssh.port:      ${}                # remote machine SSH port
+    bootstrap.install.dir:      ${}             # suite installation directory
+    bootstrap.install.installer: ${}            # installer to use for the SPM node
+
+  server:
+
+  docker:
+    repo.product:       products
+    repo.fix:           fixes
+    is.host:            localhost
+    spm.alias:          local
+    is.install.service: false
+
+layers:
+  default:
+    productRepo: ${repo.product}
+    fixRepo:     ${repo.fix}
+  is:
+    description: General purpose IS layer
+    templates:
+      - is-runtime        # first create IS instance profile
+      - um-client
+
+templates:
+  um-client:
+    fixes: ${um.fixes}
+    products:
+      NUMClient:
+  is-runtime:
+    licenses:
+      "IntegrationServer/config/licenseKey.xml": ${is.license.key.alias}
+    fixes: ${is.fixes}
+    products:
+      integrationServer:
+        ${is.instance.name}:
+          primary.port:    ${is.primary.port}
+          diagnostic.port: ${is.diagnostic.port}
+          jmx.port:        ${is.jmx.port}
+          license.file:    IntegrationServer/config/licenseKey.xml
+          install.service: ${is.install.service}
+          configuration:
+            OSGI-IS_${is.instance.name}:
+              COMMON-MEMORY:
+                COMMON-MEMORY:
+                  InitSize: ${is.memory.init}
+                  MaxSize: ${is.memory.max}
+            integrationServer-${is.instance.name}:
+              COMMON-LOCAL-USERS:
+                COMMON-LOCAL-USERS-Administrator:
+                  "@id": Administrator
+                  Enabled: true
+                  Password: ${is.password}
+                  ExtendedProperties:
+                    Property:
+                      -
+                       "@name": "AllowDigestAuthentication"
+                       $: false
+              COMMON-JNDI:
+                COMMON-JNDI-${is.jms.jndi.alias}:
+                  JNDI:
+                    '@alias': ${is.jms.jndi.alias}
+                    Description: JNDI UM provider
+                    Provider:
+                      URL: ${is.um.url}
+                      InitialContextFactory: com.pcbsys.nirvana.nSpace.NirvanaContextFactory
+                      User: ''
+              COMMON-WMMESSAGING:
+                COMMON-WMMESSAGING-${is.wm.messaging.alias}:
+                  Messaging:
+                    '@alias': ${is.wm.messaging.alias}
+                    Description: UM connection alias
+                    ClientPrefix: ${is.wm.messaging.alias}_CLIENT_PREFIX
+                    ShareClientPrefix: 'true'
+                    Enabled: 'true'
+                    Provider:
+                      '@type': UM
+                      URL: ${is.um.url}
+                      MaxRetryAttempts: '5'
+                      RetryInterval: '30000'
+                      Auth:
+                        '@type': none
+                    ExtendedProperties:
+                      Property:
+                      - '@name': useCSQ
+                        $: 'true'
+                      - '@name': csqDrainInOrder
+                        $: 'false'
+                      - '@name': enableRequestReply
+                        $: 'true'
+                      - '@name': csqSize
+                        $: '-1'
+                      - '@name': um_followTheMasterForSubscribe
+                        $: 'true'
+                      - '@name': um_followTheMasterForPublish
+                        $: 'true'
+              COMMON-JMS:
+                COMMON-JMS-${is.jms.connection.alias}:
+                  JMS:
+                    '@alias': ${is.jms.connection.alias}
+                    Description: JMS connection alias
+                    Enabled: 'true'
+                    TransactionType: NO_TRANSACTION
+                    ClientId: ${is.jms.connection.alias}_CLIENT
+                    Provider:
+                      '@type': JNDI
+                      JNDIAlias: ${is.jms.jndi.alias}
+                      JNDIConnectionFactoryName: ${is.jms.jndi.cf}
+                    User: ''
+                    MaxRetryAttempts: '0'
+                    RetryInterval: '0'
+                    Caching: DISABLED
+                    ExtendedProperties:
+                      Property:
+                      - '@name': jndi_connectionFactoryUpdateType
+                        $: NONE
+                      - '@name': jndi_connectionFactoryPollingInterval
+                        $: '0'
+                      - '@name': classLoader
+                        $: INTEGRATION_SERVER
+                      - '@name': csqSize
+                        $: '-1'
+                      - '@name': csqDrainInOrder
+                        $: 'false'
+                      - '@name': optTempQueueCreate
+                        $: 'false'
+                      - '@name': allowReplyToConsumer
+                        $: 'false'
+                      - '@name': manageDestinations
+                        $: 'false'
+                      - '@name': allowNewConnectionPerTrigger
+                        $: 'true'
+              COMMON-CLUSTER:
+                COMMON-CLUSTER:
+                  Name: ${is.cluster.name}
+                  Enabled: ${is.cluster.enabled}
+
+##### from command central
+              COMMON-JMS:
+                COMMON-JMS-CUSTOM_IS_JMS_CONNECTION:
+                  JMS:
+                    '@alias': CUSTOM_IS_JMS_CONNECTION
+                    Description: UM connection
+                    Enabled: 'true'
+                    TransactionType: NO_TRANSACTION
+                    ClientId: ISConn_ID
+                    Provider:
+                      '@type': JNDI
+                      JNDIAlias: CUSTOM_IS_JNDI_PROVIDER
+                      JNDIConnectionFactoryName: umcf
+                    User: ''
+                    MaxRetryAttempts: '0'
+                    RetryInterval: '1000'
+                    Caching: DISABLED
+                    ExtendedProperties:
+                      Property:
+                      - '@name': jndi_connectionFactoryUpdateType
+                        $: NONE
+                      - '@name': jndi_connectionFactoryPollingInterval
+                        $: '0'
+                      - '@name': jndi_enableFollowTheMaster
+                        $: 'true'
+                      - '@name': classLoader
+                        $: INTEGRATION_SERVER
+                      - '@name': csqSize
+                        $: '-1'
+                      - '@name': csqDrainInOrder
+                        $: 'false'
+                      - '@name': optTempQueueCreate
+                        $: 'false'
+                      - '@name': allowReplyToConsumer
+                        $: 'false'
+                      - '@name': manageDestinations
+                        $: 'false'
+                      - '@name': allowNewConnectionPerTrigger
+                        $: 'true'
+                  
+
+provision:
+  default:
+    is:  ["${is.host}"]
+  server:
+    is:  ["${is.host}"]
+  docker:
+    is:   ["${spm.alias}"]
+
+nodes:
+  default:
+    default:
+      port:   ${spm.port}
+      secure: ${spm.secure}
+      credentials: ${spm.credentials.alias}
+      bootstrapInfo:
+        installDir:   ${bootstrap.install.dir}
+        installer:    ${bootstrap.install.installer}
+        port:         ${bootstrap.ssh.port}
+        credentials:  ${bootstrap.credentials.alias}
+  docker:
+    ${spm.alias}:
+      host: ${is.host}

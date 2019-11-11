@@ -6,24 +6,15 @@ THIS_NOEXT="${THIS%.*}"
 THISDIR=`dirname $0`; THISDIR=`cd $THISDIR;pwd`
 BASEDIR="$THISDIR/.."
 
-## get stack name
-PROVISION_STACK_NAME="$1"
+##get the params passed-in
+RUN_AS_USER=$1
 
-if [ "x$PROVISION_STACK_NAME" = "x" ]; then
-    echo "error: variable PROVISION_STACK_NAME is required...exiting!"
-    exit 2;
+if [ "x$RUN_AS_USER" = "x" ]; then
+    RUN_AS_USER="self"
 fi
 
-## build target file
-PROVISION_SCRIPT_FILE_NOEXT="provision_${PROVISION_STACK_NAME}"
+##become target user for install
+$BASEDIR/scripts/utils/runas_cmd.sh $RUN_AS_USER "$BASEDIR/scripts/internal/$THIS_NOEXT.sh ${@:2}"
 
-## check if stack name correspond to an existing target file
-if [ ! -f $BASEDIR/scripts/internal/$PROVISION_SCRIPT_FILE_NOEXT.sh ]; then
-    echo "error: variable PROVISION_STACK_NAME is required...exiting!"
-    exit 2;
-fi
-
-$BASEDIR/scripts/utils/provision_wrapper.sh $PROVISION_SCRIPT_FILE_NOEXT "${@:2}"
 runexec=$?
-
 exit $runexec

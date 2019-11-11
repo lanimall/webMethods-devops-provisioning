@@ -7,15 +7,13 @@ THISDIR=`dirname $0`; THISDIR=`cd $THISDIR;pwd`
 BASEDIR="$THISDIR/../.."
 
 ## apply global env
-if [ -f ${BASEDIR}/scripts/conf/setenv_webmethods_provisioning.sh ]; then
-    . ${BASEDIR}/scripts/conf/setenv_webmethods_provisioning.sh
+if [ -f ${BASEDIR}/scripts/conf/setenv_cce_globals.sh ]; then
+    . ${BASEDIR}/scripts/conf/setenv_cce_globals.sh
 fi
 
-##get the params passed-in
-BOOTSTRAP_TARGET=$1
-if [ "x$BOOTSTRAP_TARGET" = "x" ]; then
-    echo "Bootstrap target is empty...defaulting"
-    BOOTSTRAP_TARGET=$BOOTSTRAP_TARGET_DEFAULT
+## apply globals overrides
+if [ -f ${HOME}/.setenv_cce_globals.sh ]; then
+    . ${HOME}/.setenv_cce_globals.sh
 fi
 
 ## apply secrets
@@ -23,10 +21,23 @@ if [ -f ${HOME}/.setenv_cce_secrets.sh ]; then
     . ${HOME}/.setenv_cce_secrets.sh
 fi
 
-##check if CC_PASSWORD set
+##get the params passed-in
+BOOTSTRAP_TARGET=$1
+STATUS_ID=$2
+
+if [ "x$BOOTSTRAP_TARGET" = "x" ]; then
+    echo "error: variable BOOTSTRAP_TARGET is required...exiting!"
+    exit 2;
+fi
+
+##check if CC_PASSWORD set (should be in .setenv_cce_secrets.sh)
 if [ "x$CC_PASSWORD" = "x" ]; then
-    echo "Bootstrap CC_PASSWORD is empty...defaulting."
-    CC_PASSWORD=$BOOTSTRAP_CC_PASSWORD_DEFAULT
+    echo "error: variable CC_PASSWORD is required...exiting!"
+    exit 2;
+fi
+
+if [ "x$STATUS_ID" != "x" ]; then
+    STATUS_ID="_$STATUS_ID"
 fi
 
 #build the installer name
@@ -41,7 +52,6 @@ $ANT_CMD -Denv.CC_BOOT=$CC_BOOT \
     $BOOTSTRAP_TARGET
 
 runexec=$?
-echo -n "Provisonning status:"
 if [ $runexec -eq 0 ]; then
     echo "[$THIS: SUCCESS]"
     
@@ -49,8 +59,14 @@ if [ $runexec -eq 0 ]; then
     echo "export CC_CLI_HOME=${INSTALL_DIR}/CommandCentral/client" > ${HOME}/setenv-cce.sh
     echo "export PATH=\$PATH:\${CC_CLI_HOME}/bin" >> ${HOME}/setenv-cce.sh
     echo "export SAGCCANT_CMD=\"sagccant\"" >> ${HOME}/setenv-cce.sh
+
+    ##create/update a file in home to possibly broadcast that the script is done
+    touch ${HOME}/$THIS_NOEXT.status.success$STATUS_ID
 else
     echo "[$THIS: FAIL]"
+    
+    ##create/update a file in home to possibly broadcast that the script failed
+    touch ${HOME}/$THIS_NOEXT.status.fail$STATUS_ID
 fi
 
 exit $runexec;

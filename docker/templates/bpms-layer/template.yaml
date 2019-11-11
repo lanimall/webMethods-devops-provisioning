@@ -1,0 +1,292 @@
+alias: bpms-layer
+description: BPMS environment with UM,TC,BPM,MWS layers/clusters
+
+environments:
+  default:                                  # defaults
+    repo.product:        products
+    repo.fix:            fixes
+
+    spm.port:       8092                    # SPM connection port
+    spm.secure:     false                   # Use HTTPS connection to SPM: true,false
+    spm.memory.max: 512                     # max mem
+    spm.configure:  [spm-tuneup]    
+    spm.fixes:      [wMFix.SPM]             # SPM/SUM/SD core fixes by default
+
+    # BPMS / Integration Server. See is-layer template for parameters documentation
+    is.host:             ${}
+    is.instance.name:    default            # IS BPM instance
+    is.primary.port:     ${}
+    is.diagnostic.port:  9999
+    is.jmx.port:         8094
+    is.install.service:  true
+    is.memory.init:      256                # memory configuration
+    is.memory.max:       1024               # memory configuration
+    is.lb.protocol:      HTTP               # external load balancer protocol
+    is.lb.host:          ${is.host}        # external load balancer host
+    is.lb.port:          ${is.primary.port} # external load balancer port
+    is.fixes:            [wMFix.integrationServer.Core]
+    is.configure:        [bpm-server]
+
+    env.password:        manage             # IS/MWS Administrator password
+
+    # IS clustering
+    is.cluster.enabled:   true
+    is.cluster.name:      "${is.instance.name}-cluster"
+    tsa.url:              "tcserver:9510"
+
+    # IS Messaging
+    um.host:              "umserver"
+    um.port:              "9000"
+    um.url:               "nsp://${um.host}:${um.port}"
+    um.jndi.cf:           umcf
+
+    # licenses
+    os.platform:             lnxamd64
+    is.license.key.alias:    "Integration_Server-${os.platform}"
+    tc.license.key.alias:    "terracotta-license-${os.platform}"
+    rules.license.key.alias: "Business_Rules_Advanced-${os.platform}"
+
+    # Database connection
+    db.type:             oracle             # REQUIRED: Database type: oracle,sqlserver,db2
+    db.host:             bpms_db             # REQUIRED: Database server hostname
+    db.port:             1521               # REQUIRED: Database server port
+    db.name:             webm
+    db.username:         bpms_dbuser         # Database username
+    db.password:         strong123!         # Database password
+    db.sid:              XE                 # Database name
+    db.url.oracle:       "jdbc:wm:oracle://${db.host}:${db.port};SID=${db.sid}"
+    db.url.sqlserver:    "jdbc:wm:${db.type}://${db.host}:${db.port};databaseName=${db.name}"
+    db.url:              ${db.url.oracle}
+
+  server:
+
+  docker:
+    is.host:        localhost
+    spm.alias:      local
+
+layers:
+  default:
+    productRepo: ${repo.product}
+    fixRepo:     ${repo.fix}
+
+  spm:
+    description: Management layer of SPM's
+    templates:   ${spm.configure}
+
+  bpms:
+    description: Business Process Management layer based on Integration Server
+    templates:   ${is.configure}
+
+templates:
+  spm-tuneup:
+    description: SPM customizations
+    fixes:       ${spm.fixes}
+    products:
+      # SUM:       # Ensure we have SUM installed - no longer needed for 10.1
+      SPM:
+      ISspm:
+      PIFspm:
+      WMNspm:
+      WOKspm:
+      EDAspm:
+      WOKMWSspm:
+      MwsSpmIsTask:
+      MwsSpmTaskEngine:
+
+  bpm-server: # Custom IS BPM setup
+    description: BPM layer can be single server or a cluster
+    licenses:
+      "IntegrationServer/config/licenseKey.xml": ${is.license.key.alias} 
+      "IntegrationServer/instances/${is.instance.name}/packages/WmBusinessRules/config/licenseKey.xml": ${rules.license.key.alias} 
+      "common/conf/terracotta-license.key": ${tc.license.key.alias} 
+    fixes: ${is.fixes}
+    products:
+      brmspackage:
+      Monitor:
+      TaskClientPackage:
+      Deployer:
+      NUMDeployer:
+      wmprt:
+      integrationServer: # the core IS product that owns the instance
+        ${is.instance.name}:
+          primary.port:    ${is.primary.port}
+          diagnostic.port: ${is.diagnostic.port}
+          jmx.port:        ${is.jmx.port}
+          license.file:    IntegrationServer/config/licenseKey.xml
+          install.service: ${is.install.service}
+          package.list:    WmMonitor,WmTaskClient,WmBusinessRules,WmDeployer,WmNUMDeployer,WmPRT
+          db.type:         ${db.type}
+          db.url:          "${db.url}"
+          db.username:     ${db.username}
+          db.password:     ${db.password}
+          db.alias:        Default
+          configuration:
+            OSGI-IS_${is.instance.name}:
+              COMMON-MEMORY:
+                COMMON-MEMORY:
+                  InitSize: ${is.memory.init}
+                  MaxSize: ${is.memory.max}
+            integrationServer-${is.instance.name}:
+              COMMON-JNDI:
+                COMMON-JNDI-DEFAULT_IS_JNDI_PROVIDER:
+                  JNDI: 
+                    "@alias": DEFAULT_IS_JNDI_PROVIDER
+                    Description: Default JNDI provider alias
+                    Provider: 
+                      URL: "${um.url}"
+                      InitialContextFactory: com.pcbsys.nirvana.nSpace.NirvanaContextFactory
+              COMMON-WMMESSAGING:
+                COMMON-WMMESSAGING-IS_UM_CONNECTION:
+                  Messaging: 
+                    "@alias": IS_UM_CONNECTION
+                    Description: Default UM connection alias
+                    ClientPrefix: IS_UM
+                    ShareClientPrefix: false
+                    Enabled: true
+                    Provider: 
+                      "@type": UM
+                      URL: "${um.url}"
+                      MaxRetryAttempts: 5
+                      RetryInterval: 30000
+              COMMON-JMS:
+                COMMON-JMS-DEFAULT_IS_JMS_CONNECTION:
+                  JMS: 
+                    "@alias": DEFAULT_IS_JMS_CONNECTION
+                    Description: Default JMS connection alias
+                    Enabled: true
+                    TransactionType: NO_TRANSACTION
+                    ClientId: DEFAULT_IS_JMS_CLIENT
+                    Provider: 
+                      "@type": JNDI
+                      JNDIAlias: DEFAULT_IS_JNDI_PROVIDER
+                      JNDIConnectionFactoryName: ${um.jndi.cf}
+                    User: ""
+                    MaxRetryAttempts: 0
+                    RetryInterval: 0
+                    Caching: DISABLED
+                    ExtendedProperties: 
+                      Property: 
+                        - 
+                          "@name": "jndi_connectionFactoryUpdateType"
+                          $: "NONE"
+                        - 
+                          "@name": "jndi_connectionFactoryPollingInterval"
+                          $: "0"
+                        - 
+                          "@name": "classLoader"
+                          $: "INTEGRATION_SERVER"
+                        - 
+                          "@name": "csqSize"
+                          $: "-1"
+                        - 
+                          "@name": "csqDrainInOrder"
+                          $: "true"
+                        - 
+                          "@name": "optTempQueueCreate"
+                          $: "true"
+                        - 
+                          "@name": "manageDestinations"
+                          $: "true"
+                        - 
+                          "@name": "allowNewConnectionPerTrigger"
+                          $: "false"
+                COMMON-JMS-PE_NONTRANSACTIONAL_ALIAS:
+                  JMS: 
+                    "@alias": PE_NONTRANSACTIONAL_ALIAS
+                    Description: Default PE JMS connection alias
+                    Enabled: true
+                    TransactionType: NO_TRANSACTION
+                    ClientId: IS_PE
+                    Provider: 
+                      "@type": JNDI
+                      JNDIAlias: DEFAULT_IS_JNDI_PROVIDER
+                      JNDIConnectionFactoryName: ${um.jndi.cf}
+                    User: ""
+                    MaxRetryAttempts: 0
+                    RetryInterval: 0
+                    Caching: DISABLED
+                    ExtendedProperties: 
+                      Property: 
+                        - 
+                          "@name": "jndi_connectionFactoryUpdateType"
+                          $: "NONE"
+                        - 
+                          "@name": "jndi_connectionFactoryPollingInterval"
+                          $: "0"
+                        - 
+                          "@name": "classLoader"
+                          $: "INTEGRATION_SERVER"
+                        - 
+                          "@name": "csqSize"
+                          $: "-1"
+                        - 
+                          "@name": "csqDrainInOrder"
+                          $: "true"
+                        - 
+                          "@name": "optTempQueueCreate"
+                          $: "true"
+                        - 
+                          "@name": "manageDestinations"
+                          $: "true"
+                        - 
+                          "@name": "allowNewConnectionPerTrigger"
+                          $: "false"
+              COMMON-DBFUNCTION:
+                COMMON-DBFUNCTION-CentralUsers:
+                  Function:
+                    "@alias": CentralUsers
+                    PoolAlias: Default
+                    Description: "Central User Management Configuration"
+              COMMON-CLUSTER:
+                COMMON-CLUSTER:
+                  Name: ${is.cluster.name}
+                  Enabled: ${is.cluster.enabled}
+                  Servers:
+                    Server: 
+                      - 
+                        URL: ${tsa.url}
+
+            OSGI-IS_${is.instance.name}-WmMonitor: &MwsEndpoint
+              COMMON-COMPONENT-ENDPOINTS:
+                COMMON-COMPONENT-ENDPOINTS-MWS:
+                  "@alias": MWS
+                  Transport:
+                    Protocol: ${mws.lb.protocol}
+                    Host:     ${mws.lb.host}
+                    Port:     ${mws.lb.http.port}
+                  Auth:
+                    "@type": BASIC
+                    User: Administrator
+                    Password: ${env.password}
+            OSGI-IS_${is.instance.name}-WmTaskClient: *MwsEndpoint
+
+provision:
+  default:
+    spm:  ["${is.host}"]
+    bpms:   ["${is.host}"]
+  server:
+    spm:  ["${is.host}"]
+    bpms:   ["${is.host}"]
+  docker:
+    spm:  ["${spm.alias}"]
+    bpms:   ["${spm.alias}"]
+
+nodes:
+  default:
+    default:
+      port:   ${spm.port}
+      secure: ${spm.secure}
+      bootstrapInfo:
+        installDir:   ${install.dir}
+        installer:    ${install.installer}
+        port:         ${os.ssh.port}
+        credentials:
+          userName:   ${os.username}
+          password:   ${os.password}
+          authenticationMethod: ${os.auth.method}
+          privateKey: ${os.auth.key}
+  docker:
+    ${spm.alias}:
+      host: ${is.host}
+ 
+ 

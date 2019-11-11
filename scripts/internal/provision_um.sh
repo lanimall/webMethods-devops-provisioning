@@ -7,8 +7,13 @@ THISDIR=`dirname $0`; THISDIR=`cd $THISDIR;pwd`
 BASEDIR="$THISDIR/../.."
 
 ## apply global env
-if [ -f ${BASEDIR}/scripts/conf/setenv_webmethods_provisioning.sh ]; then
-    . ${BASEDIR}/scripts/conf/setenv_webmethods_provisioning.sh
+if [ -f ${BASEDIR}/scripts/conf/setenv_cce_globals.sh ]; then
+    . ${BASEDIR}/scripts/conf/setenv_cce_globals.sh
+fi
+
+## apply globals overrides
+if [ -f ${HOME}/.setenv_cce_globals.sh ]; then
+    . ${HOME}/.setenv_cce_globals.sh
 fi
 
 ## apply cce env
@@ -19,6 +24,12 @@ fi
 ## apply script specific env (where things needed for the provisoning are needed, like TARGET_HOST etc...)
 if [ -f ${HOME}/setenv-${THIS_NOEXT}.sh ]; then
     . ${HOME}/setenv-${THIS_NOEXT}.sh
+fi
+
+##Command in-line Params
+STATUS_ID=$1
+if [ "x$STATUS_ID" != "x" ]; then
+    STATUS_ID="_$STATUS_ID"
 fi
 
 if [ "x$TARGET_HOST" = "x" ]; then
@@ -53,4 +64,16 @@ $SAGCCANT_CMD -Denv.CC_CLIENT=$CC_CLIENT \
               setup_noclean
 
 runexec=$?
+if [ $runexec -eq 0 ]; then
+    echo "[$THIS_NOEXT: SUCCESS]"
+    
+    ##create/update a file in tmp to broadcast that the script is done
+    touch ${HOME}/$THIS_NOEXT.status.success$STATUS_ID
+else
+    echo "[$THIS_NOEXT: FAIL]"
+    
+    ##create/update a file in tmp to broadcast that the script is done
+    touch ${HOME}/$THIS_NOEXT.status.fail$STATUS_ID
+fi
+
 exit $runexec;

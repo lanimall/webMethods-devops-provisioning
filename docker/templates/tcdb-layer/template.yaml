@@ -1,0 +1,122 @@
+alias: tc-layer
+description: Terracotta Big Memory server
+
+environments:
+  default:
+    repo.product:        products
+    repo.fix:            fixes
+
+    # Remote system configuration
+    spm.port:       8092                    # SPM connection port
+    spm.secure:     false                   # Use HTTPS connection to SPM: true,false
+    spm.configure:  [spm-tuneup]
+    spm.fixes:      [wMFix.SPM]             # SPM/SUM/SD core fixes by default
+
+    os.platform:           lnxamd64         # w64/lnxamd64/solamd64/sol/aix
+    tc.license.key.alias:  terracotta-license-${os.platform}
+
+    # TC Server Instance Configuration
+    tc.host:             ${}          ## this should be the actual machine host
+    tc.instance.name:    tcserver
+    tc.tsa.port:         9510
+    tc.jmx.port:         9520
+    tc.grp.port:         9530
+    tc.mgt.port:         9540
+    tc.memory.init:      256               # minimil memory configuration
+    tc.memory.max:       1g                # minimal memory configuration
+    tc.storage.size:     2g
+    tc.offheap.size:     1g
+    tc.fixes:            [wMFix.TES]       # ALL
+    tc.data.dir:         ../data
+    tc.logs.dir:         ../logs
+    tc.index.dir:        ../index
+
+  server:
+
+  docker:
+    tc.host:        localhost
+    spm.alias:      local
+
+layers:
+  default:
+    productRepo: ${repo.product}
+    fixRepo:     ${repo.fix}
+  spm:
+    description: Management layer of SPM's
+    templates:   ${spm.configure}
+  tc:
+    templates:
+      - tc-server
+
+templates:
+  spm-tuneup:
+    description: SPM customizations
+    fixes: ${spm.fixes}
+    products:
+      SPM:
+      TESspm: # TES plugin
+
+  tc-server:
+    licenses:
+      "Terracotta/terracotta-license.key": ${tc.license.key.alias}
+    fixes: ${tc.fixes}
+    products:
+      TES:
+        default:
+          configuration:
+            TES-default:
+              COMMON-MEMORY:
+                COMMON-MEMORY:
+                  InitSize: ${tc.memory.init}
+                  MaxSize:  ${tc.memory.max}
+              TC-CONFIG:
+                TC-CONFIG: |
+                  <ns2:tc-config xmlns:ns2="http://www.terracotta.org/config">
+                    <servers>
+                      <server name="${tc.instance.name}" host="${node.host}">
+                        <data>${tc.data.dir}</data>
+                        <logs>${tc.logs.dir}</logs>
+                        <index>${tc.index.dir}</index>
+                        <tsa-port>${tc.tsa.port}</tsa-port>
+                        <jmx-port>${tc.jmx.port}</jmx-port>
+                        <tsa-group-port>${tc.grp.port}</tsa-group-port>
+                        <management-port>${tc.mgt.port}</management-port> 
+                        <dataStorage size="${tc.storage.size}"> 
+                           <offheap size="${tc.offheap.size}"/> 
+                           <hybrid/> 
+                        </dataStorage>
+                      </server>
+                    </servers>
+                  </ns2:tc-config>
+              TC-SERVER-NAME:
+                TC-SERVER-NAME:
+                  serverName: ${tc.instance.name}
+
+provision:
+  default:
+    spm:  ["${tc.host}"]
+    tc:   ["${tc.host}"]
+  server:
+    spm:  ["${tc.host}"]
+    tc:   ["${tc.host}"]
+  docker:
+    spm:  ["${spm.alias}"]
+    tc:   ["${spm.alias}"]
+
+nodes:
+  default:
+    default:
+      port:   ${spm.port}
+      secure: ${spm.secure}
+      bootstrapInfo:
+        installDir:   ${install.dir}
+        installer:    ${install.installer}
+        port:         ${os.ssh.port}
+        credentials:
+          userName:   ${os.username}
+          password:   ${os.password}
+          authenticationMethod: ${os.auth.method}
+          privateKey: ${os.auth.key}
+  docker:
+    ${spm.alias}:
+      host: ${tc.host}

@@ -4,4 +4,11 @@
 THISDIR=`dirname $0`; THISDIR=`cd $THISDIR;pwd`
 BASEDIR="$THISDIR/.."
 
-$BASEDIR/scripts/provision_ccserver.sh agent
+##get the params passed-in
+RUN_AS_USER=$1
+
+if [ "x$RUN_AS_USER" = "x" ]; then
+    RUN_AS_USER="self"
+fi
+
+$BASEDIR/scripts/provision_cce.sh $RUN_AS_USER agent "${@:2}"

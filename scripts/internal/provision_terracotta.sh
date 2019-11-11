@@ -7,8 +7,13 @@ THISDIR=`dirname $0`; THISDIR=`cd $THISDIR;pwd`
 BASEDIR="$THISDIR/../.."
 
 ## apply global env
-if [ -f ${BASEDIR}/scripts/conf/setenv_webmethods_provisioning.sh ]; then
-    . ${BASEDIR}/scripts/conf/setenv_webmethods_provisioning.sh
+if [ -f ${BASEDIR}/scripts/conf/setenv_cce_globals.sh ]; then
+    . ${BASEDIR}/scripts/conf/setenv_cce_globals.sh
+fi
+
+## apply globals overrides
+if [ -f ${HOME}/.setenv_cce_globals.sh ]; then
+    . ${HOME}/.setenv_cce_globals.sh
 fi
 
 ## apply cce env
@@ -26,8 +31,8 @@ if [ "x$TARGET_HOST" = "x" ]; then
     exit 2;
 fi
 
-if [ "x$LICENSE_KEY_ALIAS1" = "x" ]; then
-    echo "error: Variable LICENSE_KEY_ALIAS1 (for Terracotta) is required...exiting!"
+if [ "x$LICENSE_KEY_ALIAS_TERRACOTTA" = "x" ]; then
+    echo "error: Variable LICENSE_KEY_ALIAS_TERRACOTTA is required...exiting!"
     exit 2;
 fi
 
@@ -45,10 +50,28 @@ $SAGCCANT_CMD -Denv.CC_CLIENT=$CC_CLIENT \
               -Denvironment.type=server \
               -Dtc.host=$TARGET_HOST \
               -Dtc.host2=$TARGET_HOST \
-              -Dtc.license.key.alias=$LICENSE_KEY_ALIAS1 \
+              -Dtc.license.key.alias=$LICENSE_KEY_ALIAS_TERRACOTTA \
               -Denv.SOCKET_CHECK_TARGET_HOST=$TARGET_HOST \
               -Denv.SOCKET_CHECK_TARGET_PORT=22 \
               setup_noclean
 
 runexec=$?
+
+STATUS_ID=$1
+if [ "x$STATUS_ID" != "x" ]; then
+    STATUS_ID="_$STATUS_ID"
+fi
+
+if [ $runexec -eq 0 ]; then
+    echo "[$THIS_NOEXT: SUCCESS]"
+    
+    ##create/update a file in tmp to broadcast that the script is done
+    touch ${HOME}/$THIS_NOEXT.status.success$STATUS_ID
+else
+    echo "[$THIS_NOEXT: FAIL]"
+    
+    ##create/update a file in tmp to broadcast that the script is done
+    touch ${HOME}/$THIS_NOEXT.status.fail$STATUS_ID
+fi
+
 exit $runexec;

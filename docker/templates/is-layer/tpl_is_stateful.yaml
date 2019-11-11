@@ -1,0 +1,134 @@
+alias: is_stateful
+description: Integration Server Stateful instance connected to DB and Terracotta
+
+environments:
+  default:
+    repo.product:        ${}
+    repo.fix:            ${}
+
+    # Integration Server Instance Configuration
+    is.license.key.alias:  ${}
+    is.host:            ${}
+    is.instance.name:   default             # Instance name
+    is.primary.port:    5555                # Primary port number
+    is.diagnostic.port: 9999                # Dialgnostic port number
+    is.jmx.port:        8094                # JMX port number
+    is.password:        ${}              # Administrator user password
+    is.memory.init:     2048                # Initial memory size
+    is.memory.max:      4096                # Maximum memory size
+    is.install.service: true
+    is.configure:       [is-server]         # List of templates to apply
+    
+    ## multiple notations
+    ## Fix Name and Version (can be used 9.7 and later): wMFix.integrationServer.Core_10.3.0.0005-0009
+    ## Fix ID (can be used 10.3 and later): IS_10.3_Core_Fix5
+    ## Fix Name (to get the latest fixes): wMFix.integrationServer.Core
+    is.fixes:           ${}
+
+    # IS clustering
+    is.tsa.url:           ${}
+    tc.license.key.alias:  ${}
+    is.cluster.enabled:   true
+    is.cluster.name:      "${is.instance.name}-cluster"
+
+    # Database connection
+    db.url:              ${}           # JDBC URL
+    db.type:             ${}           # REQUIRED: Database type: oracle,sqlserver,db2
+    db.username:         ${}           # Database username
+    db.password:         ${}           # Database password
+
+    ## remote provisioning
+    spm.port:       8092                    # SPM connection port
+    spm.secure:     false                   # Use HTTPS connection to SPM: true,false
+    spm.credentials.alias: ${}
+    spm.fixes:      [wMFix.SPM]             # SPM/SUM/SD core fixes by default
+    bootstrap.credentials.alias:      ${}       # remote machine credential alias to use
+    bootstrap.ssh.port:      ${}                # remote machine SSH port
+    bootstrap.install.dir:      ${}             # suite installation directory
+    bootstrap.install.installer: ${}            # installer to use for the SPM node
+
+  server:
+
+  docker:
+    repo.product:       products
+    repo.fix:           fixes
+    is.host:            localhost
+    spm.alias:          local
+    is.install.service: false
+
+layers:
+  default:
+    productRepo: ${repo.product}
+    fixRepo:     ${repo.fix}
+  is:
+    description: General purpose IS layer
+    templates:
+      - is-runtime        # first create IS instance profile
+  
+templates:
+  is-runtime:
+    licenses:
+      "IntegrationServer/config/licenseKey.xml": ${is.license.key.alias}
+      "common/conf/terracotta-license.key":      ${tc.license.key.alias}
+    fixes: ${is.fixes}
+    products:
+      integrationServer:
+        ${is.instance.name}:
+          primary.port:    ${is.primary.port}
+          diagnostic.port: ${is.diagnostic.port}
+          jmx.port:        ${is.jmx.port}
+          license.file:    IntegrationServer/config/licenseKey.xml
+          install.service: ${is.install.service}
+          db.type:         ${db.type}
+          db.url:          ${db.url}
+          db.username:     ${db.username}
+          db.password:     ${db.password}
+          db.alias:        Default
+          configuration:
+            OSGI-IS_${is.instance.name}:
+              COMMON-MEMORY:
+                COMMON-MEMORY:
+                  InitSize: ${is.memory.init}
+                  MaxSize: ${is.memory.max}
+            integrationServer-${is.instance.name}:
+              COMMON-LOCAL-USERS:
+                COMMON-LOCAL-USERS-Administrator:
+                  "@id": Administrator
+                  Enabled: true
+                  Password: ${is.password}
+                  ExtendedProperties:
+                    Property:
+                      -
+                       "@name": "AllowDigestAuthentication"
+                       $: false
+              COMMON-CLUSTER:
+                COMMON-CLUSTER:
+                  Name: ${is.instance.name}-cluster
+                  Enabled: ${is.cluster.enabled}
+                  Servers:
+                    Server:
+                      -
+                        URL: ${is.tsa.url}
+
+provision:
+  default:
+    is:  ["${is.host}"]
+  server:
+    is:  ["${is.host}"]  
+  docker:
+    is:   ["${spm.alias}"]
+
+nodes:
+  default:
+    default:
+      port:   ${spm.port}
+      secure: ${spm.secure}
+      credentials: ${spm.credentials.alias}
+      bootstrapInfo:
+        installDir:   ${bootstrap.install.dir}
+        installer:    ${bootstrap.install.installer}
+        port:         ${bootstrap.ssh.port}
+        credentials:  ${bootstrap.credentials.alias}
+  docker:
+    ${spm.alias}:
+      host: ${is.host}

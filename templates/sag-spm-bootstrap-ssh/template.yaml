@@ -1,0 +1,59 @@
+alias: sag-spm-bootstrap-ssh
+description: SSH-enabled remote installation using CC bootstrap installer
+
+environments:
+  default:
+    nodes: ${}               # Remote hostnames to bootstrap, e.g. host1,host2
+
+    # Default job timeout (seconds)
+    timeout.job.seconds: 1800
+    # Create or refresh mirror repository timeout (minutes)
+    timeout.job.mirror.minutes: 720
+    # Read product and fix repositories timeout (milliseconds)
+    timeout.repo.read.seconds: 3600
+    # Enable or disable fix dependency validation when installing fixes (true/false)
+    fix.dependencies.validation: true
+
+layers:
+  runtime:
+    templates:             
+      - spm
+      - spm-tuneup
+
+templates:
+  spm: 
+    products:
+      SPM:
+        OSGI-SPM: # REQUIRED for registering OSGI-SPM as infrastructure layer instance
+  spm-tuneup:
+    products:
+      SPM:
+        default:
+          configuration:
+            OSGI-SPM: 
+              COMMON-MEMORY:
+                COMMON-MEMORY:
+                  InitSize: '256'
+                  MaxSize: '512'
+              COMMON-SYSPROPS:
+                COMMON-SYSPROPS:   # SPM system tuneup properties
+                  com.softwareag.platform.management.job.timeout: ${timeout.job.seconds}000
+                  com.softwareag.platform.management.mirror.job.timeout: ${timeout.job.mirror.minutes}
+                  org.eclipse.ecf.provider.filetransfer.retrieve.readTimeout: ${timeout.repo.read.seconds}000
+                  org.eclipse.ecf.provider.filetransfer.retrieve.closeTimeout: ${timeout.repo.read.seconds}000
+                  com.softwareag.plm.sum.cc.override.resolve.validation: ${fix.dependencies.validation}
+provision:
+  default:
+    runtime: ${nodes}
+
+nodes:
+  default:
+    default:
+      port:   ${spm.port}
+      secure: ${spm.secure}
+      credentials: ${spm.credentials.alias}
+      bootstrapInfo:
+        installDir:   ${bootstrap.install.dir}
+        installer:    ${bootstrap.install.installer}
+        port:         ${bootstrap.ssh.port}
+        credentials:  ${bootstrap.credentials.alias}

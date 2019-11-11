@@ -1,6 +1,6 @@
 alias: sag-cc-creds
 description: Default master repositories registration
-version: 10.1
+version: 10.5
 
 environments:
   default:                      
@@ -25,27 +25,27 @@ templates:
             OSGI-CCE-ENGINE:              
               COMMON-CREDENTIALS:
                 COMMON-CREDENTIALS-SAG_REPO:
-                    "@alias": SAG_REPO
-                    AuthenticationType: BASIC
-                    UserName: "${sag.repo.username}"
-                    Password: "${sag.repo.password}"
-                    Description: "repository containing softwareag products / fixes"
+                  "@alias": SAG_REPO
+                  AuthenticationType: BASIC
+                  UserName: "${sag.repo.username}"
+                  Password: "${sag.repo.password}"
+                  Description: "credentials for repository containing softwareag products / fixes"
                 COMMON-CREDENTIALS-SECURE_ADMINISTRATOR:
-                    "@alias": SECURE_ADMINISTRATOR
-                    AuthenticationType: BASIC
-                    UserName: Administrator
-                    Password: ${cc.password}          
-                    Description: "Custom Administrator password"
-                COMMON-CREDENTIALS-SSH-PRIVATE-KEY:
-                  '@alias': SSH-PRIVATE-KEY
+                  "@alias": SECURE_ADMINISTRATOR
+                  AuthenticationType: BASIC
+                  UserName: Administrator
+                  Password: ${cc.password}          
+                  Description: "Custom Administrator password"
+                COMMON-CREDENTIALS-SSH_PRIVATE_KEY:
+                  '@alias': SSH_PRIVATE_KEY
                   AuthenticationType: SSH                    # Can be used for SSH protocol authentication
                   UserName: ${ssh.user.name}                     # User account running CCE, e.g. sagadmin        
                   PrivateKeySource: KeyFileOnCommandCentral
                   PrivateKeyPath:   ${user.home}/.ssh/${ssh.pk.filename}  # Default private key location. MUST be there!
                   PrivateKeyPassword: ${ssh.pk.password}
                   KnownHosts: ${user.home}/.ssh/known_hosts  # Default location of the known_hosts file
-                  Description: "${ssh.user.name}'s default SSH private key"
-
+                  Description: "SSH private key to use with user ${ssh.user.name}"
+                  
 provision:
   default:
     cce:  

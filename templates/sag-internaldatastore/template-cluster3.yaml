@@ -1,0 +1,106 @@
+alias: sag-internaldatastore-cluster
+description: Internal Data Store provisioning in cluster configuration
+
+environments:
+  default:
+    nodes:                 ${}
+    release.major:         10                                                   # release major version number
+    ids.port.http:         9240
+    ids.port.tcp:          9340
+    ids.fixes:             ${}
+    ids.shared.path.logs:  "/opt/softwareag/InternalDataStore/logs"
+    ids.shared.path.repo:  
+      - "/opt/softwareag/InternalDataStore/archives"
+
+layers:
+  runtime:
+    productRepo:           ${repo.product}
+    fixRepo:               ${repo.fix}
+    templates:             
+      - ids-runtime
+      - ids-cluster-3
+    
+templates:
+  ids-runtime:
+    fixes: ${ids.fixes}
+    products:
+      CEL:
+        default:
+          configuration:
+            CEL:
+              COMMON-PORTS:
+                COMMON-PORTS-defaultHttp:
+                  Port:
+                    '@alias': http port
+                    Number: '${ids.port.http}'
+                    Protocol: HTTP
+                    ExtendedProperties:
+                      Property:
+                      - '@name': ssl
+                        $: 'false'
+                COMMON-PORTS-defaultTcp:
+                  Port:
+                    '@alias': tcp port
+                    Number: '${ids.port.tcp}'
+                    Protocol: TCP
+                    ExtendedProperties:
+                      Property:
+                      - '@name': ssl
+                        $: 'false'
+  ids-cluster-3:
+    products:
+      CEL:
+        default:
+          configuration:
+            CEL:
+              COMMON-CLUSTER:
+                COMMON-CLUSTER-default:
+                  Enabled: 'true'
+                  Name: SAG_EventDataStore
+                  Servers:
+                    Server:
+                    - ExtendedProperties:
+                        Property:
+                        - '@name': host
+                          $: ${runtime.hosts[1]}
+                        - '@name': port
+                          $: ${ids.port.tcp}
+                    - ExtendedProperties:
+                        Property:
+                        - '@name': host
+                          $: ${runtime.hosts[2]}
+                        - '@name': port
+                          $: ${ids.port.tcp}     
+                    - ExtendedProperties:
+                        Property:
+                        - '@name': host
+                          $: ${runtime.hosts[3]}
+                        - '@name': port
+                          $: ${ids.port.tcp}                                              
+              CUSTOM-PROPERTIES:
+                CUSTOM-PROPERTIES-default: |
+                  path.logs: ${ids.shared.path.logs}
+                  path.repo: ${ids.shared.path.repo}
+                  node.master: true
+                  node.data: true
+                  node.name: ${node.host}
+                  cluster.initial_master_nodes:
+                  - ${runtime.hosts[1]}
+                  - ${runtime.hosts[2]}
+                  - ${runtime.hosts[3]}
+                          
+provision:
+  default:
+    runtime: ${nodes}
+
+nodes:
+  default:
+    default:
+      port:   ${spm.port}
+      secure: ${spm.secure}
+      credentials: ${spm.credentials.alias}
+      bootstrapInfo:
+        installDir:   ${bootstrap.install.dir}
+        installer:    ${bootstrap.install.installer}
+        port:         ${bootstrap.ssh.port}
+        credentials:  ${bootstrap.credentials.alias}
