@@ -33,8 +33,8 @@ layers:
 templates:
   agw-cluster:
     licenses:
-      "IntegrationServer/config/APIGatewayLicenseKey.xml": ${agw.key.license.alias} 
-      "common/conf/terracotta-license.key": ${agw.tsa.key.license.alias} 
+      "IntegrationServer/config/APIGatewayLicenseKey.xml": "${agw.key.license.alias}"
+      "common/conf/terracotta-license.key": "${agw.tsa.key.license.alias}"
     fixes: ${agw.fixes}
     products:
       YAI:
@@ -47,7 +47,7 @@ templates:
           install.service: ${agw.install.service}
           package.list:    WmAPIGateway
           configuration:
-            OSGI-IS_${instance.name}:
+            OSGI-IS_${agw.instance.name}:
               COMMON-MEMORY:
                 COMMON-MEMORY:
                   InitSize: ${agw.memory.init}
@@ -71,13 +71,7 @@ templates:
               COMMON-JAVASYSPROPS:
                 COMMON-JAVASYSPROPS: |
                   test.cluster.withDerby=true
-            # OSGI-IS_apigateway-WmAPIGateway:
-            #   APIGATEWAY-ELASTICSEARCH:
-            #     APIGATEWAY-ELASTICSEARCH:
-            #       '@alias': Elasticsearch
-            #       Transport:
-            #       ExtendedProperties:
-            integrationServer-${instance.name}:              
+            integrationServer-${agw.instance.name}:              
               COMMON-CLUSTER:
                 COMMON-CLUSTER:
                   Name: APIGatewayTSAcluster
@@ -95,9 +89,19 @@ templates:
                     Property:
                     - '@name': AllowDigestAuthentication
                       $: 'false'
-                    - '@name': Groups
-                      $: API-Gateway-Administrators,Administrators,Everybody,Replicators
 
 provision:
   default:
     runtime: ${nodes}
+
+nodes:
+  default:
+    default:
+      port:   ${spm.port}
+      secure: ${spm.secure}
+      credentials: ${spm.credentials.alias}
+      bootstrapInfo:
+        installDir:   ${bootstrap.install.dir}
+        installer:    ${bootstrap.install.installer}
+        port:         ${bootstrap.ssh.port}
+        credentials:  ${bootstrap.credentials.alias}

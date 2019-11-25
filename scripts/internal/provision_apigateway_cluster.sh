@@ -36,8 +36,8 @@ if [ "x$TARGET_HOSTS" = "x" ]; then
     exit 2;
 fi
 
-if [ "x$APIGW_PASSWORD" = "x" ]; then
-    echo "error: Variable APIGW_PASSWORD is required. Check if [${HOME}/.setenv-secrets-${THIS_NOEXT}.sh] is set."
+if [ "x$DEFAULT_ADMIN_PASSWORD_APIGW" = "x" ]; then
+    echo "error: Variable DEFAULT_ADMIN_PASSWORD_APIGW is required. Check if [${HOME}/.setenv-secrets-${THIS_NOEXT}.sh] is set."
     exit 2;
 fi
 
@@ -54,6 +54,11 @@ fi
 if [ "x$TSA_URL" = "x" ]; then
     echo "error: Variable TSA_URL (for Terracotta) is required. Check [${HOME}/setenv-${THIS_NOEXT}.sh] for list of included variables."
     exit 2;
+fi
+
+if [ "x$FIXES_AGW" = "x" ]; then
+    echo "warning: variable FIXES_AGW is empty...no fixes will be applied"
+    FIXES_AGW="[]"
 fi
 
 ##### apply um template
@@ -75,8 +80,8 @@ $SAGCCANT_CMD -Denv.CC_CLIENT=$CC_CLIENT \
               -Dagw.is.instance.type=integrationServer \
               -Dagw.tsa.key.license.alias=$LICENSE_KEY_ALIAS_TERRACOTTA \
               -Dagw.tsa.url=$TSA_URL \
-              -Dagw.fixes=ALL \
-              -Dagw.administrator.password=$APIGW_PASSWORD \
+              -Dagw.fixes=$FIXES_AGW \
+              -Dagw.administrator.password=$DEFAULT_ADMIN_PASSWORD_APIGW \
               setup_noclean
 
 runexec=$?

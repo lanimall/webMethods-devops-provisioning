@@ -3,59 +3,34 @@ description: Integration Server single instance with embedded database
 
 environments:
   default:
-    repo.product:        ${}
-    repo.fix:            ${}
-    
-    # target install nodes
-    nodes:            ${}
+    release.major:                     10                                                   
+    os.platform:                       lnxamd64   
+    repo.product:                      ${}
+    repo.fix:                          ${}
+    nodes:                             ${}
 
-    # Integration Server Instance Configuration
-    is.license.key.alias:  ${}
-    
-    is.instance.name:   default             # Instance name
-    is.primary.port:    5555                # Primary port number
-    is.diagnostic.port: 9999                # Dialgnostic port number
-    is.jmx.port:        8094                # JMX port number
-    is.password:        ${}                 # Administrator user password
-    is.memory.init:     2048                # Initial memory size
-    is.memory.max:      4096                # Maximum memory size
-    is.install.service: true
-
-    ## multiple notations
-    ## Fix Name and Version (can be used 9.7 and later): wMFix.integrationServer.Core_10.3.0.0005-0009
-    ## Fix ID (can be used 10.3 and later): IS_10.3_Core_Fix5
-    ## Fix Name (to get the latest fixes): wMFix.integrationServer.Core
-    is.fixes:           ${}
-
-    # IS clustering
-    is.cluster.enabled:  false
-
-    ## remote provisioning
-    spm.port:       8092                    # SPM connection port
-    spm.secure:     false                   # Use HTTPS connection to SPM: true,false
-    spm.credentials.alias: ${}
-    spm.fixes:      [wMFix.SPM]             # SPM/SUM/SD core fixes by default
-    bootstrap.credentials.alias:      ${}       # remote machine credential alias to use
-    bootstrap.ssh.port:      ${}                # remote machine SSH port
-    bootstrap.install.dir:      ${}             # suite installation directory
-    bootstrap.install.installer: ${}            # installer to use for the SPM node
-
-  docker:
-    is.install.service: false
+    is.fixes:                         ${}
+    is.key.license.alias:             ${}            # REQUIRED: license key
+    is.instance.name:                 default                             
+    is.primary.port:                  5555                             
+    is.diagnostic.port:               9999                             
+    is.jmx.port:                      5559                             
+    is.memory.init:                   1024                             
+    is.memory.max:                    2048                             
+    is.install.service:               true
+    is.administrator.password:        ${}
 
 layers:
-  default:
+  runtime:
     productRepo: ${repo.product}
     fixRepo:     ${repo.fix}
-  is:
-    description: General purpose IS layer
-    templates:
-      - is-runtime        # first create IS instance profile
+    templates:   
+      - is-runtime
 
 templates:
   is-runtime:
     licenses:
-      "IntegrationServer/config/licenseKey.xml": ${is.license.key.alias}
+      "IntegrationServer/config/licenseKey.xml": "${is.key.license.alias}"
     fixes: ${is.fixes}
     products:
       integrationServer:
@@ -74,24 +49,17 @@ templates:
             integrationServer-${is.instance.name}:
               COMMON-LOCAL-USERS:
                 COMMON-LOCAL-USERS-Administrator:
-                  "@id": Administrator
-                  Enabled: true
-                  Password: ${is.password}
+                  '@id': Administrator
+                  Password: ${is.administrator.password}
+                  Enabled: 'true'
                   ExtendedProperties:
                     Property:
-                      -
-                       "@name": "AllowDigestAuthentication"
-                       $: false
-              COMMON-CLUSTER:
-                COMMON-CLUSTER:
-                  Name: ${is.cluster.name}
-                  Enabled: ${is.cluster.enabled}
+                    - '@name': AllowDigestAuthentication
+                      $: 'false'
 
 provision:
   default:
-    is:  ${nodes}
-  docker:
-    is:   ["local"]
+    runtime: ${nodes}
 
 nodes:
   default:
@@ -104,6 +72,3 @@ nodes:
         installer:    ${bootstrap.install.installer}
         port:         ${bootstrap.ssh.port}
         credentials:  ${bootstrap.credentials.alias}
-  docker:
-    local:
-      host: localhost

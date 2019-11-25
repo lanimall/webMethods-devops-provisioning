@@ -3,20 +3,22 @@ description: Software AG Deployer
 
 environments:
   default:  
-    repo.product:        ${}
-    repo.fix:            ${}
-    nodes:               ${} 
+    release.major:                     10                                                   
+    os.platform:                       lnxamd64   
+    repo.product:                      ${}
+    repo.fix:                          ${}
+    nodes:                             ${}
 
-    deployer.fixes:      ${}
-
-    deployer.license.key: "*_PIE_10.*_*_*"  # IS license key
-    deployer.instance.name: default
-    deployer.instance.packages: ${}
-    deployer.primary.port: 5555
-    deployer.diagnostic.port: 9999
-    deployer.jmx.port:  8094
-    deployer.memory.init:     512                             # Initial memory size
-    deployer.memory.max:      1024                            # Maximum memory size
+    deployer.fixes:                         ${}
+    deployer.key.license.alias:             ${}            # REQUIRED: license key
+    deployer.instance.name:                 deployer                             
+    deployer.primary.port:                  5555                             
+    deployer.diagnostic.port:               9999                             
+    deployer.jmx.port:                      5559                             
+    deployer.memory.init:                   1024                             
+    deployer.memory.max:                    2048                             
+    deployer.install.service:               true
+    deployer.administrator.password:        ${}
 
 layers:
   runtime:
@@ -28,24 +30,37 @@ layers:
 templates:
   deployer:
     licenses:
-      "IntegrationServer/config/licenseKey.xml": "${deployer.license.key}"
+      "IntegrationServer/config/licenseKey.xml": "${deployer.key.license.alias}"
     fixes: ${deployer.fixes}
     products:
-      GWM_IS:   # Unit Test Framework
-      Deployer: 
+      #GWM_IS:   # Unit Test Framework
+      Deployer:
+      NUMDeployer:
+      PIFDeployment:
       integrationServer:
         ${deployer.instance.name}:
           primary.port: ${deployer.primary.port}
           diagnostic.port: ${deployer.diagnostic.port}
           jmx.port: ${deployer.jmx.port}
           license.file: IntegrationServer/config/licenseKey.xml
+          install.service: ${deployer.install.service}
           package.list: ${deployer.instance.packages}
           configuration:
-            OSGI-IS_${instance.name}:
+            OSGI-IS_${deployer.instance.name}:
               COMMON-MEMORY:
                 COMMON-MEMORY:
                   InitSize: ${deployer.memory.init}
                   MaxSize:  ${deployer.memory.max}
+            integrationServer-${deployer.instance.name}:
+              COMMON-LOCAL-USERS:
+                COMMON-LOCAL-USERS-Administrator:
+                  '@id': Administrator
+                  Password: ${deployer.administrator.password}
+                  Enabled: 'true'
+                  ExtendedProperties:
+                    Property:
+                    - '@name': AllowDigestAuthentication
+                      $: 'false'
 
 provision:
   default:

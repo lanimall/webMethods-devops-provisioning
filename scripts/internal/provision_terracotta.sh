@@ -36,6 +36,11 @@ if [ "x$LICENSE_KEY_ALIAS_TERRACOTTA" = "x" ]; then
     exit 2;
 fi
 
+if [ "x$FIXES_TC" = "x" ]; then
+    echo "warning: variable FIXES_TC is empty...no fixes will be applied"
+    FIXES_TC="[]"
+fi
+
 ##### apply template
 $SAGCCANT_CMD -Denv.CC_CLIENT=$CC_CLIENT \
               -Dbuild.dir=$ANT_BUILD_DIR \
@@ -47,12 +52,13 @@ $SAGCCANT_CMD -Denv.CC_CLIENT=$CC_CLIENT \
               -Dbootstrap.install.installer.version.fix=$CC_BOOTSTRAPPER_VERSION_FIX \
               -Denv.CC_TEMPLATE=tc-layer/tpl-server.yaml \
               -Denv.CC_ENV=tc \
-              -Denvironment.type=server \
+              -Denvironment.type=default \
               -Dtc.host=$TARGET_HOST \
               -Dtc.host2=$TARGET_HOST \
               -Dtc.license.key.alias=$LICENSE_KEY_ALIAS_TERRACOTTA \
               -Denv.SOCKET_CHECK_TARGET_HOST=$TARGET_HOST \
               -Denv.SOCKET_CHECK_TARGET_PORT=22 \
+              -Dtc.fixes=$FIXES_TC \
               setup_noclean
 
 runexec=$?

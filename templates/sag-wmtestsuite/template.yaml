@@ -1,0 +1,41 @@
+alias: sag-wmtestsuite
+
+environments:
+  default:
+    release.major:                     10                                                   
+    os.platform:                       lnxamd64   
+    repo.product:                      ${}
+    repo.fix:                          ${}
+    nodes:                             ${}
+    wmtestsuite.fixes:                 ${}
+
+layers:
+  runtime:
+    productRepo: ${repo.product}
+    fixRepo:     ${repo.fix}
+    templates:
+      - testsuite
+
+templates:
+  testsuite:
+    fixes: ${wmtestsuite.fixes}
+    products:
+      LDev: # Service Development
+      vcs:  # Local version control
+      GWMDes: # Unit Test Framework
+
+provision:
+  default:
+    runtime:  ${nodes}
+
+nodes:
+  default:
+    default:
+      port:   ${spm.port}
+      secure: ${spm.secure}
+      credentials: ${spm.credentials.alias}
+      bootstrapInfo:
+        installDir:   ${bootstrap.install.dir}
+        installer:    ${bootstrap.install.installer}
+        port:         ${bootstrap.ssh.port}
+        credentials:  ${bootstrap.credentials.alias}

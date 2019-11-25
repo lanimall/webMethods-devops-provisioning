@@ -26,9 +26,19 @@ if [ "x$TARGET_HOST" = "x" ]; then
     exit 2;
 fi
 
+if [ "x$DEFAULT_ADMIN_PASSWORD_APIGW" = "x" ]; then
+    echo "error: Variable DEFAULT_ADMIN_PASSWORD_APIGW is required. Check if [${HOME}/.setenv-secrets-${THIS_NOEXT}.sh] is set."
+    exit 2;
+fi
+
 if [ "x$LICENSE_KEY_ALIAS_APIGW" = "x" ]; then
     echo "error: Variable LICENSE_KEY_ALIAS_APIGW (for Api Gateway) is required. Check [${HOME}/setenv-${THIS_NOEXT}.sh] for list of included variables."
     exit 2;
+fi
+
+if [ "x$FIXES_AGW" = "x" ]; then
+    echo "warning: variable FIXES_AGW is empty...no fixes will be applied"
+    FIXES_AGW="[]"
 fi
 
 ##### apply um template
@@ -48,7 +58,8 @@ $SAGCCANT_CMD -Denv.CC_CLIENT=$CC_CLIENT \
               -Dtarget.nodes=$TARGET_HOSTS \
               -Dagw.key.license.alias=$LICENSE_KEY_ALIAS_APIGW \
               -Dagw.is.instance.type=integrationServer \
-              -Dagw.fixes=ALL \
+              -Dagw.fixes=$FIXES_AGW \
+              -Dagw.administrator.password=$DEFAULT_ADMIN_PASSWORD_APIGW \
               setup_noclean
 
 runexec=$?

@@ -6,6 +6,11 @@ THIS_NOEXT="${THIS%.*}"
 THISDIR=`dirname $0`; THISDIR=`cd $THISDIR;pwd`
 BASEDIR="$THISDIR/../.."
 
+##set specific vars
+TEMPLATE_PATH="sag-deployer/template.yaml"
+TEMPLATE_PROPS="deployer"
+TEMPLATE_ENV_TYPE="default"
+
 ## apply global env
 if [ -f ${BASEDIR}/scripts/conf/setenv_cce_globals.sh ]; then
     . ${BASEDIR}/scripts/conf/setenv_cce_globals.sh
@@ -26,29 +31,50 @@ if [ -f ${HOME}/setenv-${THIS_NOEXT}.sh ]; then
     . ${HOME}/setenv-${THIS_NOEXT}.sh
 fi
 
+## apply secrets used by the the install
+if [ -f ${HOME}/.setenv-secrets-${THIS_NOEXT}.sh ]; then
+    . ${HOME}/.setenv-secrets-${THIS_NOEXT}.sh
+fi
+
+##Command in-line Params
 if [ "x$TARGET_HOSTS" = "x" ]; then
     echo "error: variable TARGET_HOSTS is required...exiting!"
     exit 2;
 fi
 
+if [ "x$LICENSE_KEY_ALIAS_IS" = "x" ]; then
+    echo "error: Variable LICENSE_KEY_ALIAS_IS is required...exiting!"
+    exit 2;
+fi
+
+if [ "x$DEFAULT_ADMIN_PASSWORD_IS" = "x" ]; then
+    echo "error: Variable DEFAULT_ADMIN_PASSWORD_IS is required...exiting!"
+    exit 2;
+fi
+
+if [ "x$FIXES_DEPLOYER" = "x" ]; then
+    echo "warning: variable FIXES_DEPLOYER is empty...no fixes will be applied"
+    FIXES_DEPLOYER="[]"
+fi
+
 ##### apply template
-## after -Denv.CC_ENV -- specify the deployer properties file name
-## after -Drepo.product= -- start boiler plate deployer properties
-## after -Denv.CC_TEMPLATE -- start actual deployer params
 $SAGCCANT_CMD -Denv.CC_CLIENT=$CC_CLIENT \
               -Dbuild.dir=$ANT_BUILD_DIR \
               -Dinstall.dir=$INSTALL_DIR \
-              -Denv.CC_ENV=deployer \
               -Drepo.product=$CC_REPO_NAME_PRODUCTS \
               -Drepo.fix=$CC_REPO_NAME_FIXES \
               -Dbootstrap.install.dir=$INSTALL_DIR \
               -Dbootstrap.install.installer.version=$CC_BOOTSTRAPPER_VERSION \
               -Dbootstrap.install.installer.version.fix=$CC_BOOTSTRAPPER_VERSION_FIX \
-              -Denv.SOCKET_CHECK_TARGET_HOST=$TARGET_HOST \
+              -Denv.SOCKET_CHECK_TARGET_HOST=$TARGET_HOSTS \
               -Denv.SOCKET_CHECK_TARGET_PORT=22 \
-              -Denv.CC_TEMPLATE=sag-deployer/template.yaml \
+              -Denv.CC_TEMPLATE=$TEMPLATE_PATH \
+              -Denv.CC_ENV=$TEMPLATE_PROPS \
+              -Denvironment.type=$TEMPLATE_ENV_TYPE \
               -Dtarget.nodes=$TARGET_HOSTS \
-              -Denvironment.type=server \
+              -Ddeployer.key.license.alias=$LICENSE_KEY_ALIAS_IS \
+              -Ddeployer.fixes=$FIXES_DEPLOYER \
+              -Ddeployer.administrator.password=$DEFAULT_ADMIN_PASSWORD_IS \
               setup_noclean
 
 runexec=$?

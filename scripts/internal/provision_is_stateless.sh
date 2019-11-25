@@ -6,6 +6,11 @@ THIS_NOEXT="${THIS%.*}"
 THISDIR=`dirname $0`; THISDIR=`cd $THISDIR;pwd`
 BASEDIR="$THISDIR/../.."
 
+##set specific vars
+TEMPLATE_PATH="is-layer/tpl_is_stateless.yaml"
+TEMPLATE_PROPS="is"
+TEMPLATE_ENV_TYPE="default"
+
 ## apply global env
 if [ -f ${BASEDIR}/scripts/conf/setenv_cce_globals.sh ]; then
     . ${BASEDIR}/scripts/conf/setenv_cce_globals.sh
@@ -26,28 +31,33 @@ if [ -f ${HOME}/setenv-${THIS_NOEXT}.sh ]; then
     . ${HOME}/setenv-${THIS_NOEXT}.sh
 fi
 
+## apply secrets used by the the install
+if [ -f ${HOME}/.setenv-secrets-${THIS_NOEXT}.sh ]; then
+    . ${HOME}/.setenv-secrets-${THIS_NOEXT}.sh
+fi
+
 ##Command in-line Params
-STATUS_ID=$1
-if [ "x$STATUS_ID" != "x" ]; then
-    STATUS_ID="_$STATUS_ID"
-fi
-
 if [ "x$TARGET_HOSTS" = "x" ]; then
-    echo "error: variable TARGET_HOST is required...exiting!"
+    echo "error: variable TARGET_HOSTS is required...exiting!"
     exit 2;
 fi
 
-if [ "x$LICENSE_KEY_ALIAS1" = "x" ]; then
-    echo "error: Variable LICENSE_KEY_ALIAS1 (for IS) is required...exiting!"
+if [ "x$LICENSE_KEY_ALIAS_IS" = "x" ]; then
+    echo "error: Variable LICENSE_KEY_ALIAS_IS is required...exiting!"
     exit 2;
 fi
 
-if [ "x$ADMIN_PASSWORD" = "x" ]; then
-    echo "error: Variable ADMIN_PASSWORD (for IS) is required...exiting!"
+if [ "x$DEFAULT_ADMIN_PASSWORD_IS" = "x" ]; then
+    echo "error: Variable DEFAULT_ADMIN_PASSWORD_IS is required...exiting!"
     exit 2;
 fi
 
-##### apply um template
+if [ "x$FIXES_IS" = "x" ]; then
+    echo "warning: variable FIXES_IS is empty...no fixes will be applied"
+    FIXES_IS="[]"
+fi
+
+##### apply template
 $SAGCCANT_CMD -Denv.CC_CLIENT=$CC_CLIENT \
               -Dbuild.dir=$ANT_BUILD_DIR \
               -Dinstall.dir=$INSTALL_DIR \
@@ -56,18 +66,24 @@ $SAGCCANT_CMD -Denv.CC_CLIENT=$CC_CLIENT \
               -Dbootstrap.install.dir=$INSTALL_DIR \
               -Dbootstrap.install.installer.version=$CC_BOOTSTRAPPER_VERSION \
               -Dbootstrap.install.installer.version.fix=$CC_BOOTSTRAPPER_VERSION_FIX \
-              -Denv.CC_TEMPLATE=is-layer/tpl_is_stateless.yaml \
-              -Denv.CC_ENV=is \
-              -Denv.SOCKET_CHECK_TARGET_HOST=$TARGET_HOST \
+              -Denv.SOCKET_CHECK_TARGET_HOST=$TARGET_HOSTS \
               -Denv.SOCKET_CHECK_TARGET_PORT=22 \
-              -Denvironment.type=server \
+              -Denv.CC_TEMPLATE=$TEMPLATE_PATH \
+              -Denv.CC_ENV=$TEMPLATE_PROPS \
+              -Denvironment.type=$TEMPLATE_ENV_TYPE \
               -Dtarget.nodes=$TARGET_HOSTS \
-              -Dis.license.key.alias=$LICENSE_KEY_ALIAS1 \
-              -Dagw.is.instance.type=integrationServer
-              -Dis.password=$ADMIN_PASSWORD \
+              -Dis.key.license.alias=$LICENSE_KEY_ALIAS_IS \
+              -Dis.fixes=$FIXES_IS \
+              -Dis.administrator.password=$DEFAULT_ADMIN_PASSWORD_IS \
               setup_noclean
 
 runexec=$?
+
+STATUS_ID=$1
+if [ "x$STATUS_ID" != "x" ]; then
+    STATUS_ID="_$STATUS_ID"
+fi
+
 if [ $runexec -eq 0 ]; then
     echo "[$THIS_NOEXT: SUCCESS]"
     

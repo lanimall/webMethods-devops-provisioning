@@ -31,7 +31,7 @@ layers:
 templates:
   agw-server:
     licenses:
-      "IntegrationServer/config/APIGatewayLicenseKey.xml": ${agw.key.license.alias} 
+      "IntegrationServer/config/APIGatewayLicenseKey.xml": "${agw.key.license.alias}"
     fixes: ${agw.fixes}
     products:
       YAI:
@@ -44,7 +44,7 @@ templates:
           install.service: ${agw.install.service}
           package.list:    WmAPIGateway
           configuration:
-            OSGI-IS_${instance.name}:
+            OSGI-IS_${agw.instance.name}:
               COMMON-MEMORY:
                 COMMON-MEMORY:
                   InitSize: ${agw.memory.init}
@@ -69,3 +69,15 @@ templates:
 provision:
   default:
     runtime: ${nodes}
+
+nodes:
+  default:
+    default:
+      port:   ${spm.port}
+      secure: ${spm.secure}
+      credentials: ${spm.credentials.alias}
+      bootstrapInfo:
+        installDir:   ${bootstrap.install.dir}
+        installer:    ${bootstrap.install.installer}
+        port:         ${bootstrap.ssh.port}
+        credentials:  ${bootstrap.credentials.alias}

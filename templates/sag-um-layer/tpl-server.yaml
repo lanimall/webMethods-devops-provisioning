@@ -1,5 +1,5 @@
-alias: um-layer
-description: Universal Messaging Realm server
+alias: sag-um-server
+description: Universal Messaging realm server
 
 environments:
   default:

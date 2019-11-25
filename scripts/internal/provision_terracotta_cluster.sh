@@ -36,6 +36,11 @@ if [ "x$LICENSE_KEY_ALIAS_TERRACOTTA" = "x" ]; then
     exit 2;
 fi
 
+if [ "x$FIXES_TC" = "x" ]; then
+    echo "warning: variable FIXES_TC is empty...no fixes will be applied"
+    FIXES_TC="[]"
+fi
+
 ##### apply template
 $SAGCCANT_CMD -Denv.CC_CLIENT=$CC_CLIENT \
               -Dbuild.dir=$ANT_BUILD_DIR \
@@ -52,6 +57,7 @@ $SAGCCANT_CMD -Denv.CC_CLIENT=$CC_CLIENT \
               -Denvironment.type=default \
               -Dtarget.nodes=$TARGET_HOSTS \
               -Dtc.key.license.alias=$LICENSE_KEY_ALIAS_TERRACOTTA \
+              -Dtc.fixes=$FIXES_TC \
               setup_noclean
 
 runexec=$?

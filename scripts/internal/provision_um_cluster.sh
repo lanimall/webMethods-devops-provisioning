@@ -7,8 +7,8 @@ THISDIR=`dirname $0`; THISDIR=`cd $THISDIR;pwd`
 BASEDIR="$THISDIR/../.."
 
 ##set specific vars
-TEMPLATE_PATH="sag-abe/template.yaml"
-TEMPLATE_PROPS="abe"
+TEMPLATE_PATH="sag-um-layer/tpl-cluster.yaml"
+TEMPLATE_PROPS="um"
 TEMPLATE_ENV_TYPE="default"
 
 ## apply global env
@@ -32,13 +32,18 @@ if [ -f ${HOME}/setenv-${THIS_NOEXT}.sh ]; then
 fi
 
 if [ "x$TARGET_HOSTS" = "x" ]; then
-    echo "error: variable TARGET_HOSTS is required...exiting!"
+    echo "error: variable TARGET_HOSTS is required. Check [${HOME}/setenv-${THIS_NOEXT}.sh] for list of included variables."
     exit 2;
 fi
 
-if [ "x$FIXES_ABE" = "x" ]; then
-    echo "warning: variable FIXES_ABE is empty...no fixes will be applied"
-    FIXES_ABE="[]"
+if [ "x$LICENSE_KEY_ALIAS_UM" = "x" ]; then
+    echo "error: Variable LICENSE_KEY_ALIAS_UM is required. Check [${HOME}/setenv-${THIS_NOEXT}.sh] for list of included variables."
+    exit 2;
+fi
+
+if [ "x$FIXES_UM" = "x" ]; then
+    echo "warning: variable FIXES_UM is empty...no fixes will be applied"
+    FIXES_UM="[]"
 fi
 
 ##### apply template
@@ -56,7 +61,8 @@ $SAGCCANT_CMD -Denv.CC_CLIENT=$CC_CLIENT \
               -Denv.CC_ENV=$TEMPLATE_PROPS \
               -Denvironment.type=$TEMPLATE_ENV_TYPE \
               -Dtarget.nodes=$TARGET_HOSTS \
-              -Dabe.fixes=$FIXES_ABE \
+              -Dum.license.key.alias=$LICENSE_KEY_ALIAS_UM \
+              -Dum.fixes=$FIXES_UM \
               setup_noclean
 
 runexec=$?

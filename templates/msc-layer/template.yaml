@@ -58,7 +58,7 @@ templates:
 
   msc-server:
     licenses:
-      "IntegrationServer/config/licenseKey.xml": ${is.license.key.alias}
+      "IntegrationServer/config/licenseKey.xml": "${is.license.key.alias}"
     fixes: ${is.fixes}
     products:
       MSC:

@@ -58,7 +58,7 @@ templates:
 
   tc-server:
     licenses:
-      "Terracotta/terracotta-license.key": ${tc.license.key.alias}
+      "Terracotta/terracotta-license.key": "${tc.license.key.alias}"
     fixes: ${tc.fixes}
     products:
       TES:
